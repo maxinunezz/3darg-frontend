@@ -1,43 +1,29 @@
 import type { Metadata } from "next";
 import { Urbanist } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/navbar";
-import { Footer } from "@/components/footer";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { CartProvider } from "@/contexts/CartContext";
 
 const urbanist = Urbanist({
-  variable: "--font-urbanist", // Nombre coherente con la fuente
+  variable: "--font-urbanist",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "3DARG ecommerce",
-  description: "Piezas únicas impresas en 3D", // Una descripción un poco más SEO-friendly
+  title: "3DARG | Impresión 3D Personalizada",
+  description:
+    "Piezas únicas impresas en 3D — diseños personalizados, servicio técnico y marcas especializadas.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" suppressHydrationWarning> 
-    <body
-        className={`${urbanist.variable} font-sans antialiased`}
-      >
-        <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-          <div className="flex flex-col min-h-screen"> {/* Wrapper para empujar el footer abajo si hay poco contenido */}
-            <Navbar />
-            <main className="flex-grow">
-              {children}
-            </main>
-            <Footer />
-          </div>
+    <html lang="es" suppressHydrationWarning>
+      <body className={`${urbanist.variable} font-sans antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <AuthProvider>
+            <CartProvider>{children}</CartProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

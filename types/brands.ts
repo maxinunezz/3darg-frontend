@@ -1,10 +1,27 @@
+export type BrandLinkType = {
+  label: string;
+  url: string;
+  order: number;
+  is_active: boolean;
+};
+
 export type BrandType = {
   id: number;
   name: string;
   slug: string;
-  brand_type: 'services-only' | 'products-only' | 'mixed'; // Ajustá según tus modelos
-  slogan: string | null;
-  logo: string | null; // URL de la imagen
+  brand_type: "services" | "ecommerce" | "hybrid";
+  is_active: boolean;
+  show_in_navbar: boolean;
   navbar_order: number;
-  children: BrandType[]; // Recursividad: una marca tiene hijas que son BrandType
+  slogan: string;
+  short_description: string;
+  description: string;
+  logo: string | null;
+  cover_image: string | null;
+  theme: Record<string, string>;
+  social_links: Record<string, string>;
+  links: BrandLinkType[];
+  children: BrandType[];
+  created_at: string;
+  updated_at: string;
 };

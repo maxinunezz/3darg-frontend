@@ -69,7 +69,7 @@ export const CarouselTextBanner: React.FC<CarouselTextBannerProps> = ({items}) =
 
       
       
-        {items.map(({id,title,description,link,image}) => (
+        {items?.map(({id,title,description,link,image}) => (
           <CarouselItem
             key={id}
             onClick={() => router.push(link)}

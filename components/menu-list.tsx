@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import Link from "next/link"
+import * as React from "react";
+import Link from "next/link";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -9,77 +9,55 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu"
+} from "@/components/ui/navigation-menu";
+import { useGetBrands } from "@/api/useGetBrands";
+import type { BrandType } from "@/types/brands";
 
-const menuList = () => {
+const MenuList = () => {
+  const { result: rootBrands } = useGetBrands();
+
+  const subBrands: BrandType[] = rootBrands
+    .flatMap((b) => b.children ?? [])
+    .filter((b) => b.show_in_navbar && b.is_active)
+    .sort((a, b) => a.navbar_order - b.navbar_order);
+
   return (
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <NavigationMenuTrigger>About Us</NavigationMenuTrigger>
+          <NavigationMenuTrigger>Nosotros</NavigationMenuTrigger>
           <NavigationMenuContent>
-            <ul className="w-96">
-              <ListItem href="/docs" title="3DARG">
-                know us better.
+            <ul className="w-64 p-2">
+              <ListItem href="/" title="3DARG">
+                Impresión 3D personalizada para cada necesidad.
               </ListItem>
-              <ListItem href="/shop" title="SHOP">
-                Take a look at our products.
-              </ListItem>
-              <ListItem href="/offers" title="OFFERS">
-                The best discounts are here!.
+              <ListItem href="/shop" title="Tienda">
+                Explorá todos nuestros productos.
               </ListItem>
             </ul>
           </NavigationMenuContent>
         </NavigationMenuItem>
-        <NavigationMenuItem className="hidden md:flex">
-          <NavigationMenuTrigger>Brands</NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <ul className="grid w-[400px] gap-2 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-              {components.map((component) => (
-                <ListItem
-                  key={component.title}
-                  title={component.title}
-                  href={component.href}
-                >
-                  {component.description}
-                </ListItem>
-              ))}
-            </ul>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
+
+        {subBrands.length > 0 && (
+          <NavigationMenuItem className="hidden md:flex">
+            <NavigationMenuTrigger>Marcas</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid w-[400px] gap-2 p-2 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                {subBrands.map((brand) => (
+                  <ListItem key={brand.id} title={brand.name} href={`/${brand.slug}`}>
+                    {brand.short_description || brand.slogan || ""}
+                  </ListItem>
+                ))}
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        )}
       </NavigationMenuList>
     </NavigationMenu>
-  )
-}
+  );
+};
 
-export default menuList
-
-const components: { title: string; href: string; description: string }[] = [
-  {
-    title: "MINI SLAM",
-    href: "/category/basketball",
-    description:
-      "Time to have fun!",
-  },
-  {
-    title: "PRINT & GYM",
-    href: "/category/fitness",
-    description:
-      "Train hard. Feel strong. Stay unstoppable.",
-  },
-  {
-    title: "CYBER WEED",
-    href: "/category/lifestyle",
-    description:
-      "Everything you need for the perfect session.",
-  },
-  {
-    title: "LUMY",
-    href: "/category/sweetDesign",
-    description: "Elevate every detail of your special moments.",
-  }
-]
+export default MenuList;
 
 function ListItem({
   title,
@@ -90,15 +68,15 @@ function ListItem({
   return (
     <li {...props}>
       <NavigationMenuLink asChild>
-        <Link href={href}>
+        <Link href={href} className="block p-3 rounded-md hover:bg-muted transition-colors">
           <div className="flex flex-col gap-1 text-sm">
-            <div className="leading-none font-medium">{title}</div>
-            <div className="text-muted-foreground line-clamp-2">{children}</div>
+            <div className="leading-none font-semibold">{title}</div>
+            {children && (
+              <div className="text-muted-foreground line-clamp-2 text-xs">{children}</div>
+            )}
           </div>
         </Link>
       </NavigationMenuLink>
     </li>
-  )
+  );
 }
-
-
