@@ -15,17 +15,17 @@ const BannerDiscount = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-          <Link 
-            href="/products" 
+          <Link
+            href="/shop"
             className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto shadow-lg hover:shadow-primary/20")}
           >
             Comprar Ahora
           </Link>
-          <Link 
-            href="/info" 
+          <Link
+            href="/shop"
             className={cn(buttonVariants({ variant: "outline", size: "lg" }), "w-full sm:w-auto")}
           >
-            Más información
+            Ver tienda
           </Link>
         </div>
       </div>

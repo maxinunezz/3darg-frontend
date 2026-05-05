@@ -14,11 +14,14 @@ const USE_SANDBOX = process.env.NEXT_PUBLIC_MP_SANDBOX === "true";
 async function createMpPreference(
   brandSlug: string,
   items: CartItem[],
-  customerEmail?: string
+  customerEmail?: string,
+  token?: string
 ) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
   const res = await fetch(`${API}/payments/mp/checkout-pro/`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({
       brand_slug: brandSlug,
       customer_email: customerEmail ?? "",
@@ -172,7 +175,7 @@ export default function CartPage() {
     setCheckoutLoading(brandSlug);
     setCheckoutError("");
     try {
-      const data = await createMpPreference(brandSlug, brandItems, user?.email);
+      const data = await createMpPreference(brandSlug, brandItems, user?.email, token ?? undefined);
       const url = USE_SANDBOX ? data.sandbox_init_point : data.init_point;
       window.location.href = url;
     } catch (e: unknown) {
