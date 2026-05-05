@@ -47,13 +47,22 @@ export const Navbar = () => {
             </button>
 
             {isAuthenticated ? (
-              <button
-                onClick={logout}
-                className="text-muted-foreground hover:text-destructive transition-colors"
-                aria-label="Cerrar sesión"
-              >
-                <LogOut strokeWidth={1.5} className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => router.push("/profile")}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Mi perfil"
+                >
+                  <User strokeWidth={1.5} className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={logout}
+                  className="text-muted-foreground hover:text-destructive transition-colors"
+                  aria-label="Cerrar sesión"
+                >
+                  <LogOut strokeWidth={1.5} className="w-5 h-5" />
+                </button>
+              </div>
             ) : (
               <button
                 onClick={() => router.push("/login")}

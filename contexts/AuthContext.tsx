@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
 
 type User = { id: number; email: string; username: string; phone: string; date_joined: string };
 
@@ -14,12 +14,26 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
-
 const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
+
+function getJwtExpiry(token: string): number | null {
+  try {
+    const b64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const { exp } = JSON.parse(atob(b64));
+    return exp ? exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearRefreshTimer = () => {
+    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+  };
 
   const fetchMe = useCallback(async (accessToken: string) => {
     const res = await fetch(`${API}/users/me/`, {
@@ -29,16 +43,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(await res.json());
   }, []);
 
+  const refreshToken = useCallback(async () => {
+    const refresh = localStorage.getItem("refresh_token");
+    if (!refresh) return null;
+    try {
+      const res = await fetch(`${API}/auth/token/refresh/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh }),
+      });
+      if (!res.ok) throw new Error("Refresh failed");
+      const data = await res.json();
+      localStorage.setItem("access_token", data.access);
+      setToken(data.access);
+      scheduleRefresh(data.access);
+      return data.access;
+    } catch {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      setToken(null);
+      setUser(null);
+      return null;
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function scheduleRefresh(accessToken: string) {
+    clearRefreshTimer();
+    const expiry = getJwtExpiry(accessToken);
+    if (!expiry) return;
+    const delay = expiry - Date.now() - 60_000; // refresh 1 min before expiry
+    if (delay > 0) {
+      refreshTimerRef.current = setTimeout(() => refreshToken(), delay);
+    } else {
+      refreshToken();
+    }
+  }
+
   useEffect(() => {
     const stored = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
     if (!stored) return;
     setToken(stored);
+    scheduleRefresh(stored);
     fetchMe(stored).catch(() => {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      setToken(null);
+      refreshToken().then((newToken) => {
+        if (newToken) fetchMe(newToken).catch(() => {});
+      });
     });
-  }, [fetchMe]);
+    return clearRefreshTimer;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const login = useCallback(
     async (email: string, password: string) => {
@@ -52,12 +104,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("access_token", data.access);
       localStorage.setItem("refresh_token", data.refresh);
       setToken(data.access);
+      scheduleRefresh(data.access);
       await fetchMe(data.access);
     },
-    [fetchMe]
+    [fetchMe] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const logout = useCallback(() => {
+    clearRefreshTimer();
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     setToken(null);

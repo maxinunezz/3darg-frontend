@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ProductType, CategoryType } from "@/types/product";
+import { SearchBar } from "@/components/search-bar";
 
 const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
 
@@ -42,12 +43,15 @@ export default async function ShopPage({
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="mb-8">
-        <h1 className="text-4xl font-black uppercase tracking-tight">Tienda</h1>
-        <p className="text-muted-foreground mt-2">
-          {products.length} producto{products.length !== 1 ? "s" : ""} disponible
-          {products.length !== 1 ? "s" : ""}
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-4xl font-black uppercase tracking-tight">Tienda</h1>
+          <p className="text-muted-foreground mt-2">
+            {products.length} producto{products.length !== 1 ? "s" : ""} disponible
+            {products.length !== 1 ? "s" : ""}
+          </p>
+        </div>
+        <SearchBar basePath="/shop" defaultValue={search} />
       </div>
 
       {categories.length > 0 && (

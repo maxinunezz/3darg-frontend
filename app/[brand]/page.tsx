@@ -4,6 +4,26 @@ import Link from "next/link";
 import { getBrandBySlug } from "@/lib/brands";
 import type { ProductType } from "@/types/product";
 import { Instagram } from "lucide-react";
+import type { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ brand: string }>;
+}): Promise<Metadata> {
+  const { brand: slug } = await params;
+  const brand = await getBrandBySlug(slug);
+  if (!brand) return {};
+  return {
+    title: `${brand.name} | 3DARG`,
+    description: brand.slogan || brand.short_description || brand.description || `Productos de ${brand.name}`,
+    openGraph: {
+      title: brand.name,
+      description: brand.slogan || brand.short_description || "",
+      images: brand.cover_image ? [{ url: brand.cover_image }] : [],
+    },
+  };
+}
 
 const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
 

@@ -3,13 +3,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { getBrandBySlug } from "@/lib/brands";
 import type { ProductType, CategoryType } from "@/types/product";
+import { SearchBar } from "@/components/search-bar";
 
 const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
 
-async function getProducts(brandSlug: string, categorySlug?: string): Promise<ProductType[]> {
+async function getProducts(brandSlug: string, categorySlug?: string, search?: string): Promise<ProductType[]> {
   try {
     const params = new URLSearchParams({ brand_slug: brandSlug, is_available: "true" });
     if (categorySlug) params.set("category__slug", categorySlug);
+    if (search) params.set("search", search);
     const res = await fetch(`${API}/products/?${params}`, { next: { revalidate: 60 } });
     if (!res.ok) return [];
     const data = await res.json();
@@ -35,14 +37,14 @@ export default async function ShopPage({
   searchParams,
 }: {
   params: Promise<{ brand: string }>;
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ category?: string; search?: string }>;
 }) {
   const { brand: slug } = await params;
-  const { category } = await searchParams;
+  const { category, search } = await searchParams;
 
   const [brand, products, categories] = await Promise.all([
     getBrandBySlug(slug),
-    getProducts(slug, category),
+    getProducts(slug, category, search),
     getCategories(),
   ]);
 
@@ -51,11 +53,14 @@ export default async function ShopPage({
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-black uppercase tracking-tight">{brand.name}</h1>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-4xl font-black uppercase tracking-tight">{brand.name}</h1>
         {brand.short_description && (
           <p className="text-muted-foreground mt-2 text-lg">{brand.short_description}</p>
         )}
+        </div>
+        <SearchBar basePath={`/${slug}/shop`} defaultValue={search} />
       </div>
 
       {/* Category filters */}

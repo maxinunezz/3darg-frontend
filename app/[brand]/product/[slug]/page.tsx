@@ -5,6 +5,26 @@ import { getBrandBySlug } from "@/lib/brands";
 import type { ProductType } from "@/types/product";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { Package } from "lucide-react";
+import type { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ brand: string; slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const product = await getProduct(slug);
+  if (!product) return {};
+  return {
+    title: `${product.name} | 3DARG`,
+    description: product.description?.slice(0, 160) || `${product.name} — impresión 3D personalizada`,
+    openGraph: {
+      title: product.name,
+      description: product.description?.slice(0, 160) || "",
+      images: product.images?.[0]?.image ? [{ url: product.images[0].image }] : [],
+    },
+  };
+}
 
 const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
 
