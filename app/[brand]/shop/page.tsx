@@ -5,7 +5,7 @@ import { getBrandBySlug } from "@/lib/brands";
 import type { ProductType, CategoryType } from "@/types/product";
 import { SearchBar } from "@/components/search-bar";
 
-const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
+const API = process.env.BACKEND_INTERNAL_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
 
 async function getProducts(brandSlug: string, categorySlug?: string, search?: string): Promise<ProductType[]> {
   try {

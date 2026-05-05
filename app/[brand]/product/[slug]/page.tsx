@@ -26,7 +26,7 @@ export async function generateMetadata({
   };
 }
 
-const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
+const API = process.env.BACKEND_INTERNAL_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
 
 async function getProduct(slug: string): Promise<ProductType | null> {
   try {

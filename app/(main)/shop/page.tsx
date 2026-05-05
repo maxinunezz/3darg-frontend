@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ProductType, CategoryType } from "@/types/product";
 import { SearchBar } from "@/components/search-bar";
 
-const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
+const API = process.env.BACKEND_INTERNAL_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
 
 async function getProducts(categorySlug?: string, search?: string): Promise<ProductType[]> {
   try {

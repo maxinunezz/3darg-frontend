@@ -1,6 +1,6 @@
 import type { BrandType } from "@/types/brands";
 
-const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
+const API = process.env.BACKEND_INTERNAL_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
 
 export async function getBrands(): Promise<BrandType[]> {
   try {
