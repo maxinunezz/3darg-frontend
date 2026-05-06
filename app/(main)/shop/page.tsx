@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { resolveMediaUrl } from "@/lib/api";
 import type { ProductType, CategoryType } from "@/types/product";
 import { SearchBar } from "@/components/search-bar";
 
@@ -10,7 +11,7 @@ async function getProducts(categorySlug?: string, search?: string): Promise<Prod
     const params = new URLSearchParams({ is_available: "true" });
     if (categorySlug) params.set("category__slug", categorySlug);
     if (search) params.set("search", search);
-    const res = await fetch(`${API}/products/?${params}`, { next: { revalidate: 60 } });
+    const res = await fetch(`${API}/products/?${params}`, { cache: "no-store" });
     if (!res.ok) return [];
     const data = await res.json();
     return data.results ?? data;
@@ -102,7 +103,7 @@ export default async function ShopPage({
                 <div className="aspect-square bg-muted relative overflow-hidden">
                   {product.images?.[0]?.image ? (
                     <Image
-                      src={product.images[0].image}
+                      src={resolveMediaUrl(product.images[0].image)!}
                       alt={product.images[0].alt || product.name}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"

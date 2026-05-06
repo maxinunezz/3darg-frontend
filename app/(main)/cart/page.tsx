@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import type { CartItem } from "@/contexts/CartContext";
+import { resolveMediaUrl } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
 import { Trash2, Minus, Plus, ShoppingBag, Loader2 } from "lucide-react";
@@ -84,7 +85,7 @@ function BrandGroup({
             <div className="w-16 h-16 bg-muted rounded-xl overflow-hidden shrink-0 relative">
               {product.images?.[0]?.image ? (
                 <Image
-                  src={product.images[0].image}
+                  src={resolveMediaUrl(product.images[0].image)!}
                   alt={product.name}
                   fill
                   className="object-cover"

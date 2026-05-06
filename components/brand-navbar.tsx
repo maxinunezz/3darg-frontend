@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { BrandType } from "@/types/brands";
+import { resolveMediaUrl } from "@/lib/api";
 import { useCart } from "@/contexts/CartContext";
 import { ToggleTheme } from "./ui/toggle-theme";
 
@@ -25,7 +26,7 @@ export function BrandNavbar({ brand }: BrandNavbarProps) {
           <Link href={`/${brand.slug}`} className="flex items-center gap-3 shrink-0">
             {brand.logo ? (
               <Image
-                src={brand.logo}
+                src={resolveMediaUrl(brand.logo)!}
                 alt={`${brand.name} logo`}
                 width={140}
                 height={56}

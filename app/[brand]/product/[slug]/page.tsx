@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { getBrandBySlug } from "@/lib/brands";
+import { resolveMediaUrl } from "@/lib/api";
 import type { ProductType } from "@/types/product";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { Package } from "lucide-react";
@@ -49,7 +50,7 @@ export default async function ProductPage({
   if (!brand || !product) notFound();
 
   const inStock = product.is_available && product.stock > 0;
-  const mainImage = product.images?.[0]?.image;
+  const mainImage = resolveMediaUrl(product.images?.[0]?.image);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
@@ -105,7 +106,7 @@ export default async function ProductPage({
                   className="aspect-square bg-muted rounded-lg overflow-hidden relative"
                 >
                   <Image
-                    src={img.image}
+                    src={resolveMediaUrl(img.image)!}
                     alt={img.alt || product.name}
                     fill
                     className="object-cover"
