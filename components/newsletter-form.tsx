@@ -1,6 +1,6 @@
 "use client";
 
-export function NewsletterForm() {
+export function NewsletterForm({ cta }: { cta?: string }) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
@@ -23,7 +23,7 @@ export function NewsletterForm() {
         type="submit"
         className="bg-primary text-primary-foreground px-8 py-3 rounded-full font-bold text-sm hover:opacity-90 transition-opacity shrink-0"
       >
-        Suscribirme
+        {cta ?? "Suscribirme"}
       </button>
     </form>
   );
