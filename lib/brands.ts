@@ -4,7 +4,7 @@ const API = process.env.BACKEND_INTERNAL_URL ?? process.env.NEXT_PUBLIC_BACKEND_
 
 export async function getBrands(): Promise<BrandType[]> {
   try {
-    const res = await fetch(`${API}/brands/`, { next: { revalidate: 300 } });
+    const res = await fetch(`${API}/brands/`, { cache: "no-store" });
     if (!res.ok) return [];
     const data = await res.json();
     return data.results ?? data;

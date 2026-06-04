@@ -16,7 +16,12 @@ export type ProductType = {
   name: string;
   slug: string;
   description: string;
-  price: number;
+  price: number;                    // precio de lista
+  member_price: number;             // precio con descuento de socio aplicado
+  final_price: number;              // precio efectivo para QUIEN consulta (socio = member_price)
+  members_only: boolean;            // solo visible/comprable con cuenta
+  member_discount_percent: number;  // % de descuento para socios (0 = sin descuento)
+  has_member_discount: boolean;
   stock: number;
   is_available: boolean;
   is_featured: boolean;

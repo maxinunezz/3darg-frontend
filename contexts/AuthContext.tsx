@@ -8,9 +8,10 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
+  loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  register: (email: string, username: string, password: string, phone?: string) => Promise<void>;
+  register: (email: string, username: string, password: string, phone?: string, brandSlug?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -29,6 +30,7 @@ function getJwtExpiry(token: string): number | null {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearRefreshTimer = () => {
@@ -81,14 +83,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-    if (!stored) return;
+    if (!stored) {
+      setLoading(false);
+      return;
+    }
     setToken(stored);
     scheduleRefresh(stored);
-    fetchMe(stored).catch(() => {
-      refreshToken().then((newToken) => {
-        if (newToken) fetchMe(newToken).catch(() => {});
-      });
-    });
+    fetchMe(stored)
+      .catch(() =>
+        refreshToken().then((newToken) => {
+          if (newToken) return fetchMe(newToken).catch(() => {});
+        })
+      )
+      .finally(() => setLoading(false));
     return clearRefreshTimer;
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -119,11 +126,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const register = useCallback(
-    async (email: string, username: string, password: string, phone = "") => {
+    async (email: string, username: string, password: string, phone = "", brandSlug = "") => {
       const res = await fetch(`${API}/users/register/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, username, password, phone }),
+        body: JSON.stringify({
+          email, username, password, phone,
+          ...(brandSlug && { brand_slug: brandSlug }),
+        }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -135,7 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, login, logout, register }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, loading, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   );

@@ -5,10 +5,11 @@ import type { ProductType, CategoryType } from "@/types/product";
 import { SearchBar } from "@/components/search-bar";
 
 const API = process.env.BACKEND_INTERNAL_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
+const MAIN_SLUG = process.env.NEXT_PUBLIC_MAIN_BRAND_SLUG ?? "3darg";
 
 async function getProducts(categorySlug?: string, search?: string): Promise<ProductType[]> {
   try {
-    const params = new URLSearchParams({ is_available: "true" });
+    const params = new URLSearchParams({ is_available: "true", brand_slug: MAIN_SLUG });
     if (categorySlug) params.set("category__slug", categorySlug);
     if (search) params.set("search", search);
     const res = await fetch(`${API}/products/?${params}`, { cache: "no-store" });
@@ -22,7 +23,8 @@ async function getProducts(categorySlug?: string, search?: string): Promise<Prod
 
 async function getCategories(): Promise<CategoryType[]> {
   try {
-    const res = await fetch(`${API}/categories/`, { next: { revalidate: 300 } });
+    const mainSlug = process.env.NEXT_PUBLIC_MAIN_BRAND_SLUG ?? "3darg";
+    const res = await fetch(`${API}/categories/?brand_slug=${mainSlug}`, { next: { revalidate: 300 } });
     if (!res.ok) return [];
     const data = await res.json();
     return data.results ?? data;

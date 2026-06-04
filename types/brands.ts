@@ -18,7 +18,8 @@ export type BrandStat = {
 
 export type BrandPageConfig = {
   // Qué secciones mostrar y en qué orden
-  sections?: Array<"hero" | "stats" | "featured" | "categories" | "features" | "lifestyle" | "about" | "newsletter" | "social">;
+  sections?: Array<"hero" | "panels" | "stats" | "featured" | "categories" | "features" | "lifestyle" | "about" | "newsletter" | "community" | "social">;
+  panels?: Array<{ title: string; subtitle?: string; href: string; image?: string }>;
   // Hero
   hero_style?: "full" | "minimal" | "split";
   // Stats bar
@@ -34,6 +35,17 @@ export type BrandPageConfig = {
   newsletter_title?: string;
   newsletter_subtitle?: string;
   newsletter_cta?: string;
+  // About page
+  about_cases?: Array<{ emoji: string; problem: string; solution: string }>;
+  // Community section
+  community_headline?: string;
+  community_subheadline?: string;
+  community_description?: string;
+  community_benefits?: Array<{ emoji: string; label: string }>;
+  community_bg_variant?: string;
+  community_bg_image?: string;
+  community_cta_register?: string;
+  community_cta_login?: string;
 };
 
 export type BrandType = {

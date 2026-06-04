@@ -13,7 +13,12 @@ import {
 import { useGetBrands } from "@/api/useGetBrands";
 import type { BrandType } from "@/types/brands";
 
-const MenuList = () => {
+// El dropdown es siempre oscuro para armonizar con el navbar (que también es oscuro
+// tanto en dark mode como en light mode al hacer scroll).
+const DROPDOWN_BG = "#1E1E1E";
+const DROPDOWN_BORDER = "rgba(255,255,255,0.08)";
+
+const MenuList = ({ hasDarkBg = false }: { hasDarkBg?: boolean }) => {
   const { result: rootBrands } = useGetBrands();
 
   const subBrands: BrandType[] = rootBrands
@@ -21,37 +26,58 @@ const MenuList = () => {
     .filter((b) => b.show_in_navbar && b.is_active)
     .sort((a, b) => a.navbar_order - b.navbar_order);
 
+  const triggerCls = [
+    "bg-transparent hover:bg-transparent focus:bg-transparent",
+    "data-[active]:bg-transparent data-[state=open]:bg-transparent",
+    "font-mono text-[10px] tracking-[0.3em] uppercase px-4 py-2 transition-colors",
+    hasDarkBg
+      ? "text-white/70 hover:text-white"
+      : "text-foreground/65 hover:text-foreground",
+  ].join(" ");
+
   return (
     <NavigationMenu>
-      <NavigationMenuList>
+      <NavigationMenuList className="gap-0">
+
         <NavigationMenuItem>
-          <NavigationMenuTrigger>Nosotros</NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <ul className="w-64 p-2">
-              <ListItem href="/" title="3DARG">
-                Impresión 3D personalizada para cada necesidad.
-              </ListItem>
-              <ListItem href="/shop" title="Tienda">
-                Explorá todos nuestros productos.
-              </ListItem>
+          <NavigationMenuTrigger className={triggerCls}>
+            Nosotros
+          </NavigationMenuTrigger>
+          <NavigationMenuContent
+            style={{ backgroundColor: DROPDOWN_BG, border: `1px solid ${DROPDOWN_BORDER}` }}
+            className="!bg-[#1E1E1E] rounded-none shadow-xl"
+          >
+            <ul className="w-52 p-1">
+              <DropdownItem href="/" title="3DARG">
+                Grupo de marcas de impresión 3D.
+              </DropdownItem>
+              <DropdownItem href="/capacidades" title="Capacidades">
+                Tecnologías, materiales y proyectos.
+              </DropdownItem>
             </ul>
           </NavigationMenuContent>
         </NavigationMenuItem>
 
         {subBrands.length > 0 && (
           <NavigationMenuItem className="hidden md:flex">
-            <NavigationMenuTrigger>Marcas</NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="grid w-[400px] gap-2 p-2 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+            <NavigationMenuTrigger className={triggerCls}>
+              Marcas
+            </NavigationMenuTrigger>
+            <NavigationMenuContent
+              style={{ backgroundColor: DROPDOWN_BG, border: `1px solid ${DROPDOWN_BORDER}` }}
+              className="!bg-[#1E1E1E] rounded-none shadow-xl"
+            >
+              <ul className="grid w-[340px] gap-px p-1 md:grid-cols-2">
                 {subBrands.map((brand) => (
-                  <ListItem key={brand.id} title={brand.name} href={`/${brand.slug}`}>
+                  <DropdownItem key={brand.id} title={brand.name} href={`/${brand.slug}`}>
                     {brand.short_description || brand.slogan || ""}
-                  </ListItem>
+                  </DropdownItem>
                 ))}
               </ul>
             </NavigationMenuContent>
           </NavigationMenuItem>
         )}
+
       </NavigationMenuList>
     </NavigationMenu>
   );
@@ -59,7 +85,7 @@ const MenuList = () => {
 
 export default MenuList;
 
-function ListItem({
+function DropdownItem({
   title,
   children,
   href,
@@ -68,13 +94,18 @@ function ListItem({
   return (
     <li {...props}>
       <NavigationMenuLink asChild>
-        <Link href={href} className="block p-3 rounded-md hover:bg-muted transition-colors">
-          <div className="flex flex-col gap-1 text-sm">
-            <div className="leading-none font-semibold">{title}</div>
-            {children && (
-              <div className="text-muted-foreground line-clamp-2 text-xs">{children}</div>
-            )}
-          </div>
+        <Link
+          href={href}
+          className="block px-4 py-3 border-l-2 border-transparent hover:border-white/25 hover:bg-white/5 transition-all duration-150"
+        >
+          <p className="font-mono text-[10px] tracking-[0.25em] text-white/75 uppercase mb-0.5">
+            {title}
+          </p>
+          {children && (
+            <p className="font-mono text-[9px] text-white/35 leading-relaxed line-clamp-1">
+              {children}
+            </p>
+          )}
         </Link>
       </NavigationMenuLink>
     </li>

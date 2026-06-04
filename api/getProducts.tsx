@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 
-export function useGetCategories() {
-    // En Django, solemos usar /api/categories/ (con la barra al final es buena práctica)
-    const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/categories/`; 
-    const [result, setResult] = useState<any[]>([]); // Inicializamos como array vacío
+export function useGetCategories(brandSlug?: string) {
+    const params = brandSlug ? `?brand_slug=${brandSlug}` : "";
+    const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/categories/${params}`;
+    const [result, setResult] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFavorites } from "@/contexts/FavoritesContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { resolveMediaUrl } from "@/lib/api";
@@ -39,17 +39,24 @@ const STATUS_COLORS: Record<string, string> = {
 
 const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
 
-export default function ProfilePage() {
+export default function BrandProfilePage() {
   const { user, token, isAuthenticated, loading: authLoading, logout } = useAuth();
-  const { favorites, loading: favLoading } = useFavorites();
+  const { favorites: allFavorites, loading: favLoading } = useFavorites();
   const router = useRouter();
+  const params = useParams<{ brand: string }>();
+  const brandSlug = params?.brand ?? "";
+
+  const favorites = allFavorites.filter((p) => p.brand === brandSlug);
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
+
+  const brandOrders = orders.filter((o: Order) => o.brand === brandSlug);
 
   useEffect(() => {
     if (authLoading) return;
     if (!isAuthenticated) {
-      router.push("/login");
+      router.push(`/${brandSlug}/auth/login`);
       return;
     }
     if (!token) return;
@@ -60,7 +67,7 @@ export default function ProfilePage() {
       .then((data) => setOrders(data.results ?? data))
       .catch(() => setOrders([]))
       .finally(() => setLoadingOrders(false));
-  }, [authLoading, isAuthenticated, token, router]);
+  }, [authLoading, isAuthenticated, token, router, brandSlug]);
 
   if (authLoading || !isAuthenticated) return null;
 
@@ -77,7 +84,7 @@ export default function ProfilePage() {
           {user?.phone && <p className="text-muted-foreground text-sm">{user.phone}</p>}
         </div>
         <button
-          onClick={() => { logout(); router.push("/"); }}
+          onClick={() => { logout(); router.push(`/${brandSlug}`); }}
           className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors shrink-0"
         >
           <LogOut className="w-4 h-4" />
@@ -107,6 +114,12 @@ export default function ProfilePage() {
             <p className="text-muted-foreground text-xs mt-1">
               Tocá el ❤️ en cualquier producto para guardarlo acá.
             </p>
+            <Link
+              href={`/${brandSlug}/shop`}
+              className="mt-4 inline-block text-primary hover:underline text-sm font-medium"
+            >
+              Ver productos
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -156,21 +169,21 @@ export default function ProfilePage() {
               <div key={i} className="h-24 rounded-2xl bg-muted animate-pulse" />
             ))}
           </div>
-        ) : orders.length === 0 ? (
+        ) : brandOrders.length === 0 ? (
           <div className="text-center py-16 text-muted-foreground">
             <Package className="w-12 h-12 mx-auto mb-4 opacity-30" />
             <p className="font-medium">Todavía no realizaste ningún pedido.</p>
-            <Link href="/" className="mt-4 inline-block text-primary hover:underline text-sm">
+            <Link
+              href={`/${brandSlug}/shop`}
+              className="mt-4 inline-block text-primary hover:underline text-sm"
+            >
               Ir a la tienda
             </Link>
           </div>
         ) : (
           <div className="space-y-4">
-            {orders.map((order) => (
-              <div
-                key={order.id}
-                className="border border-border rounded-2xl p-5 bg-card space-y-3"
-              >
+            {brandOrders.map((order: Order) => (
+              <div key={order.id} className="border border-border rounded-2xl p-5 bg-card space-y-3">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div>
                     <p className="text-xs text-muted-foreground font-mono">
@@ -202,9 +215,7 @@ export default function ProfilePage() {
                   <ul className="text-sm text-muted-foreground space-y-0.5 border-t border-border pt-3">
                     {order.order_items.map((item) => (
                       <li key={item.id} className="flex justify-between">
-                        <span>
-                          {item.quantity}× {item.product_name}
-                        </span>
+                        <span>{item.quantity}× {item.product_name}</span>
                         <span>$ {Number(item.subtotal).toLocaleString("es-AR")}</span>
                       </li>
                     ))}
