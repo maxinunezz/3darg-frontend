@@ -18,6 +18,9 @@ NEXT_PUBLIC_BACKEND_URL=http://localhost:8000/api
 NEXT_PUBLIC_BACKEND_MEDIA_URL=http://localhost:8000
 BACKEND_INTERNAL_URL=http://web:8000/api   # solo server-side dentro del container
 
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=...   # login con Google. Vacío = botón oculto (ver sección Google login)
+BRAND_DOMAINS=                     # ej: "lumy.com:lumy". Vacío = sin cambios (ver sección Dominios propios)
+
 El backend Django debe estar corriendo. `next.config.ts` whitelists `localhost:8000/media/**` para `<Image>`.
 
 ## Stack
@@ -28,7 +31,7 @@ Backend: Django REST Framework con JWT. `ImageField` serializa URLs absolutas �
 
 ## Estructura de rutas
 app/
-layout.tsx              ← Root: ThemeProvider > AuthProvider > FavoritesProvider > CartProvider
+layout.tsx              ← Root: ThemeProvider > GoogleAuthProvider > AuthProvider > FavoritesProvider > CartProvider
 (main)/
 layout.tsx            ← Navbar 3DARG + Footer
 page.tsx              ← Home 3DARG
@@ -50,6 +53,7 @@ auth/{login,register}/
 - JWT en localStorage (`access_token`, `refresh_token`).
 - **Nunca leer localStorage directamente.** Siempre `useAuth()`.
 - Auto-refresh implementado: renueva el token 1 min antes de expirar.
+- `loginWithGoogle(idToken, brandSlug?)`: hace `POST /api/users/google/` y guarda el mismo par access/refresh que `login()`. La usa `<GoogleLoginButton>` (`components/google-login-button.tsx`), montado en `/login`, `/register` y en `components/brand-auth-forms.tsx` (login/register de cada sub-marca).
 
 ### CartContext (`useCart()`)
 - **Server-side**: cada mutación (add/remove/update) llama al backend. No hay estado local optimista.
@@ -80,6 +84,20 @@ auth/{login,register}/
   - `api/useGetFeaturedProducts.tsx` → carrusel de destacados (manda el token; espera a `authLoading` para un único fetch).
 - `components/product-price.tsx` (`<ProductPrice>`) centraliza el render del precio (socio vs anónimo). Usar siempre este componente, no formatear `price` a mano.
 - Cart/total usan `final_price ?? price`. El cobro lo valida el backend en checkout — no confiar en el precio del cliente.
+
+## Login con Google
+
+- `<GoogleAuthProvider>` (`components/google-auth-provider.tsx`) envuelve la app en `app/layout.tsx`; si `NEXT_PUBLIC_GOOGLE_CLIENT_ID` está vacío, es un passthrough (no rompe nada).
+- `<GoogleLoginButton brandSlug? redirectTo onError>` (`components/google-login-button.tsx`) devuelve `null` si no hay client ID configurado — así el botón queda oculto sin tocar código hasta activar Google Cloud Console.
+- Usa `@react-oauth/google` (`<GoogleLogin>`) para obtener el `id_token`, y `loginWithGoogle()` de `AuthContext` para canjearlo por el JWT propio.
+- Mismo usuario unificado del Grupo: no crea sesiones ni cuentas separadas por marca, solo pasa `brand_slug` como metadata de registro (igual que el registro por email/password).
+
+## Dominios propios por sub-marca (preparado, inactivo por default)
+
+- `proxy.ts` (raíz del proyecto — convención Next.js 16, reemplaza a `middleware.ts`) hace `NextResponse.rewrite()` de host→`/[brand]` según el mapa `BRAND_DOMAINS` (env var, formato `"dominio.com:slug,..."`).
+- Vacía por default = no-op total, todo sigue navegándose por path (`/lumy`, etc.).
+- Cuando exista un dominio real: agregar la entrada en `BRAND_DOMAINS` (frontend `.env`) + el dominio en `CORS_ALLOWED_ORIGINS`/`CSRF_TRUSTED_ORIGINS`/`DJANGO_ALLOWED_HOSTS` (backend `.env`). No requiere tocar código.
+- Los `<Link href="/${brand.slug}/...">` internos siguen mostrando `/lumy` en la URL dentro del dominio propio (rewrite, no redirect) — funciona pero no es 100% "limpio". Hacer los links brand-aware del dominio es un cambio más grande a encarar si se confirma el dominio.
 
 ## Brand theming
 

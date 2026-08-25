@@ -93,37 +93,48 @@ export default async function ShopPage({
         </div>
       </div>
 
-      {/* Category filters */}
-      {categories.length > 0 && (
-        <div className="flex gap-2 flex-wrap mb-10">
-          <Link
-            href={`/${slug}/shop`}
-            className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-              !category
-                ? "bg-primary text-primary-foreground border-primary"
-                : "border-border hover:border-primary hover:text-primary"
-            }`}
-          >
-            Todos
-          </Link>
-          {categories.map((cat) => (
-            <Link
-              key={cat.id}
-              href={`/${slug}/shop?category=${cat.slug}`}
-              className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                category === cat.slug
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "border-border hover:border-primary hover:text-primary"
-              }`}
-            >
-              {cat.name}
-            </Link>
-          ))}
-        </div>
-      )}
+      <div className="flex flex-col md:flex-row gap-8">
+        {/* Sidebar: categorías */}
+        {categories.length > 0 && (
+          <aside className="md:w-56 shrink-0">
+            <div className="md:sticky md:top-32">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                Categorías
+              </h2>
+              <nav className="flex flex-row md:flex-col gap-1 flex-wrap">
+                <Link
+                  href={`/${slug}/shop`}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    !category
+                      ? "bg-primary text-primary-foreground"
+                      : "text-foreground hover:bg-muted"
+                  }`}
+                >
+                  Todos
+                </Link>
+                {categories.map((cat) => (
+                  <Link
+                    key={cat.id}
+                    href={`/${slug}/shop?category=${cat.slug}`}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      category === cat.slug
+                        ? "bg-primary text-primary-foreground"
+                        : "text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    {cat.name}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+          </aside>
+        )}
 
-      {/* Products grid — auth-aware: agrega productos de socio y precios con descuento al loguearse */}
-      <BrandShopGrid brandSlug={slug} query={productQuery} initialProducts={products} />
+        {/* Products grid — auth-aware: agrega productos de socio y precios con descuento al loguearse */}
+        <div className="flex-1 min-w-0">
+          <BrandShopGrid brandSlug={slug} query={productQuery} initialProducts={products} />
+        </div>
+      </div>
     </div>
   );
 }

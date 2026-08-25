@@ -97,16 +97,16 @@ export default async function Home() {
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
       <section className="relative min-h-[92vh] flex flex-col items-center justify-center px-6 text-center overflow-hidden">
 
-        {/* Subtle grid */}
+        {/* Fondo geométrico — red de nodos */}
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-0 pointer-events-none opacity-[0.14] grayscale invert"
           style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)",
-            backgroundSize: "80px 80px",
+            backgroundImage: "url(/3DARG/images/bg-network.jpg)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
           }}
         />
-        {/* Radial fade over grid */}
+        {/* Radial fade sobre el fondo */}
         <div className="absolute inset-0 bg-radial-[at_50%_60%] from-transparent via-transparent to-[#080808] pointer-events-none" />
 
         <p className="font-mono text-[9px] tracking-[0.6em] text-white/25 uppercase mb-10">
@@ -114,8 +114,8 @@ export default async function Home() {
         </p>
 
         <h1
-          className="font-black uppercase tracking-tighter leading-[0.82] mb-8"
-          style={{ fontSize: "clamp(52px, 11vw, 130px)" }}
+          className="font-display uppercase tracking-wide leading-[0.82] mb-8"
+          style={{ fontSize: "clamp(56px, 12vw, 140px)" }}
         >
           DONDE LAS IDEAS
           <br />
@@ -161,16 +161,25 @@ export default async function Home() {
       </section>
 
       {/* ── SOBRE 3DARG ───────────────────────────────────────────────────── */}
-      <section className="border-t border-white/[0.06] py-28">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-start">
+      <section className="relative border-t border-white/[0.06] py-28 overflow-hidden">
+        {/* Fondo geométrico — ondas */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.06] grayscale invert"
+          style={{
+            backgroundImage: "url(/3DARG/images/bg-waves.jpg)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+        <div className="relative max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-start">
 
           <div>
             <p className="font-mono text-[9px] tracking-[0.5em] text-white/25 uppercase mb-8">
               Sobre nosotros
             </p>
             <h2
-              className="font-black uppercase tracking-tighter leading-[0.85]"
-              style={{ fontSize: "clamp(36px, 6vw, 72px)" }}
+              className="font-display uppercase tracking-wide leading-[0.85]"
+              style={{ fontSize: "clamp(40px, 7vw, 80px)" }}
             >
               FABRICAMOS
               <br />
@@ -195,16 +204,25 @@ export default async function Home() {
       </section>
 
       {/* ── CONTACTO ──────────────────────────────────────────────────────── */}
-      <section className="border-t border-white/[0.06] py-28">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-start md:items-end justify-between gap-12">
+      <section className="relative border-t border-white/[0.06] py-28 overflow-hidden">
+        {/* Fondo geométrico — low-poly */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.05] grayscale invert"
+          style={{
+            backgroundImage: "url(/3DARG/images/bg-lowpoly.jpg)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+        <div className="relative max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-start md:items-end justify-between gap-12">
 
           <div>
             <p className="font-mono text-[9px] tracking-[0.5em] text-white/25 uppercase mb-6">
               Contacto
             </p>
             <h2
-              className="font-black uppercase tracking-tighter leading-none text-white/90"
-              style={{ fontSize: "clamp(32px, 5vw, 60px)" }}
+              className="font-display uppercase tracking-wide leading-none text-white/90"
+              style={{ fontSize: "clamp(36px, 6vw, 68px)" }}
             >
               ¿TENÉS UN
               <br />

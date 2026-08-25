@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { resolveMediaUrl } from "@/lib/api";
 import type { BrandType } from "@/types/brands";
 import { PasswordFields, validatePassword } from "@/components/password-fields";
+import { GoogleLoginButton } from "@/components/google-login-button";
 
 interface Props {
   brand: BrandType;
@@ -111,6 +112,10 @@ export function BrandLoginForm({ brand }: Props) {
             {loading ? "Ingresando..." : "Ingresar"}
           </button>
         </form>
+
+        <div className="mt-4">
+          <GoogleLoginButton brandSlug={brand.slug} redirectTo={`/${brand.slug}`} onError={setError} />
+        </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
           <Link href={`/${brand.slug}`} className="hover:text-foreground transition-colors">
@@ -250,6 +255,10 @@ export function BrandRegisterForm({ brand }: Props) {
             </p>
           </div>
         </form>
+
+        <div className="mt-4">
+          <GoogleLoginButton brandSlug={brand.slug} redirectTo={`/${brand.slug}`} onError={setError} />
+        </div>
 
         <p className="text-center text-xs text-muted-foreground mt-4">
           <Link href={`/${brand.slug}`} className="hover:text-foreground transition-colors">

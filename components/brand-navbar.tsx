@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingCart, ChevronDown, BookOpen, Store, User, LayoutDashboard, LogOut } from "lucide-react";
+import { ShoppingCart, ChevronDown, User, LayoutDashboard, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import type { BrandType } from "@/types/brands";
@@ -21,16 +21,11 @@ export function BrandNavbar({ brand }: BrandNavbarProps) {
   const { isAuthenticated, user, logout } = useAuth();
   const hasShop = brand.brand_type !== "services";
 
-  const [nosotrosOpen, setNosotrosOpen] = useState(false);
   const [accountOpen, setAccountOpen]   = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const accountRef  = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setNosotrosOpen(false);
-      }
       if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
         setAccountOpen(false);
       }
@@ -66,66 +61,15 @@ export function BrandNavbar({ brand }: BrandNavbarProps) {
               Inicio
             </Link>
 
-            {/* Nosotros dropdown */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setNosotrosOpen((v) => !v)}
-                className="flex items-center gap-1 hover:text-primary transition-colors"
-                aria-expanded={nosotrosOpen}
-              >
-                Nosotros
-                <ChevronDown
-                  className={`w-3.5 h-3.5 transition-transform duration-200 ${nosotrosOpen ? "rotate-180" : ""}`}
-                />
-              </button>
+            {hasShop && (
+              <Link href={`/${brand.slug}/shop`} className="hover:text-primary transition-colors">
+                Tienda
+              </Link>
+            )}
 
-              {nosotrosOpen && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[360px] bg-background border border-border rounded-2xl shadow-xl overflow-hidden z-50">
-                  {/* Arrow */}
-                  <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-background border-l border-t border-border rotate-45" />
-
-                  <div className="p-2">
-                    {/* Opción 1: Sobre nosotros */}
-                    <Link
-                      href={`/${brand.slug}/about`}
-                      onClick={() => setNosotrosOpen(false)}
-                      className="group flex items-start gap-4 p-4 rounded-xl hover:bg-muted/60 transition-colors"
-                    >
-                      <div className="mt-0.5 w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                        <BookOpen className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <p className="font-bold text-sm leading-none mb-1">{brand.name}</p>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          Quiénes somos, nuestra historia y los productos que fabricamos.
-                        </p>
-                      </div>
-                    </Link>
-
-                    <div className="h-px bg-border mx-4" />
-
-                    {/* Opción 2: Tienda */}
-                    {hasShop && (
-                      <Link
-                        href={`/${brand.slug}/shop`}
-                        onClick={() => setNosotrosOpen(false)}
-                        className="group flex items-start gap-4 p-4 rounded-xl hover:bg-muted/60 transition-colors"
-                      >
-                        <div className="mt-0.5 w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                          <Store className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-sm leading-none mb-1">Tienda</p>
-                          <p className="text-xs text-muted-foreground leading-relaxed">
-                            Todos nuestros productos disponibles para comprar.
-                          </p>
-                        </div>
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+            <Link href={`/${brand.slug}/about`} className="hover:text-primary transition-colors">
+              Nosotros
+            </Link>
 
             {brand.social_links?.instagram && (
               <a

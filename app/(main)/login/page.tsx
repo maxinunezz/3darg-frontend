@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
-import Logo from "@/public/3DARG/logos/3dargblack.svg";
+import Logo from "@/public/3DARG/logos/3dargblack.png";
+import { GoogleLoginButton } from "@/components/google-login-button";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -94,6 +95,10 @@ export default function LoginPage() {
             {loading ? "Ingresando..." : "Ingresar"}
           </button>
         </form>
+
+        <div className="mt-4">
+          <GoogleLoginButton redirectTo="/" onError={setError} />
+        </div>
       </div>
     </div>
   );

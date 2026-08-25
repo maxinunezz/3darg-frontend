@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
-import Logo from "@/public/3DARG/logos/3dargblack.svg";
+import Logo from "@/public/3DARG/logos/3dargblack.png";
 import { PasswordFields, validatePassword } from "@/components/password-fields";
+import { GoogleLoginButton } from "@/components/google-login-button";
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -125,6 +126,10 @@ export default function RegisterPage() {
             </p>
           </div>
         </form>
+
+        <div className="mt-4">
+          <GoogleLoginButton redirectTo="/" onError={setError} />
+        </div>
       </div>
     </div>
   );

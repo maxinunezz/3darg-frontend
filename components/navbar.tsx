@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import MenuList from "./menu-list";
 import Image from "next/image";
-import LogoWhite from "../public/3DARG/logos/3dargwhite.svg";
-import LogoBlack from "../public/3DARG/logos/3dargblack.svg";
+import LogoWhite from "../public/3DARG/logos/3dargwhite.png";
+import LogoBlack from "../public/3DARG/logos/3dargblack.png";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 

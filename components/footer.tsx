@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import Logo from "../public/3DARG/logos/3dargwhite.svg";
+import Logo from "../public/3DARG/logos/3dargwhite.png";
 import { ContactModal } from "@/components/contact-modal";
 
 const itemCls = "font-mono text-xs text-white/30 hover:text-white/65 transition-colors tracking-wide";

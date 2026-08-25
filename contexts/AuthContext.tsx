@@ -12,6 +12,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   register: (email: string, username: string, password: string, phone?: string, brandSlug?: string) => Promise<void>;
+  loginWithGoogle: (idToken: string, brandSlug?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -125,6 +126,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const loginWithGoogle = useCallback(
+    async (idToken: string, brandSlug = "") => {
+      const res = await fetch(`${API}/users/google/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_token: idToken,
+          ...(brandSlug && { brand_slug: brandSlug }),
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        const message =
+          err.id_token?.[0] || err.detail || "No se pudo iniciar sesión con Google";
+        throw new Error(message);
+      }
+      const data = await res.json();
+      localStorage.setItem("access_token", data.access);
+      localStorage.setItem("refresh_token", data.refresh);
+      setToken(data.access);
+      scheduleRefresh(data.access);
+      await fetchMe(data.access);
+    },
+    [fetchMe] // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
   const register = useCallback(
     async (email: string, username: string, password: string, phone = "", brandSlug = "") => {
       const res = await fetch(`${API}/users/register/`, {
@@ -145,7 +172,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, loading, login, logout, register }}>
+    <AuthContext.Provider
+      value={{ user, token, isAuthenticated: !!token, loading, login, logout, register, loginWithGoogle }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -36,7 +36,7 @@ const FeaturedProducts = () => {
           {!loading &&
             Array.isArray(result) &&
             result.map((product: ProductType) => {
-              const src = product.images?.[0]?.image ?? "/3DARG/logos/3dargblack.svg";
+              const src = product.images?.[0]?.image ?? "/3DARG/logos/3dargblack.png";
               const productPath = product.brand
                 ? `/${product.brand}/product/${product.slug}`
                 : `/product/${product.slug}`;
