@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* Design system 3DARG (marca madre) — scopeado bajo .site-3darg, no afecta a app/[brand]/ */
+@import "./site-3darg.css";
 
 @custom-variant dark (&:is(.dark *));
 

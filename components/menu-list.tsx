@@ -13,12 +13,13 @@ import {
 import { useGetBrands } from "@/api/useGetBrands";
 import type { BrandType } from "@/types/brands";
 
-// El dropdown es siempre oscuro para armonizar con el navbar (que también es oscuro
-// tanto en dark mode como en light mode al hacer scroll).
-const DROPDOWN_BG = "#1E1E1E";
-const DROPDOWN_BORDER = "rgba(255,255,255,0.08)";
+// Mismo tratamiento que los links planos del navbar: font-mono 11px, uppercase,
+// tracking-label, peso normal, misma línea base (pb-0.5 + border-b transparente)
+// — el trigger de "Marcas" no debe verse como un widget aparte, ni más grueso.
+const triggerCls =
+  "!bg-transparent hover:!bg-transparent focus:!bg-transparent data-[state=open]:!bg-transparent data-[state=open]:!text-[var(--text-strong)] font-mono !text-[11px] !font-normal tracking-[var(--tracking-label)] uppercase !px-0 !py-0 !h-auto !rounded-none !gap-1.5 text-[var(--text-muted)] hover:text-[var(--text-strong)] transition-colors pb-0.5 border-b border-transparent [&_svg]:!size-3 [&_svg]:!stroke-[1.5] [&_svg]:opacity-60 [&_svg]:transition-transform";
 
-const MenuList = ({ hasDarkBg = false }: { hasDarkBg?: boolean }) => {
+const MenuList = () => {
   const { result: rootBrands } = useGetBrands();
 
   const subBrands: BrandType[] = rootBrands
@@ -26,58 +27,26 @@ const MenuList = ({ hasDarkBg = false }: { hasDarkBg?: boolean }) => {
     .filter((b) => b.show_in_navbar && b.is_active)
     .sort((a, b) => a.navbar_order - b.navbar_order);
 
-  const triggerCls = [
-    "bg-transparent hover:bg-transparent focus:bg-transparent",
-    "data-[active]:bg-transparent data-[state=open]:bg-transparent",
-    "font-mono text-[10px] tracking-[0.3em] uppercase px-4 py-2 transition-colors",
-    hasDarkBg
-      ? "text-white/70 hover:text-white"
-      : "text-foreground/65 hover:text-foreground",
-  ].join(" ");
+  if (subBrands.length === 0) return null;
 
   return (
-    <NavigationMenu>
+    // viewport={false}: así el fondo/borde/radio los pone NavigationMenuContent
+    // directo (nuestros tokens), en vez del <NavigationMenuViewport> por default
+    // que usa bg-popover/zinc del tema shadcn global — ahí estaba la inconsistencia.
+    <NavigationMenu viewport={false}>
       <NavigationMenuList className="gap-0">
-
         <NavigationMenuItem>
-          <NavigationMenuTrigger className={triggerCls}>
-            Nosotros
-          </NavigationMenuTrigger>
-          <NavigationMenuContent
-            style={{ backgroundColor: DROPDOWN_BG, border: `1px solid ${DROPDOWN_BORDER}` }}
-            className="!bg-[#1E1E1E] rounded-none shadow-xl"
-          >
-            <ul className="w-52 p-1">
-              <DropdownItem href="/" title="3DARG">
-                Grupo de marcas de impresión 3D.
-              </DropdownItem>
-              <DropdownItem href="/capacidades" title="Capacidades">
-                Tecnologías, materiales y proyectos.
-              </DropdownItem>
+          <NavigationMenuTrigger className={triggerCls}>Marcas</NavigationMenuTrigger>
+          <NavigationMenuContent className="!bg-[var(--surface-card)] border border-[var(--border-hairline)] !rounded-[var(--radius-lg)] shadow-[var(--shadow-md)] !mt-3">
+            <ul className="grid w-[340px] gap-px p-1 md:grid-cols-2">
+              {subBrands.map((brand) => (
+                <DropdownItem key={brand.id} title={brand.name} href={`/${brand.slug}`}>
+                  {brand.short_description || brand.slogan || ""}
+                </DropdownItem>
+              ))}
             </ul>
           </NavigationMenuContent>
         </NavigationMenuItem>
-
-        {subBrands.length > 0 && (
-          <NavigationMenuItem className="hidden md:flex">
-            <NavigationMenuTrigger className={triggerCls}>
-              Marcas
-            </NavigationMenuTrigger>
-            <NavigationMenuContent
-              style={{ backgroundColor: DROPDOWN_BG, border: `1px solid ${DROPDOWN_BORDER}` }}
-              className="!bg-[#1E1E1E] rounded-none shadow-xl"
-            >
-              <ul className="grid w-[340px] gap-px p-1 md:grid-cols-2">
-                {subBrands.map((brand) => (
-                  <DropdownItem key={brand.id} title={brand.name} href={`/${brand.slug}`}>
-                    {brand.short_description || brand.slogan || ""}
-                  </DropdownItem>
-                ))}
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-        )}
-
       </NavigationMenuList>
     </NavigationMenu>
   );
@@ -96,13 +65,13 @@ function DropdownItem({
       <NavigationMenuLink asChild>
         <Link
           href={href}
-          className="block px-4 py-3 border-l-2 border-transparent hover:border-white/25 hover:bg-white/5 transition-all duration-150"
+          className="block px-4 py-3 border-l-2 border-transparent hover:border-[var(--accent)] hover:bg-[var(--surface-inset)] transition-all duration-150"
         >
-          <p className="font-mono text-[10px] tracking-[0.25em] text-white/75 uppercase mb-0.5">
+          <p className="font-mono text-[10px] tracking-[var(--tracking-label)] text-[var(--text-strong)] uppercase mb-0.5">
             {title}
           </p>
           {children && (
-            <p className="font-mono text-[9px] text-white/35 leading-relaxed line-clamp-1">
+            <p className="font-mono text-[9px] text-[var(--text-muted)] leading-relaxed line-clamp-1">
               {children}
             </p>
           )}

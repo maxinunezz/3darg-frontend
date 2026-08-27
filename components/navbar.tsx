@@ -1,148 +1,107 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ShoppingCart, User, LogOut, Sun, Moon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
-import MenuList from "./menu-list";
+import { ShoppingCart, User, LogOut, Menu, X } from "lucide-react";
+import { useState } from "react";
 import Image from "next/image";
-import LogoWhite from "../public/3DARG/logos/3dargwhite.png";
+import Link from "next/link";
+import MenuList from "./menu-list";
 import LogoBlack from "../public/3DARG/logos/3dargblack.png";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { IconButton } from "@/components/site/core";
 
-// Gris medio para el navbar en light mode cuando hay scroll — más armonioso con el fondo claro
-const NAV_GRAY = "#484848";
+// Navbar del sitio 3DARG (marca madre) — veil bone translúcido + blur, 80px,
+// sticky, según el handoff de diseño (layout/Navbar.jsx).
+const LINKS = [
+  { href: "/", label: "Inicio" },
+  { href: "/shop", label: "Tienda" },
+  { href: "/casos-de-exito", label: "Casos de éxito" },
+  { href: "/nosotros", label: "Nosotros" },
+  { href: "/contacto", label: "Contacto" },
+];
 
 export const Navbar = () => {
   const router = useRouter();
   const { count } = useCart();
   const { isAuthenticated, logout } = useAuth();
-  const { setTheme, resolvedTheme } = useTheme();
-  const [scrolled, setScrolled] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const onScroll = () => setScrolled(window.scrollY > 24);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const isDark = resolvedTheme === "dark";
-
-  // El fondo del navbar es "oscuro" si estamos en dark mode (siempre),
-  // o si estamos en light mode scrolleado (petróleo).
-  const hasDarkBg = mounted && (isDark || scrolled);
-
-  const navBg = !mounted || !scrolled
-    ? "bg-transparent border-b border-transparent"
-    : isDark
-      ? "bg-[#080808]/90 backdrop-blur-md border-b border-white/6"
-      : `backdrop-blur-md border-b border-white/10`;
-
-  const iconCls = hasDarkBg
-    ? "text-white/70 hover:text-white"
-    : "text-foreground/65 hover:text-foreground";
-
-  const showWhiteLogo = hasDarkBg;
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <nav
-      className={`sticky top-0 z-50 transition-all duration-500 ${navBg}`}
-      style={scrolled && !isDark ? { backgroundColor: `${NAV_GRAY}F0`, boxShadow: "0 8px 32px rgba(0,0,0,0.18)" } : undefined}
+    <header
+      className="sticky top-0 z-50 border-b border-[var(--border-hairline)]"
+      style={{ background: "var(--veil)", backdropFilter: "var(--blur-veil)" }}
     >
-      <div className="max-w-7xl mx-auto px-8 lg:px-14">
-        <div className="h-24 flex items-center">
+      <div className="max-w-[var(--container)] mx-auto h-20 px-[var(--gutter)] flex items-center gap-8">
+        <Link href="/" className="flex items-center gap-2.5 shrink-0">
+          <Image src={LogoBlack} alt="3DARG" height={64} className="w-auto h-11 md:h-14" priority />
+        </Link>
 
-          {/* Logo */}
-          <div className="w-1/3 flex items-center">
-            <button
-              onClick={() => router.push("/")}
-              className="cursor-pointer opacity-85 hover:opacity-100 transition-opacity"
+        <nav className="hidden md:flex items-center gap-6 ml-auto">
+          <MenuList />
+          {LINKS.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="font-mono text-[11px] tracking-[var(--tracking-label)] uppercase text-[var(--text-muted)] hover:text-[var(--text-strong)] transition-colors pb-0.5 border-b border-transparent"
             >
-              {mounted ? (
-                <Image
-                  src={showWhiteLogo ? LogoWhite : LogoBlack}
-                  width={130}
-                  height={52}
-                  alt="3DARG"
-                />
-              ) : (
-                <div className="w-[130px] h-[52px]" />
-              )}
+              {l.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-2 md:ml-4 ml-auto">
+          {isAuthenticated ? (
+            <>
+              <IconButton
+                tone="bare"
+                aria-label="Carrito"
+                badge={count > 0 ? (count > 9 ? "9+" : count) : undefined}
+                onClick={() => router.push("/cart")}
+              >
+                <ShoppingCart size={19} strokeWidth={1.5} />
+              </IconButton>
+              <IconButton tone="bare" aria-label="Mi perfil" onClick={() => router.push("/profile")}>
+                <User size={19} strokeWidth={1.5} />
+              </IconButton>
+              <IconButton tone="bare" aria-label="Cerrar sesión" onClick={logout}>
+                <LogOut size={19} strokeWidth={1.5} />
+              </IconButton>
+            </>
+          ) : (
+            <button
+              onClick={() => router.push("/login")}
+              className="flex items-center gap-1.5 font-mono text-[11px] tracking-[var(--tracking-label)] uppercase text-[var(--text-muted)] hover:text-[var(--text-strong)] transition-colors"
+            >
+              <User size={17} strokeWidth={1.5} />
+              <span className="hidden sm:inline">Ingresar</span>
             </button>
-          </div>
+          )}
 
-          {/* Navigation */}
-          <div className="w-1/3 flex justify-center">
-            <MenuList hasDarkBg={hasDarkBg} />
-          </div>
-
-          {/* Actions */}
-          <div className="w-1/3 flex items-center justify-end gap-4">
-
-            {isAuthenticated ? (
-              <>
-                <button
-                  onClick={() => router.push("/cart")}
-                  className={`relative transition-colors ${iconCls}`}
-                  aria-label="Carrito"
-                >
-                  <ShoppingCart strokeWidth={1.2} className="w-[18px] h-[18px]" />
-                  {count > 0 && (
-                    <span className={`absolute -top-1.5 -right-1.5 text-[9px] font-bold w-3.5 h-3.5 flex items-center justify-center leading-none ${
-                      hasDarkBg ? "bg-white text-black" : "bg-foreground text-background"
-                    }`}>
-                      {count > 9 ? "9+" : count}
-                    </span>
-                  )}
-                </button>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => router.push("/profile")}
-                    className={`transition-colors ${iconCls}`}
-                    aria-label="Mi perfil"
-                  >
-                    <User strokeWidth={1.2} className="w-[18px] h-[18px]" />
-                  </button>
-                  <button
-                    onClick={logout}
-                    className={`transition-colors ${hasDarkBg ? "text-white/55 hover:text-white/85" : "text-foreground/50 hover:text-foreground/80"}`}
-                    aria-label="Cerrar sesión"
-                  >
-                    <LogOut strokeWidth={1.2} className="w-[18px] h-[18px]" />
-                  </button>
-                </div>
-              </>
-            ) : (
-              <button
-                onClick={() => router.push("/login")}
-                className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${iconCls}`}
-                aria-label="Ingresar"
-              >
-                <User strokeWidth={1.2} className="w-[18px] h-[18px]" />
-                <span className="hidden sm:inline text-xs">Ingresar</span>
-              </button>
-            )}
-
-            {mounted && (
-              <button
-                onClick={() => setTheme(isDark ? "light" : "dark")}
-                className={`transition-colors ${iconCls}`}
-                aria-label="Cambiar tema"
-              >
-                {isDark
-                  ? <Sun strokeWidth={1.2} className="w-[17px] h-[17px]" />
-                  : <Moon strokeWidth={1.2} className="w-[17px] h-[17px]" />
-                }
-              </button>
-            )}
-
-          </div>
+          <button
+            className="md:hidden inline-flex items-center justify-center w-9 h-9 text-[var(--text-body)]"
+            aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+            onClick={() => setMobileOpen((v) => !v)}
+          >
+            {mobileOpen ? <X size={20} strokeWidth={1.5} /> : <Menu size={20} strokeWidth={1.5} />}
+          </button>
         </div>
       </div>
-    </nav>
+
+      {mobileOpen && (
+        <div className="md:hidden border-t border-[var(--border-hairline)] bg-[var(--surface-page)] px-[var(--gutter)] py-4 flex flex-col gap-4">
+          {LINKS.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              onClick={() => setMobileOpen(false)}
+              className="font-mono text-xs tracking-[var(--tracking-label)] uppercase text-[var(--text-body)]"
+            >
+              {l.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </header>
   );
 };

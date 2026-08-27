@@ -2,18 +2,16 @@
 
 import { useState } from "react";
 import { ContactModal } from "@/components/contact-modal";
+import { Button } from "@/components/site/core";
 
-export function QuoteButton() {
+export function QuoteButton({ variant = "ember" }: { variant?: "ember" | "solid" | "outline" | "outlineLight" }) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="bg-white text-black px-10 py-4 font-bold uppercase tracking-widest text-xs hover:bg-white/90 transition-colors"
-      >
+      <Button variant={variant} size="lg" onClick={() => setOpen(true)}>
         Solicitar cotización
-      </button>
+      </Button>
       <ContactModal open={open} onClose={() => setOpen(false)} />
     </>
   );

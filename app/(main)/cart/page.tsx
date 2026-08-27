@@ -1,7 +1,7 @@
 "use client";
 
-import { CartPageContent } from "@/components/cart-page-content";
+import { SiteCartContent } from "@/components/site/cart-content";
 
 export default function CartPage() {
-  return <CartPageContent />;
+  return <SiteCartContent />;
 }

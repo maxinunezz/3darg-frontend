@@ -1,5 +1,14 @@
-import Link from "next/link";
+import type { Metadata } from "next";
+import { Layers, Sparkles, ScanLine, PenTool } from "lucide-react";
 import { QuoteButton } from "@/components/quote-button";
+import { ImageSlot, SpecLabel } from "@/components/site/core";
+import { SectionHeading } from "@/components/site/layout";
+import { StatBar } from "@/components/site/commerce";
+
+export const metadata: Metadata = {
+  title: "Capacidades | 3DARG",
+  description: "Tecnologías, materiales y proyectos reales de manufactura aditiva industrial en Argentina.",
+};
 
 const STATS = [
   { value: "+500", label: "Proyectos entregados" },
@@ -10,21 +19,25 @@ const STATS = [
 
 const TECHNOLOGIES = [
   {
+    icon: Layers,
     code: "FFF / FDM",
     name: "Deposición de material fundido",
     detail: "Alta resistencia mecánica. Materiales técnicos: PETG-CF, ABS, ASA, PC, PA12. Ideal para piezas funcionales y series cortas.",
   },
   {
+    icon: Sparkles,
     code: "SLA / MSLA",
     name: "Estereolitografía y fotopolimerización",
     detail: "Resolución extrema. Superficies lisas sin postproceso. Ideal para moldes, joyería técnica y piezas de detalle fino.",
   },
   {
+    icon: ScanLine,
     code: "SCAN 3D",
     name: "Digitalización y reverse engineering",
     detail: "Captura geométrica de piezas físicas para reingeniería, control dimensional o reproducción exacta.",
   },
   {
+    icon: PenTool,
     code: "CAD / CAM",
     name: "Diseño y preparación de manufactura",
     detail: "Modelado paramétrico, optimización topológica y preparación de archivos para producción. Trabajo con SolidWorks, Fusion 360 y FreeCAD.",
@@ -90,160 +103,132 @@ const MATERIALS = [
 
 export default function CapacidadesPage() {
   return (
-    <div className="bg-[#080808] text-white min-h-screen">
-
+    <div>
       {/* ── Hero ── */}
-      <section className="border-b border-white/6">
-        <div className="max-w-7xl mx-auto px-8 lg:px-14 py-28">
-          <p className="font-mono text-[9px] tracking-[0.45em] text-white/25 uppercase mb-8">
-            3DARG · Manufactura Aditiva Industrial
-          </p>
-          <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-[0.88] mb-10 max-w-4xl">
-            FABRICAMOS
-            <br />
-            LO QUE OTROS
-            <br />
-            <span className="text-white/30">NO PUEDEN.</span>
-          </h1>
-          <p className="font-mono text-sm text-white/40 max-w-xl leading-relaxed">
-            Somos un estudio de manufactura aditiva industrial con base en Buenos Aires.
-            Trabajamos con empresas que necesitan precisión, escala y velocidad —
-            no con hobbyistas que copian archivos de internet.
-          </p>
-        </div>
-      </section>
+      <div className="max-w-[var(--container)] mx-auto px-[var(--gutter)] pt-[var(--section-y)] pb-16 border-b border-[var(--border-hairline)]">
+        <SpecLabel index={1}>Capacidades</SpecLabel>
+        <h1 className="font-display uppercase text-[length:var(--text-display-lg)] leading-[var(--leading-display)] mt-4 max-w-[18ch]">
+          Fabricamos lo que otros no pueden
+        </h1>
+        <p className="max-w-[56ch] text-[length:var(--text-body-lg)] text-[var(--text-muted)] leading-[var(--leading-body)] mt-6">
+          Somos un estudio de manufactura aditiva industrial con base en Buenos Aires. Trabajamos
+          con empresas que necesitan precisión, escala y velocidad — no con hobbyistas que copian
+          archivos de internet.
+        </p>
+      </div>
 
       {/* ── Stats ── */}
-      <section className="border-b border-white/6 bg-[#0C0C0C]">
-        <div className="max-w-7xl mx-auto px-8 lg:px-14">
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/6">
-            {STATS.map(({ value, label }) => (
-              <div key={label} className="py-12 px-8 first:pl-0 last:pr-0">
-                <p className="font-black text-3xl md:text-4xl text-white mb-2 tracking-tight">{value}</p>
-                <p className="font-mono text-[9px] tracking-[0.3em] text-white/25 uppercase">{label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <StatBar items={STATS} />
 
       {/* ── Quiénes somos ── */}
-      <section className="border-b border-white/6">
-        <div className="max-w-7xl mx-auto px-8 lg:px-14 py-24 grid md:grid-cols-2 gap-20 items-start">
-          <div>
-            <p className="font-mono text-[9px] tracking-[0.4em] text-white/20 uppercase mb-8">Quiénes somos</p>
-            <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-tight mb-8">
-              INDUSTRIA,<br />NO HOBBY.
-            </h2>
-            <div className="space-y-5 font-mono text-sm text-white/45 leading-relaxed">
-              <p>
-                3DARG nació para cambiar la percepción de la impresión 3D en Argentina.
-                Mientras el mercado estaba lleno de emprendedores con una sola máquina y
-                archivos descargados, nosotros apostamos a construir un estudio técnico
-                de manufactura aditiva con capacidad industrial real.
-              </p>
-              <p>
-                Hoy trabajamos con empresas del sector automotriz, médico, energético,
-                arquitectónico y de investigación. Nuestros clientes son equipos de ingeniería,
-                estudios de diseño y áreas de I+D que necesitan piezas funcionales —
-                no decorativas.
-              </p>
-              <p>
-                Cada proyecto empieza con un brief técnico. Evaluamos material, tolerancias,
-                geometría y uso final antes de emitir cualquier presupuesto.
-                No fabricamos sin entender qué va a hacer la pieza.
-              </p>
-            </div>
-          </div>
-
-          <div className="border border-white/8 p-8 font-mono">
-            <p className="text-[9px] tracking-[0.4em] text-white/20 uppercase mb-8">Materiales disponibles</p>
-            <div className="space-y-0">
-              {MATERIALS.map(({ name, use }) => (
-                <div
-                  key={name}
-                  className="flex justify-between items-baseline border-b border-white/5 py-3.5 last:border-0"
-                >
-                  <span className="text-xs text-white/70 font-bold tracking-wide">{name}</span>
-                  <span className="text-[10px] text-white/30 text-right ml-4">{use}</span>
-                </div>
-              ))}
-            </div>
+      <div className="max-w-[var(--container)] mx-auto px-[var(--gutter)] py-[var(--section-y)] grid gap-16 lg:grid-cols-2 items-start">
+        <div>
+          <SpecLabel index={2}>Industria, no hobby</SpecLabel>
+          <h2 className="font-display uppercase text-[length:var(--text-display-sm)] leading-[var(--leading-display)] mt-4 mb-6">
+            Quiénes somos
+          </h2>
+          <div className="grid gap-4 text-[var(--text-muted)] leading-[var(--leading-body)] max-w-[var(--measure)]">
+            <p>
+              3DARG nació para cambiar la percepción de la impresión 3D en Argentina. Mientras el
+              mercado estaba lleno de emprendedores con una sola máquina y archivos descargados,
+              nosotros apostamos a construir un estudio técnico de manufactura aditiva con
+              capacidad industrial real.
+            </p>
+            <p>
+              Hoy trabajamos con empresas del sector automotriz, médico, energético, arquitectónico
+              y de investigación. Nuestros clientes son equipos de ingeniería, estudios de diseño y
+              áreas de I+D que necesitan piezas funcionales — no decorativas.
+            </p>
+            <p>
+              Cada proyecto empieza con un brief técnico. Evaluamos material, tolerancias,
+              geometría y uso final antes de emitir cualquier presupuesto. No fabricamos sin
+              entender qué va a hacer la pieza.
+            </p>
           </div>
         </div>
-      </section>
+
+        <div className="rounded-[var(--radius-2xl)] border border-[var(--border-hairline)] p-8">
+          <SpecLabel index={3}>Materiales disponibles</SpecLabel>
+          <div className="grid gap-0 mt-6">
+            {MATERIALS.map(({ name, use }) => (
+              <div
+                key={name}
+                className="flex justify-between items-baseline gap-4 border-b border-[var(--border-hairline)] py-3.5 last:border-0"
+              >
+                <span className="font-bold text-[13px] text-[var(--text-strong)] tracking-[var(--tracking-tight)]">{name}</span>
+                <span className="font-mono text-[10px] text-[var(--text-faint)] uppercase tracking-[var(--tracking-mono)] text-right">{use}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* ── Tecnologías ── */}
-      <section className="border-b border-white/6 bg-[#0A0A0A]">
-        <div className="max-w-7xl mx-auto px-8 lg:px-14 py-24">
-          <p className="font-mono text-[9px] tracking-[0.4em] text-white/20 uppercase mb-16">Tecnologías</p>
-          <div className="grid md:grid-cols-2 gap-px bg-white/5">
-            {TECHNOLOGIES.map(({ code, name, detail }) => (
-              <div key={code} className="bg-[#0A0A0A] p-10 hover:bg-[#111] transition-colors">
-                <p className="font-mono text-[9px] tracking-[0.35em] text-white/25 uppercase mb-3">{code}</p>
-                <h3 className="font-bold text-white text-lg mb-4 leading-snug">{name}</h3>
-                <p className="font-mono text-xs text-white/35 leading-relaxed">{detail}</p>
+      <div className="py-[var(--section-y)]" style={{ background: "var(--surface-inset)" }}>
+        <div className="max-w-[var(--container)] mx-auto px-[var(--gutter)] grid gap-10">
+          <SectionHeading eyebrow="Tecnologías" index={4} title="Cuatro procesos, un solo criterio técnico" />
+          <div className="hairline-grid grid grid-cols-1 md:grid-cols-2">
+            {TECHNOLOGIES.map(({ icon: Icon, code, name, detail }) => (
+              <div key={code} className="group p-8 md:p-10 grid gap-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-11 h-11 rounded-[var(--radius-md)] grid place-items-center bg-[var(--surface-inset)] text-[var(--text-strong)] transition-colors duration-[var(--dur-base)] ease-[var(--ease-standard)] group-hover:bg-[var(--ink-900)] group-hover:text-[var(--bone-050)]">
+                    <Icon size={20} strokeWidth={1.5} />
+                  </div>
+                  <span className="font-mono text-[10px] tracking-[var(--tracking-label)] uppercase text-[var(--text-faint)]">{code}</span>
+                </div>
+                <h3 className="font-bold text-[17px] text-[var(--text-strong)] leading-snug">{name}</h3>
+                <p className="text-[length:var(--text-body-sm)] text-[var(--text-muted)] leading-[var(--leading-body)]">{detail}</p>
               </div>
             ))}
           </div>
         </div>
-      </section>
+      </div>
 
       {/* ── Proyectos ── */}
-      <section className="border-b border-white/6">
-        <div className="max-w-7xl mx-auto px-8 lg:px-14 py-24">
-          <p className="font-mono text-[9px] tracking-[0.4em] text-white/20 uppercase mb-4">Proyectos destacados</p>
-          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-tight mb-16">
-            CASOS REALES.
-          </h2>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/5">
-            {PROJECTS.map(({ client, title, description, tags }) => (
-              <div key={title} className="bg-[#080808] p-8 flex flex-col gap-5 hover:bg-[#0E0E0E] transition-colors">
-                <div>
-                  <p className="font-mono text-[9px] tracking-[0.35em] text-white/20 uppercase mb-2">{client}</p>
-                  <h3 className="font-bold text-white text-base leading-snug">{title}</h3>
-                </div>
-                <p className="font-mono text-[11px] text-white/35 leading-relaxed flex-1">{description}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="font-mono text-[8px] tracking-[0.25em] uppercase text-white/30 border border-white/8 px-2 py-1"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+      <div className="max-w-[var(--container)] mx-auto px-[var(--gutter)] py-[var(--section-y)] grid gap-10">
+        <SectionHeading eyebrow="Proyectos destacados" index={5} title="Casos reales, no renders" />
+        <div className="hairline-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {PROJECTS.map(({ client, title, description, tags }) => (
+            <div key={title} className="p-7 grid gap-4 content-start">
+              <div>
+                <p className="font-mono text-[10px] tracking-[var(--tracking-label)] uppercase text-[var(--text-faint)] mb-1.5">{client}</p>
+                <h3 className="font-bold text-[15px] text-[var(--text-strong)] leading-snug">{title}</h3>
               </div>
-            ))}
-          </div>
+              <p className="text-[13px] text-[var(--text-muted)] leading-[var(--leading-body)]">{description}</p>
+              <div className="flex flex-wrap gap-1.5 mt-auto pt-1">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center h-6 px-2.5 rounded-[var(--radius-pill)] bg-[var(--surface-inset)] text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-[var(--tracking-mono)]"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
-      </section>
+      </div>
 
-      {/* ── CTA ── */}
-      <section>
-        <div className="max-w-7xl mx-auto px-8 lg:px-14 py-28 flex flex-col md:flex-row md:items-end justify-between gap-12">
+      {/* ── CTA cierre ── */}
+      <section className="theme-ink">
+        <div className="max-w-[var(--container)] mx-auto px-[var(--gutter)] py-[var(--section-y)] grid gap-12 lg:grid-cols-[1.05fr_.95fr] items-center">
           <div>
-            <p className="font-mono text-[9px] tracking-[0.4em] text-white/20 uppercase mb-6">Siguiente paso</p>
-            <h2 className="text-5xl md:text-6xl font-black uppercase tracking-tighter leading-[0.9]">
-              ¿CUÁL ES
-              <br />
-              TU PROYECTO?
+            <SpecLabel index={6} tone="onInk">Siguiente paso</SpecLabel>
+            <h2 className="font-display uppercase text-white text-[length:var(--text-display-md)] leading-[var(--leading-display)] mt-4">
+              ¿Cuál es tu proyecto?
             </h2>
+            <p className="max-w-[48ch] text-[var(--ink-300)] leading-[var(--leading-body)] mt-4">
+              Contanos qué necesitás fabricar — material, medidas, cantidad y plazo — y te
+              respondemos con una cotización técnica el mismo día hábil.
+            </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <QuoteButton />
-            <Link
-              href="/shop"
-              className="border border-white/15 text-white/50 px-10 py-4 font-bold uppercase tracking-widest text-xs hover:border-white/40 hover:text-white transition-all text-center"
-            >
-              Ver catálogo
-            </Link>
-          </div>
+          <ImageSlot ratio="4 / 3" label="Foto del taller pendiente" className="rounded-[var(--radius-3xl)]" />
+        </div>
+        <div className="max-w-[var(--container)] mx-auto px-[var(--gutter)] pb-[var(--section-y)] flex flex-wrap gap-4">
+          <QuoteButton />
         </div>
       </section>
-
     </div>
   );
 }
