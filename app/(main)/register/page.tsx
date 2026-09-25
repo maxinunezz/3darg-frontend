@@ -5,20 +5,25 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
-import Logo from "@/public/3DARG/logos/3dargblack.svg";
+import Logo from "@/public/3DARG/logos/3dargblack.png";
+import { PasswordFields, validatePassword } from "@/components/password-fields";
+import { GoogleLoginButton } from "@/components/google-login-button";
 
 export default function RegisterPage() {
   const { register } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [email, setEmail]       = useState("");
   const [username, setUsername] = useState("");
+  const [phone, setPhone]       = useState("");
   const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [confirm, setConfirm]   = useState("");
+  const [error, setError]       = useState("");
+  const [loading, setLoading]   = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    const validationError = validatePassword(password, confirm);
+    if (validationError) { setError(validationError); return; }
     setError("");
     setLoading(true);
     try {
@@ -53,6 +58,7 @@ export default function RegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              autoComplete="email"
               className="w-full border border-input rounded-xl px-4 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
               placeholder="tu@email.com"
             />
@@ -64,6 +70,7 @@ export default function RegisterPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              autoComplete="username"
               className="w-full border border-input rounded-xl px-4 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
               placeholder="tu_usuario"
             />
@@ -74,22 +81,18 @@ export default function RegisterPage() {
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+              autoComplete="tel"
               className="w-full border border-input rounded-xl px-4 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
               placeholder="+54 9 11 XXXX XXXX"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Contraseña</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              className="w-full border border-input rounded-xl px-4 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-              placeholder="Mínimo 8 caracteres"
-            />
-          </div>
+
+          <PasswordFields
+            password={password}
+            confirm={confirm}
+            onChangePassword={setPassword}
+            onChangeConfirm={setConfirm}
+          />
 
           {error && (
             <p className="text-sm text-destructive bg-destructive/10 rounded-lg px-4 py-2">
@@ -105,13 +108,28 @@ export default function RegisterPage() {
             {loading ? "Creando cuenta..." : "Crear cuenta"}
           </button>
 
-          <p className="text-xs text-center text-muted-foreground">
-            Al registrarte aceptás nuestros{" "}
-            <Link href="/terms" className="underline hover:text-foreground">
-              Términos y condiciones
-            </Link>
-          </p>
+          <div className="text-xs text-center text-muted-foreground space-y-2">
+            <p>
+              Al registrarte aceptás los{" "}
+              <Link href="/terms" className="underline hover:text-foreground">
+                Términos y condiciones
+              </Link>{" "}
+              del Grupo 3DARG.
+            </p>
+            <p className="text-[11px] leading-relaxed bg-muted/40 rounded-lg px-3 py-2">
+              Tu cuenta es <strong className="text-foreground">unificada</strong>: te sirve para
+              Lumy, Print&amp;Gym, MiniSlam y CyberWeed. Tus datos se comparten entre las marcas
+              del Grupo según lo detallado en los{" "}
+              <Link href="/terms" className="underline hover:text-foreground">
+                Términos
+              </Link>.
+            </p>
+          </div>
         </form>
+
+        <div className="mt-4">
+          <GoogleLoginButton redirectTo="/" onError={setError} />
+        </div>
       </div>
     </div>
   );

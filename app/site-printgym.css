@@ -1,0 +1,659 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Design system "Print&Gym" (sub-marca) — tokens tal como vienen del handoff
+   ("Print&Gym Design System/PrintGym Design System/tokens.css" +
+   "reference/Home.html"), SCOPEADOS bajo .site-printgym para no pisar el
+   :root global que usan las demás sub-marcas vía Brand.theme.
+   Fuente de verdad: Print&Gym Design System/{tokens.css,reference/Home.html}
+   Los @font-face de tokens.css NO se replican acá: las fuentes display
+   (Spectrashell / Prevalent) se cargan con next/font/local y las de Google
+   (Space Grotesk / JetBrains Mono) con next/font/google, ambas exponiendo
+   variables --font-pg-*. Este archivo solo consume esas variables.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.site-printgym {
+  --pg-black: #0a0a0a;
+  --pg-void: #000;
+  --pg-panel: #121212;
+  --pg-panel-2: #1a1a1a;
+  --pg-grey: #8a8a8a;
+  --pg-grey-dim: #5a5a5a;
+  --pg-line: rgba(255, 255, 255, 0.09);
+  --pg-line-soft: rgba(255, 255, 255, 0.045);
+  --pg-white: #f7f7f7;
+  --pg-red: #e01f26;
+  --pg-red-deep: #a8151a;
+  --font-display: var(--font-pg-display), system-ui, sans-serif;
+  --font-body: var(--font-pg-body), system-ui, sans-serif;
+  --font-mono: var(--font-pg-mono), monospace;
+
+  background: var(--pg-black);
+  color: var(--pg-white);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.site-printgym * {
+  box-sizing: border-box;
+}
+
+.site-printgym a {
+  color: var(--pg-white);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.site-printgym a:hover {
+  color: var(--pg-red);
+}
+
+.site-printgym .wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+@media (min-width: 1024px) {
+  .site-printgym .wrap {
+    padding: 0 56px;
+  }
+}
+
+.site-printgym .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--pg-grey);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.site-printgym .eyebrow .dot {
+  color: var(--pg-red);
+}
+
+.site-printgym .dsp {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  line-height: 0.86;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+.site-printgym .red {
+  color: var(--pg-red);
+}
+
+.site-printgym .outline-txt {
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.45);
+}
+
+.site-printgym .nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(10, 10, 10, 0.86);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--pg-line);
+}
+.site-printgym .nav-in {
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.site-printgym .mark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.site-printgym .mark-hex {
+  width: 26px;
+  height: 29px;
+  background: var(--pg-red);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+.site-printgym .mark-txt {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: 19px;
+  letter-spacing: 0.01em;
+}
+
+.site-printgym .nav-links {
+  display: none;
+  gap: 34px;
+}
+@media (min-width: 900px) {
+  .site-printgym .nav-links {
+    display: flex;
+  }
+}
+.site-printgym .nav-links a {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pg-grey);
+  position: relative;
+  padding: 6px 0;
+}
+.site-printgym .nav-links a.on,
+.site-printgym .nav-links a:hover {
+  color: var(--pg-white);
+}
+.site-printgym .nav-links a.on:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--pg-red);
+}
+
+.site-printgym .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 14px 22px;
+  border: 0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.site-printgym .btn:active {
+  transform: scale(0.97);
+}
+.site-printgym .btn-red {
+  background: var(--pg-red);
+  color: #fff;
+}
+.site-printgym .btn-red:hover {
+  background: var(--pg-red-deep);
+  color: #fff;
+}
+.site-printgym .btn-ghost {
+  background: transparent;
+  color: var(--pg-white);
+  border: 1px solid var(--pg-line);
+}
+.site-printgym .btn-ghost:hover {
+  border-color: var(--pg-white);
+}
+
+.site-printgym .ph {
+  position: relative;
+  background: repeating-linear-gradient(135deg, #141414 0 12px, #181818 12px 24px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.site-printgym .ph span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--pg-grey-dim);
+  text-transform: uppercase;
+  text-align: center;
+  padding: 0 12px;
+}
+.site-printgym .ph:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--pg-line-soft);
+}
+
+.site-printgym .foot {
+  border-top: 1px solid var(--pg-line);
+  padding: 56px 0 40px;
+  margin-top: 0;
+}
+.site-printgym .foot-grid {
+  display: grid;
+  gap: 36px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 800px) {
+  .site-printgym .foot-grid {
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+  }
+}
+.site-printgym .foot h5 {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--pg-grey);
+  margin-bottom: 16px;
+  font-weight: 400;
+}
+.site-printgym .foot ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+}
+.site-printgym .foot ul a {
+  font-size: 14px;
+  color: #c9c9c9;
+}
+.site-printgym .foot-base {
+  margin-top: 44px;
+  padding-top: 20px;
+  border-top: 1px solid var(--pg-line-soft);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pg-grey-dim);
+}
+
+/* ── Extra styles (reference/Home.html <style> del head) ────────────────── */
+
+.site-printgym .hero {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--pg-line);
+  background: var(--pg-void);
+}
+.site-printgym .hero:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(var(--pg-line-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--pg-line-soft) 1px, transparent 1px);
+  background-size: 88px 88px;
+  mask-image: radial-gradient(120% 90% at 20% 10%, #000 10%, transparent 75%);
+}
+.site-printgym .hero-slash {
+  position: absolute;
+  top: -20%;
+  right: -6%;
+  width: 44%;
+  height: 150%;
+  background: var(--pg-red);
+  opacity: 0.9;
+  transform: rotate(12deg);
+  clip-path: polygon(58% 0, 100% 0, 42% 100%, 0 100%);
+  display: none;
+}
+@media (min-width: 900px) {
+  .site-printgym .hero-slash {
+    display: block;
+  }
+}
+.site-printgym .hero-in {
+  position: relative;
+  padding: 72px 24px 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 44px;
+}
+@media (min-width: 900px) {
+  .site-printgym .hero-in {
+    grid-template-columns: 1.55fr 0.85fr;
+    gap: 56px;
+    padding: 96px 56px 0;
+    align-items: end;
+  }
+}
+.site-printgym .hero h1 {
+  font-size: clamp(56px, 13.5vw, 168px);
+}
+.site-printgym .hero h1 .l2 {
+  display: block;
+  margin-left: clamp(0px, 4vw, 72px);
+}
+.site-printgym .hero-sub {
+  max-width: 480px;
+  margin-top: 28px;
+  font-size: 17px;
+  line-height: 1.62;
+  color: #b9b9b9;
+}
+.site-printgym .hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 32px 0 0;
+}
+.site-printgym .hero-meta {
+  display: flex;
+  gap: 0;
+  margin-top: 52px;
+  border-top: 1px solid var(--pg-line);
+}
+.site-printgym .hero-meta div {
+  flex: 1;
+  padding: 18px 0 26px;
+  border-right: 1px solid var(--pg-line);
+}
+.site-printgym .hero-meta div:last-child {
+  border-right: 0;
+}
+.site-printgym .hero-meta b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 3.4vw, 34px);
+  text-transform: uppercase;
+  line-height: 1;
+}
+.site-printgym .hero-meta small {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--pg-grey-dim);
+  display: block;
+  margin-top: 8px;
+}
+.site-printgym .hero-card {
+  position: relative;
+  z-index: 2;
+  background: var(--pg-panel);
+  border: 1px solid var(--pg-line);
+  padding: 22px;
+  margin-bottom: 52px;
+}
+.site-printgym .hero-card .ph {
+  aspect-ratio: 1;
+  margin-bottom: 18px;
+}
+.site-printgym .tally {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+  height: 34px;
+  margin: 14px 0 4px;
+}
+.site-printgym .tally i {
+  display: block;
+  width: 5px;
+  background: var(--pg-red);
+  border-radius: 0;
+}
+
+.site-printgym .marq {
+  border-top: 1px solid var(--pg-line);
+  border-bottom: 1px solid var(--pg-line);
+  background: var(--pg-red);
+  overflow: hidden;
+  padding: 13px 0;
+}
+.site-printgym .marq-t {
+  display: flex;
+  gap: 44px;
+  white-space: nowrap;
+  animation: pg-slide 26s linear infinite;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: 22px;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+.site-printgym .marq-t span {
+  display: flex;
+  gap: 44px;
+  align-items: center;
+}
+.site-printgym .marq-t em {
+  font-style: normal;
+  opacity: 0.5;
+}
+@keyframes pg-slide {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.site-printgym section.blk {
+  padding: 88px 0;
+  border-bottom: 1px solid var(--pg-line);
+  position: relative;
+  overflow: hidden;
+}
+.site-printgym .sec-head {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+.site-printgym .sec-head h2 {
+  font-size: clamp(34px, 6vw, 72px);
+}
+.site-printgym .ghost-n {
+  font-family: var(--font-display);
+  font-size: clamp(60px, 10vw, 140px);
+  color: rgba(255, 255, 255, 0.055);
+  line-height: 0.78;
+  pointer-events: none;
+  user-select: none;
+  margin-left: auto;
+  order: 2;
+  align-self: flex-end;
+}
+.site-printgym .sec-head > a {
+  order: 3;
+}
+
+.site-printgym .grid-p {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--pg-line);
+}
+@media (min-width: 900px) {
+  .site-printgym .grid-p {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.site-printgym .pcard {
+  background: var(--pg-black);
+  padding: 16px 16px 22px;
+  position: relative;
+  transition: background 0.25s;
+  display: block;
+}
+.site-printgym .pcard:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--pg-red);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.3s;
+}
+.site-printgym .pcard:hover {
+  background: var(--pg-panel);
+}
+.site-printgym .pcard:hover:before {
+  transform: scaleY(1);
+}
+.site-printgym .pcard .ph {
+  aspect-ratio: 1;
+  margin-bottom: 16px;
+}
+.site-printgym .pcard h3 {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: 19px;
+  letter-spacing: 0;
+  line-height: 1.05;
+}
+.site-printgym .pcard .cat {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--pg-grey-dim);
+  margin: 8px 0 14px;
+  display: block;
+}
+.site-printgym .pcard .row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.site-printgym .pcard .price {
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+.site-printgym .pcard .add {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pg-grey);
+  border: 1px solid var(--pg-line);
+  padding: 8px 11px;
+  transition: all 0.2s;
+}
+.site-printgym .pcard:hover .add {
+  border-color: var(--pg-red);
+  color: #fff;
+  background: var(--pg-red);
+}
+
+.site-printgym .path {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background: var(--pg-line);
+  border: 1px solid var(--pg-line);
+}
+@media (min-width: 800px) {
+  .site-printgym .path {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.site-printgym .step {
+  background: var(--pg-void);
+  padding: 28px 22px 32px;
+}
+.site-printgym .step .n {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--pg-red);
+}
+.site-printgym .step h4 {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: 23px;
+  margin: 14px 0 10px;
+  line-height: 1;
+}
+.site-printgym .step p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--pg-grey);
+}
+.site-printgym .bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  margin-top: 22px;
+}
+.site-printgym .bar i {
+  display: block;
+  height: 100%;
+  background: var(--pg-red);
+}
+
+.site-printgym .comm {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background: var(--pg-line);
+}
+@media (min-width: 900px) {
+  .site-printgym .comm {
+    grid-template-columns: 1.1fr 0.95fr 0.95fr;
+  }
+}
+.site-printgym .quote {
+  background: var(--pg-panel);
+  padding: 40px 32px;
+}
+.site-printgym .quote p {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: clamp(24px, 2.6vw, 34px);
+  line-height: 1.02;
+}
+.site-printgym .quote footer {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pg-grey-dim);
+  margin-top: 26px;
+}
+.site-printgym .tcard {
+  background: var(--pg-black);
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.site-printgym .tcard .ba {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--pg-line);
+}
+.site-printgym .tcard .ba .ph {
+  aspect-ratio: 3/4;
+}
+.site-printgym .tcard h4 {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: 20px;
+}
+.site-printgym .tcard p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--pg-grey);
+}
+
+.site-printgym .cta {
+  background: var(--pg-void);
+  text-align: center;
+  padding: 104px 0;
+}
+.site-printgym .cta h2 {
+  font-size: clamp(40px, 9vw, 116px);
+}
+.site-printgym .cta p {
+  color: var(--pg-grey);
+  max-width: 46ch;
+  margin: 24px auto 0;
+  line-height: 1.6;
+}
+
+@media (min-width: 900px) {
+  .site-printgym .about-g {
+    grid-template-columns: 1fr 1fr !important;
+    align-items: start;
+  }
+}

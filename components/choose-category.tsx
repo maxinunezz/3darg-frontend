@@ -13,8 +13,8 @@ const CATEGORY_GRADIENTS = [
   "from-pink-400 to-rose-500",
 ];
 
-const ChooseCategory = () => {
-  const { result, loading, error } = useGetCategories();
+const ChooseCategory = ({ brandSlug = "3darg" }: { brandSlug?: string }) => {
+  const { result, loading, error } = useGetCategories(brandSlug);
 
   if (loading)
     return (

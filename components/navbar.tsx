@@ -1,82 +1,133 @@
 "use client";
 
-import React from "react";
-import { ShoppingCart, User, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
-import MenuList from "./menu-list";
+import { ShoppingCart, User, LogOut, Menu, X } from "lucide-react";
+import { useState } from "react";
 import Image from "next/image";
-import Logo from "../public/3DARG/logos/3dargblack.svg";
-import { ToggleTheme } from "./ui/toggle-theme";
+import Link from "next/link";
+import LogoBlack from "../public/3DARG/logos/3dargblack.png";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { IconButton } from "@/components/site/core";
+
+// Navbar del sitio 3DARG (marca madre) — veil bone translúcido + blur, 80px,
+// sticky, según el handoff de diseño (layout/Navbar.jsx).
+const LINKS = [
+  { href: "/", label: "Inicio" },
+  { href: "/shop", label: "Tienda" },
+  { href: "/capacidades", label: "Capacidades" },
+  // Landing externa (Vercel) de la máquina expendedora — no es una ruta interna.
+  { href: "https://maquina3d-landing.vercel.app/", label: "Máquina expendedora", external: true },
+  { href: "/casos-de-exito", label: "Casos de éxito" },
+  { href: "/nosotros", label: "Nosotros" },
+  { href: "/contacto", label: "Contacto" },
+];
 
 export const Navbar = () => {
   const router = useRouter();
   const { count } = useCart();
   const { isAuthenticated, logout } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <nav className="bg-background border-b border-border sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="h-20 flex items-center">
-          {/* Logo */}
-          <div className="w-1/3 flex items-center">
-            <button onClick={() => router.push("/")} className="cursor-pointer">
-              <Image src={Logo} width={130} height={52} alt="3DARG logo" />
-            </button>
-          </div>
+    <header
+      className="sticky top-0 z-50 border-b border-[var(--border-hairline)]"
+      style={{ background: "var(--veil)", backdropFilter: "var(--blur-veil)" }}
+    >
+      <div className="max-w-[var(--container)] mx-auto h-20 px-[var(--gutter)] grid grid-cols-[auto_1fr_auto] items-center gap-8">
+        <Link href="/" className="flex items-center gap-2.5 shrink-0">
+          <Image src={LogoBlack} alt="3DARG" height={64} className="w-auto h-11 md:h-14" priority />
+        </Link>
 
-          {/* Navigation */}
-          <div className="w-1/3 flex justify-center">
-            <MenuList />
-          </div>
-
-          {/* Actions */}
-          <div className="w-1/3 flex items-center justify-end gap-3">
-            <button
-              onClick={() => router.push("/cart")}
-              className="relative text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Carrito"
-            >
-              <ShoppingCart strokeWidth={1.5} className="w-5 h-5" />
-              {count > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
-                  {count > 9 ? "9+" : count}
-                </span>
-              )}
-            </button>
-
-            {isAuthenticated ? (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => router.push("/profile")}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label="Mi perfil"
-                >
-                  <User strokeWidth={1.5} className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={logout}
-                  className="text-muted-foreground hover:text-destructive transition-colors"
-                  aria-label="Cerrar sesión"
-                >
-                  <LogOut strokeWidth={1.5} className="w-5 h-5" />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => router.push("/login")}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Iniciar sesión"
+        <nav className="hidden md:flex items-center justify-center gap-6">
+          {LINKS.map((l) =>
+            l.external ? (
+              <a
+                key={l.href}
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-mono text-[11px] tracking-[var(--tracking-label)] uppercase text-[var(--text-muted)] hover:text-[var(--text-strong)] transition-colors pb-0.5 border-b border-transparent"
               >
-                <User strokeWidth={1.5} className="w-5 h-5" />
-              </button>
-            )}
+                {l.label}
+              </a>
+            ) : (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="font-mono text-[11px] tracking-[var(--tracking-label)] uppercase text-[var(--text-muted)] hover:text-[var(--text-strong)] transition-colors pb-0.5 border-b border-transparent"
+              >
+                {l.label}
+              </Link>
+            )
+          )}
+        </nav>
 
-            <ToggleTheme />
-          </div>
+        <div className="flex items-center gap-2 justify-self-end">
+          {isAuthenticated ? (
+            <>
+              <IconButton
+                tone="bare"
+                aria-label="Carrito"
+                badge={count > 0 ? (count > 9 ? "9+" : count) : undefined}
+                onClick={() => router.push("/cart")}
+              >
+                <ShoppingCart size={19} strokeWidth={1.5} />
+              </IconButton>
+              <IconButton tone="bare" aria-label="Mi perfil" onClick={() => router.push("/profile")}>
+                <User size={19} strokeWidth={1.5} />
+              </IconButton>
+              <IconButton tone="bare" aria-label="Cerrar sesión" onClick={logout}>
+                <LogOut size={19} strokeWidth={1.5} />
+              </IconButton>
+            </>
+          ) : (
+            <button
+              onClick={() => router.push("/login")}
+              className="flex items-center gap-1.5 font-mono text-[11px] tracking-[var(--tracking-label)] uppercase text-[var(--text-muted)] hover:text-[var(--text-strong)] transition-colors"
+            >
+              <User size={17} strokeWidth={1.5} />
+              <span className="hidden sm:inline">Ingresar</span>
+            </button>
+          )}
+
+          <button
+            className="md:hidden inline-flex items-center justify-center w-9 h-9 text-[var(--text-body)]"
+            aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+            onClick={() => setMobileOpen((v) => !v)}
+          >
+            {mobileOpen ? <X size={20} strokeWidth={1.5} /> : <Menu size={20} strokeWidth={1.5} />}
+          </button>
         </div>
       </div>
-    </nav>
+
+      {mobileOpen && (
+        <div className="md:hidden border-t border-[var(--border-hairline)] bg-[var(--surface-page)] px-[var(--gutter)] py-4 flex flex-col gap-4">
+          {LINKS.map((l) =>
+            l.external ? (
+              <a
+                key={l.href}
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMobileOpen(false)}
+                className="font-mono text-xs tracking-[var(--tracking-label)] uppercase text-[var(--text-body)]"
+              >
+                {l.label}
+              </a>
+            ) : (
+              <Link
+                key={l.href}
+                href={l.href}
+                onClick={() => setMobileOpen(false)}
+                className="font-mono text-xs tracking-[var(--tracking-label)] uppercase text-[var(--text-body)]"
+              >
+                {l.label}
+              </Link>
+            )
+          )}
+        </div>
+      )}
+    </header>
   );
 };

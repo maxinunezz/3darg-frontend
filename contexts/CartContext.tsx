@@ -1,62 +1,127 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { useAuth } from "./AuthContext";
+import { apiUrl } from "@/lib/api";
+import { useBrandNamespace } from "@/lib/brand-context";
 import type { ProductType } from "@/types/product";
 
-export type CartItem = { product: ProductType; quantity: number };
+export type CartItem = { id: number; product: ProductType; quantity: number };
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (product: ProductType, quantity?: number) => void;
-  removeItem: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
-  clearCart: () => void;
+  addItem: (product: ProductType, quantity?: number) => Promise<void>;
+  removeItem: (productId: number) => Promise<void>;
+  updateQuantity: (productId: number, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
   total: number;
   count: number;
 }
 
+type CartResponse = {
+  id: number;
+  items: { id: number; product: ProductType; quantity: number }[];
+};
+
 const CartContext = createContext<CartContextType | null>(null);
-const CART_KEY = "3darg_cart";
+
+async function cartFetch(path: string, token: string, init?: RequestInit) {
+  const res = await fetch(apiUrl(path), {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      ...(init?.headers as Record<string, string>),
+    },
+  });
+  if (!res.ok) throw new Error(`Cart API ${res.status}`);
+  if (res.status === 204) return null;
+  return res.json();
+}
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { token } = useAuth();
+  const brandSlug = useBrandNamespace();
   const [items, setItems] = useState<CartItem[]>([]);
 
-  useEffect(() => {
+  const applyCart = (data: CartResponse | null) => {
+    if (!data) return;
+    setItems(data.items.map((i) => ({ id: i.id, product: i.product, quantity: i.quantity })));
+  };
+
+  const fetchCart = useCallback(async () => {
+    if (!token) {
+      setItems([]);
+      return;
+    }
     try {
-      const raw = localStorage.getItem(CART_KEY);
-      if (raw) setItems(JSON.parse(raw));
-    } catch {}
-  }, []);
+      const data = (await cartFetch(
+        `/cart/?brand_slug=${encodeURIComponent(brandSlug)}`,
+        token
+      )) as CartResponse;
+      applyCart(data);
+    } catch {
+      setItems([]);
+    }
+  }, [token, brandSlug]);
 
+  // Refetch cuando cambia el token (login/logout/refresh) O la marca actual
+  // — cada marca tiene su propio carrito.
   useEffect(() => {
-    localStorage.setItem(CART_KEY, JSON.stringify(items));
-  }, [items]);
+    fetchCart();
+  }, [fetchCart]);
 
-  const addItem = useCallback((product: ProductType, quantity = 1) => {
-    setItems((prev) => {
-      const found = prev.find((i) => i.product.id === product.id);
-      if (found)
-        return prev.map((i) =>
-          i.product.id === product.id ? { ...i, quantity: i.quantity + quantity } : i
-        );
-      return [...prev, { product, quantity }];
-    });
-  }, []);
+  const addItem = useCallback(
+    async (product: ProductType, quantity = 1) => {
+      if (!token) return;
+      const data = (await cartFetch("/cart/items/", token, {
+        method: "POST",
+        body: JSON.stringify({ product_id: product.id, quantity, brand_slug: brandSlug }),
+      })) as CartResponse;
+      applyCart(data);
+    },
+    [token, brandSlug]
+  );
 
-  const removeItem = useCallback((productId: number) => {
-    setItems((prev) => prev.filter((i) => i.product.id !== productId));
-  }, []);
+  const removeItem = useCallback(
+    async (productId: number) => {
+      if (!token) return;
+      const item = items.find((i: CartItem) => i.product.id === productId);
+      if (!item) return;
+      await cartFetch(`/cart/items/${item.id}/`, token, { method: "DELETE" });
+      await fetchCart();
+    },
+    [token, items, fetchCart]
+  );
 
-  const updateQuantity = useCallback((productId: number, quantity: number) => {
-    if (quantity < 1) return;
-    setItems((prev) =>
-      prev.map((i) => (i.product.id === productId ? { ...i, quantity } : i))
-    );
-  }, []);
+  const updateQuantity = useCallback(
+    async (productId: number, quantity: number) => {
+      if (!token || quantity < 1) return;
+      const item = items.find((i: CartItem) => i.product.id === productId);
+      if (!item) return;
+      const data = (await cartFetch(`/cart/items/${item.id}/`, token, {
+        method: "PATCH",
+        body: JSON.stringify({ quantity }),
+      })) as CartResponse;
+      applyCart(data);
+    },
+    [token, items]
+  );
 
-  const clearCart = useCallback(() => setItems([]), []);
-  const total = items.reduce((s, i) => s + Number(i.product.price) * i.quantity, 0);
-  const count = items.reduce((s, i) => s + i.quantity, 0);
+  const clearCart = useCallback(async () => {
+    if (!token) {
+      setItems([]);
+      return;
+    }
+    await cartFetch(`/cart/?brand_slug=${encodeURIComponent(brandSlug)}`, token, { method: "DELETE" });
+    setItems([]);
+  }, [token, brandSlug]);
+
+  const total = items.reduce(
+    (s: number, i: CartItem) => s + Number(i.product.final_price ?? i.product.price) * i.quantity,
+    0,
+  );
+  const count = items.reduce((s: number, i: CartItem) => s + i.quantity, 0);
 
   return (
     <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, total, count }}>

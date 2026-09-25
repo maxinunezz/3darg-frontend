@@ -12,7 +12,8 @@ import SkeletonSchema from "./skeletonSchema";
 import { Card, CardContent } from "./ui/card";
 import Image from "next/image";
 import type { ProductType } from "@/types/product";
-import { ShoppingCart, Expand } from "lucide-react";
+import { ProductPrice } from "./product-price";
+import { ShoppingCart, Expand, Lock } from "lucide-react";
 import IconButton from "./ui/icon-button";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
@@ -35,7 +36,7 @@ const FeaturedProducts = () => {
           {!loading &&
             Array.isArray(result) &&
             result.map((product: ProductType) => {
-              const src = product.images?.[0]?.image ?? "/3DARG/logos/3dargblack.svg";
+              const src = product.images?.[0]?.image ?? "/3DARG/logos/3dargblack.png";
               const productPath = product.brand
                 ? `/${product.brand}/product/${product.slug}`
                 : `/product/${product.slug}`;
@@ -45,6 +46,12 @@ const FeaturedProducts = () => {
                   <div className="p-1">
                     <Card className="py-4 border border-border shadow-none">
                       <CardContent className="relative flex items-center justify-center px-6 py-2">
+                        {product.members_only && (
+                          <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-foreground text-background text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-1">
+                            <Lock className="w-3 h-3" />
+                            Solo socios
+                          </div>
+                        )}
                         <Image
                           src={src}
                           alt={product.images?.[0]?.alt || product.name}
@@ -74,9 +81,9 @@ const FeaturedProducts = () => {
                         >
                           {product.name}
                         </button>
-                        <p className="flex items-center bg-muted rounded-full px-2 text-sm font-semibold whitespace-nowrap">
-                          $ {Number(product.price).toLocaleString("es-AR")}
-                        </p>
+                        <div className="flex items-center whitespace-nowrap">
+                          <ProductPrice product={product} />
+                        </div>
                       </div>
                     </Card>
                   </div>
