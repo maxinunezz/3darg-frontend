@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { useAuth } from "./AuthContext";
 import { apiUrl } from "@/lib/api";
+import { useBrandNamespace } from "@/lib/brand-context";
 import type { ProductType } from "@/types/product";
 
 export type CartItem = { id: number; product: ProductType; quantity: number };
@@ -40,6 +41,7 @@ async function cartFetch(path: string, token: string, init?: RequestInit) {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const { token } = useAuth();
+  const brandSlug = useBrandNamespace();
   const [items, setItems] = useState<CartItem[]>([]);
 
   const applyCart = (data: CartResponse | null) => {
@@ -53,13 +55,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
     try {
-      const data = (await cartFetch("/cart/", token)) as CartResponse;
+      const data = (await cartFetch(
+        `/cart/?brand_slug=${encodeURIComponent(brandSlug)}`,
+        token
+      )) as CartResponse;
       applyCart(data);
     } catch {
       setItems([]);
     }
-  }, [token]);
+  }, [token, brandSlug]);
 
+  // Refetch cuando cambia el token (login/logout/refresh) O la marca actual
+  // — cada marca tiene su propio carrito.
   useEffect(() => {
     fetchCart();
   }, [fetchCart]);
@@ -69,11 +76,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (!token) return;
       const data = (await cartFetch("/cart/items/", token, {
         method: "POST",
-        body: JSON.stringify({ product_id: product.id, quantity }),
+        body: JSON.stringify({ product_id: product.id, quantity, brand_slug: brandSlug }),
       })) as CartResponse;
       applyCart(data);
     },
-    [token]
+    [token, brandSlug]
   );
 
   const removeItem = useCallback(
@@ -106,9 +113,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setItems([]);
       return;
     }
-    await cartFetch("/cart/", token, { method: "DELETE" });
+    await cartFetch(`/cart/?brand_slug=${encodeURIComponent(brandSlug)}`, token, { method: "DELETE" });
     setItems([]);
-  }, [token]);
+  }, [token, brandSlug]);
 
   const total = items.reduce(
     (s: number, i: CartItem) => s + Number(i.product.final_price ?? i.product.price) * i.quantity,

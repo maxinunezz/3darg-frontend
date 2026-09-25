@@ -3,6 +3,7 @@ import { Space_Grotesk, JetBrains_Mono, Bebas_Neue } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { PostHogProvider } from "@/components/posthog-provider";
+import { MetaPixelProvider } from "@/components/meta-pixel-provider";
 import { GoogleAuthProvider } from "@/components/google-auth-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" suppressHydrationWarning>
       <body className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${bebasNeue.variable} font-sans antialiased`}>
         <PostHogProvider>
+          <MetaPixelProvider />
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
             <GoogleAuthProvider>
               <AuthProvider>

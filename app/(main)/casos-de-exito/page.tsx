@@ -1,6 +1,9 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { ImageSlot, SpecLabel, buttonClass } from "@/components/site/core";
+import { getCmsPage, getSection, getSectionImage } from "@/lib/cms";
+import { resolveMediaUrl } from "@/lib/api";
 
 export const metadata: Metadata = {
   title: "Casos de éxito | 3DARG",
@@ -38,27 +41,63 @@ const CASOS = [
   },
 ];
 
-export default function CasosPage() {
+const HERO_FALLBACK = {
+  eyebrow: "Casos de éxito",
+  title: "Problemas reales, piezas reales",
+  subtitle: "Nada de renders. Estas son piezas que salieron de nuestra planta y siguen funcionando hoy.",
+};
+
+const CIERRE_FALLBACK = {
+  title: "Tu imaginación es nuestro desafío",
+  paragraph: "Contanos tu idea lo más detallada posible y la materializamos.",
+  cta: "Contanos tu idea",
+};
+
+export default async function CasosPage() {
+  const cmsPage = await getCmsPage("3darg", "casos-de-exito");
+  const casosSection = getSection(cmsPage, "casos");
+  const CASOS_DATA: typeof CASOS = casosSection?.data?.items?.length ? casosSection.data.items : CASOS;
+
+  const heroSection = getSection(cmsPage, "hero");
+  const HERO = { ...HERO_FALLBACK, ...(heroSection?.data ?? {}) };
+
+  const cierreSection = getSection(cmsPage, "cierre");
+  const CIERRE = { ...CIERRE_FALLBACK, ...(cierreSection?.data ?? {}) };
+
   return (
     <div className="max-w-[var(--container)] mx-auto px-[var(--gutter)] py-[var(--section-y)]">
       <div className="grid gap-4 pb-8 border-b border-[var(--border-hairline)] mb-16">
-        <SpecLabel index={1}>Casos de éxito</SpecLabel>
+        <SpecLabel index={1}>{HERO.eyebrow}</SpecLabel>
         <h1 className="font-display uppercase text-[length:var(--text-display-md)] leading-[var(--leading-display)]">
-          Problemas reales, piezas reales
+          {HERO.title}
         </h1>
         <p className="max-w-[52ch] text-[length:var(--text-body-lg)] text-[var(--text-muted)] leading-[var(--leading-body)]">
-          Nada de renders. Estas son piezas que salieron de nuestra planta y siguen funcionando hoy.
+          {HERO.subtitle}
         </p>
       </div>
 
       <div className="grid gap-16">
-        {CASOS.map((c, i) => (
+        {CASOS_DATA.map((c, i) => {
+          const casoImg = resolveMediaUrl(getSectionImage(casosSection, `caso_${i}`));
+          return (
           <article
             key={c.cliente}
             className="grid gap-8 lg:grid-cols-[.95fr_1.05fr] items-start pb-16 border-b border-[var(--border-hairline)] last:border-b-0 last:pb-0"
           >
             <div className={i % 2 === 1 ? "lg:order-2" : ""}>
-              <ImageSlot ratio="4 / 3" label="Foto del caso pendiente" className="rounded-[var(--radius-2xl)]" />
+              {casoImg ? (
+                <Image
+                  src={casoImg}
+                  alt={c.cliente}
+                  width={600}
+                  height={450}
+                  unoptimized
+                  className="w-full object-cover rounded-[var(--radius-2xl)]"
+                  style={{ aspectRatio: "4 / 3" }}
+                />
+              ) : (
+                <ImageSlot ratio="4 / 3" label="Foto del caso pendiente" className="rounded-[var(--radius-2xl)]" />
+              )}
             </div>
             <div className={i % 2 === 1 ? "lg:order-1" : ""}>
               <SpecLabel index={i + 1}>
@@ -90,19 +129,20 @@ export default function CasosPage() {
               </div>
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
 
       <section className="theme-ink -mx-[var(--gutter)] mt-20 py-[var(--section-y)] px-[var(--gutter)] rounded-[var(--radius-3xl)]">
         <div className="max-w-[var(--container-narrow)] mx-auto text-center grid gap-6 justify-items-center">
           <h2 className="font-display uppercase text-white" style={{ fontSize: "var(--text-display-md)", lineHeight: "var(--leading-display)" }}>
-            Tu imaginación es nuestro desafío
+            {CIERRE.title}
           </h2>
           <p className="max-w-[48ch] text-[var(--ink-300)] leading-[var(--leading-body)]">
-            Contanos tu idea lo más detallada posible y la materializamos.
+            {CIERRE.paragraph}
           </p>
           <Link href="/contacto" className={buttonClass("ember", "lg")}>
-            Contanos tu idea
+            {CIERRE.cta}
           </Link>
         </div>
       </section>

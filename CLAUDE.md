@@ -39,6 +39,7 @@ shop/                 ← Catálogo global
 cart/                 ← Carrito
 checkout/{success,pending,failure}/
 login/ register/ profile/
+maquina-expendedora/    ← landing + form de leads para la línea "máquina expendedora" (vending)
 [brand]/
 layout.tsx            ← Fetches brand, inyecta CSS vars, BrandNavbar
 page.tsx              ← Landing (hero + featured + about desde page_config)
@@ -49,31 +50,39 @@ auth/{login,register}/
 
 ## Contexts — reglas críticas
 
+### Namespace de marca (`lib/brand-context.ts`)
+- `getBrandNamespace(pathname)` / hook `useBrandNamespace()`: da el "espacio de marca" de la URL actual — `"3darg"` para `/`, `/shop`, `/profile`, `/cart`, etc. (rutas estáticas de `app/(main)/`), o el primer segmento tal cual (ej. `"lumy"`) para cualquier otra ruta (`app/[brand]/...`).
+- Es la unidad de aislamiento de **sesión y carrito** (ver AuthContext/CartContext abajo). Si se agrega una ruta estática nueva bajo `app/(main)/`, hay que sumarla a `ROOT_STATIC_SEGMENTS` en ese archivo.
+
 ### AuthContext (`useAuth()`)
-- JWT en localStorage (`access_token`, `refresh_token`).
+- JWT en localStorage, **namespaceado por marca**: keys `access_token__${ns}` / `refresh_token__${ns}` (`ns` = `useBrandNamespace()`). Loguearse en `/lumy` NO deja logueado en `/3darg` ni en `/print-and-gym` — cada espacio de marca exige loguearse ahí la primera vez, aunque sea la misma cuenta (un solo `User` por email en la DB).
+- Al cambiar de namespace (navegar de una marca a otra) el provider relee el token correspondiente a la marca nueva; si no hay uno guardado, queda deslogueado ahí aunque tenga sesión activa en otro espacio.
 - **Nunca leer localStorage directamente.** Siempre `useAuth()`.
-- Auto-refresh implementado: renueva el token 1 min antes de expirar.
-- `loginWithGoogle(idToken, brandSlug?)`: hace `POST /api/users/google/` y guarda el mismo par access/refresh que `login()`. La usa `<GoogleLoginButton>` (`components/google-login-button.tsx`), montado en `/login`, `/register` y en `components/brand-auth-forms.tsx` (login/register de cada sub-marca).
+- Auto-refresh implementado: renueva el token 1 min antes de expirar, reprogramado cada vez que cambia el namespace activo.
+- `logout()` borra solo el par de tokens del namespace actual, no los de otras marcas.
+- `loginWithGoogle(idToken, brandSlug?)`: hace `POST /api/users/google/` y guarda el mismo par access/refresh que `login()` (bajo el namespace actual). La usa `<GoogleLoginButton>` (`components/google-login-button.tsx`), montado en `/login`, `/register` y en `components/brand-auth-forms.tsx` (login/register de cada sub-marca).
 
 ### CartContext (`useCart()`)
 - **Server-side**: cada mutación (add/remove/update) llama al backend. No hay estado local optimista.
+- **Un carrito por (usuario, marca)** — brand-aware vía `useBrandNamespace()`. Todas las llamadas (`GET/DELETE /api/cart/`, `POST /api/cart/items/`) mandan `brand_slug` (query param o body) con el namespace actual; el backend lo exige y devuelve 400 si falta. Refetchea cuando cambia el token O el namespace.
 - Sin token → items vacíos, no mostrar ícono del carrito.
 - Al `logout` → `clearCart()` automático.
 - `DELETE /api/cart/` devuelve **204 sin body** → nunca llamar `.json()` sin chequear `response.ok` primero.
+- Como el carrito ya pertenece a una sola marca, `components/cart-page-content.tsx` y `components/site/cart-content.tsx` ya NO agrupan items por marca (`groupByBrand` se eliminó) — un solo listado, un solo botón de checkout con el `brand_slug` del namespace actual.
 
 ### FavoritesContext (`useFavorites()`)
-- Carga **todos** los favoritos del usuario sin filtrar por marca.
+- Carga **todos** los favoritos del usuario sin filtrar por marca (el backend no filtra; convención que se mantiene).
 - El filtrado por marca se hace en cada página, no en el context.
 - Usa optimistic updates: actualiza estado local antes de confirmar con backend.
-- Al `logout` → se limpian automáticamente.
+- Al `logout` → se limpian automáticamente (el `token` cambia al namespace vacío, dispara el refetch).
 
 ## Brand scoping — regla de negocio central
 
-- 3DARG ve todo. Las sub-marcas son silos: nunca mostrar datos de otra marca.
-- `params.brand` en `app/[brand]/...` da el slug.
+- **3DARG es una marca más. Todas las marcas son silos entre sí, 3DARG incluida — ya no ve todo.**
+- `params.brand` en `app/[brand]/...` da el slug de la sub-marca actual; para la marca madre el slug real es `"3darg"` (ver `lib/brand-context.ts`).
 - `product.brand` y `order.brand` son **slug** (no ID) → comparar directo: `product.brand === params.brand`.
 - `/[brand]/profile` filtra: `favorites.filter(p => p.brand === brandSlug)` y `orders.filter(o => o.brand === brandSlug)`.
-- `/(main)/profile` muestra todo sin filtrar.
+- `/(main)/profile` filtra con el mismo criterio para el espacio raíz: `brand === "3darg" || brand == null` (productos/pedidos sin marca asignada también cuentan como de 3DARG). Antes mostraba todo sin filtrar — ese era el bug de favoritos de Print&Gym apareciendo en el perfil de 3DARG; ya está resuelto.
 
 ## Productos para socios (transversal a todas las marcas)
 
@@ -99,6 +108,25 @@ auth/{login,register}/
 - Cuando exista un dominio real: agregar la entrada en `BRAND_DOMAINS` (frontend `.env`) + el dominio en `CORS_ALLOWED_ORIGINS`/`CSRF_TRUSTED_ORIGINS`/`DJANGO_ALLOWED_HOSTS` (backend `.env`). No requiere tocar código.
 - Los `<Link href="/${brand.slug}/...">` internos siguen mostrando `/lumy` en la URL dentro del dominio propio (rewrite, no redirect) — funciona pero no es 100% "limpio". Hacer los links brand-aware del dominio es un cambio más grande a encarar si se confirma el dominio.
 
+## Línea vending (`/maquina-expendedora`)
+
+- No es una sub-marca (no vive bajo `[brand]/`, no tiene `Brand` asociado) — es una landing standalone dentro de `(main)/` para captar leads de la máquina expendedora de impresión 3D, línea en validación de mercado.
+- `vending-form.tsx` (client component) postea directo a `POST /api/vending/leads/` (sin auth) con `{nombre, email, telefono, segmento, mensaje}`. `segmento` es uno de: `cotillon`, `empresa`, `submarca`, `alquiler`, `otro` — debe coincidir 1:1 con `VendingLead.Segmento` del backend.
+- Sin optimismo ni retry: si el POST falla muestra un mensaje de error simple y deja reintentar. Al confirmarse, reemplaza el form por un estado "Recibido".
+
+## Analytics (doble tracking, ambos por marca)
+
+Dos providers montados en `app/layout.tsx`, dentro del árbol raíz (`PostHogProvider > MetaPixelProvider`):
+
+- **PostHog** (`components/posthog-provider.tsx`): product analytics.
+- **Meta Pixel** (`components/meta-pixel-provider.tsx`): ads/retargeting, **con Pixel independiente por marca**.
+  - En cada navegación resuelve la marca activa con `getBrandNamespace(pathname)` (mismo namespace que Auth/Cart) y busca su `pixel_id` en `Brand.meta_public_config` (expuesto por `GET /api/brands/`).
+  - Si esa marca no tiene `pixel_id` cargado, no inicializa nada — no hace falta ningún flag para "apagar" el Pixel de una marca.
+  - Carga el script de Meta una sola vez (`loadPixelScript()`, idempotente) y llama `fbq('init', pixelId)` solo la primera vez que aparece cada pixel, después dispara `trackSingle(pixelId, 'PageView')` en cada cambio de ruta.
+  - Es el lado client-side del mismo evento que manda `brands/services/meta_conversions.py::send_event()` server-side en el backend (Conversions API) — para `Purchase` comparten `event_id` (`order.external_reference`) para que Meta deduplique.
+
+Ambos providers son no-ops seguros si falta configuración (mismo patrón que `GoogleAuthProvider`): no rompen la app si no hay Pixel o API key cargados.
+
 ## Brand theming
 
 `Brand.theme` es un JSON con CSS custom properties:
@@ -122,6 +150,7 @@ auth/{login,register}/
 | `api/` | Hooks cliente para datos dinámicos (brands, products, categories) |
 | `lib/api.ts` | `apiFetch<T>()` + `resolveMediaUrl()` |
 | `lib/brands.ts` | `getBrandBySlug()` — solo server components |
+| `lib/brand-context.ts` | `getBrandNamespace()` / `useBrandNamespace()` — namespace de marca para aislar sesión y carrito |
 | `contexts/` | AuthContext, CartContext, FavoritesContext |
 | `components/ui/` | Primitivos shadcn |
 | `types/` | Alineados con backend: `ProductType`, `BrandType`, `CategoryType`, `OrderType` |

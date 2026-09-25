@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Layers, Sparkles, ScanLine, PenTool } from "lucide-react";
 import { QuoteButton } from "@/components/quote-button";
 import { ImageSlot, SpecLabel } from "@/components/site/core";
 import { SectionHeading } from "@/components/site/layout";
 import { StatBar } from "@/components/site/commerce";
+import { getCmsPage, getSection, getSectionImage } from "@/lib/cms";
+import { resolveMediaUrl } from "@/lib/api";
 
 export const metadata: Metadata = {
   title: "Capacidades | 3DARG",
@@ -101,56 +104,108 @@ const MATERIALS = [
   { name: "Resina ABS-like", use: "Resistencia + detalle" },
 ];
 
-export default function CapacidadesPage() {
+// Mapa de íconos por code — el ícono es un componente React y no puede venir
+// del CMS (JSON), así que se resuelve localmente aunque el resto de los datos
+// de la sección "technologies" venga editado desde el admin. Fallback: Layers.
+const TECH_ICONS: Record<string, typeof Layers> = {
+  "FFF / FDM": Layers,
+  "SLA / MSLA": Sparkles,
+  "SCAN 3D": ScanLine,
+  "CAD / CAM": PenTool,
+};
+
+const HERO_FALLBACK = {
+  eyebrow: "Capacidades",
+  title: "Fabricamos lo que otros no pueden",
+  subtitle:
+    "Somos un estudio de manufactura aditiva industrial con base en Buenos Aires. Trabajamos con empresas que necesitan precisión, escala y velocidad — no con hobbyistas que copian archivos de internet.",
+};
+
+const QUIENES_SOMOS_FALLBACK = {
+  eyebrow: "Industria, no hobby",
+  title: "Quiénes somos",
+  paragraph1:
+    "3DARG nació para cambiar la percepción de la impresión 3D en Argentina. Mientras el mercado estaba lleno de emprendedores con una sola máquina y archivos descargados, nosotros apostamos a construir un estudio técnico de manufactura aditiva con capacidad industrial real.",
+  paragraph2:
+    "Hoy trabajamos con empresas del sector automotriz, médico, energético, arquitectónico y de investigación. Nuestros clientes son equipos de ingeniería, estudios de diseño y áreas de I+D que necesitan piezas funcionales — no decorativas.",
+  paragraph3:
+    "Cada proyecto empieza con un brief técnico. Evaluamos material, tolerancias, geometría y uso final antes de emitir cualquier presupuesto. No fabricamos sin entender qué va a hacer la pieza.",
+};
+
+const CTA_FALLBACK = {
+  eyebrow: "Siguiente paso",
+  title: "¿Cuál es tu proyecto?",
+  paragraph:
+    "Contanos qué necesitás fabricar — material, medidas, cantidad y plazo — y te respondemos con una cotización técnica el mismo día hábil.",
+};
+
+export default async function CapacidadesPage() {
+  const cmsPage = await getCmsPage("3darg", "capacidades");
+
+  const heroSection = getSection(cmsPage, "hero");
+  const HERO = { ...HERO_FALLBACK, ...(heroSection?.data ?? {}) };
+
+  const statsSection = getSection(cmsPage, "stats");
+  const STATS_DATA: typeof STATS = statsSection?.data?.items?.length ? statsSection.data.items : STATS;
+
+  const quienesSomosSection = getSection(cmsPage, "quienes-somos");
+  const QUIENES_SOMOS = { ...QUIENES_SOMOS_FALLBACK, ...(quienesSomosSection?.data ?? {}) };
+
+  const technologiesSection = getSection(cmsPage, "technologies");
+  const TECHNOLOGIES_DATA: { code: string; name: string; detail: string }[] = technologiesSection?.data?.items
+    ?.length
+    ? technologiesSection.data.items
+    : TECHNOLOGIES;
+  const TECHNOLOGIES_HEADING = { eyebrow: "Tecnologías", title: "Cuatro procesos, un solo criterio técnico", ...technologiesSection?.data };
+
+  const projectsSection = getSection(cmsPage, "projects");
+  const PROJECTS_DATA: typeof PROJECTS = projectsSection?.data?.items?.length ? projectsSection.data.items : PROJECTS;
+  const PROJECTS_HEADING = { eyebrow: "Proyectos destacados", title: "Casos reales, no renders", ...projectsSection?.data };
+
+  const materialsSection = getSection(cmsPage, "materials");
+  const MATERIALS_DATA: typeof MATERIALS = materialsSection?.data?.items?.length
+    ? materialsSection.data.items
+    : MATERIALS;
+  const MATERIALS_EYEBROW: string = materialsSection?.data?.eyebrow ?? "Materiales disponibles";
+
+  const ctaSection = getSection(cmsPage, "cta");
+  const CTA = { ...CTA_FALLBACK, ...(ctaSection?.data ?? {}) };
+  const ctaImg = resolveMediaUrl(getSectionImage(ctaSection, "taller"));
+
   return (
     <div>
       {/* ── Hero ── */}
       <div className="max-w-[var(--container)] mx-auto px-[var(--gutter)] pt-[var(--section-y)] pb-16 border-b border-[var(--border-hairline)]">
-        <SpecLabel index={1}>Capacidades</SpecLabel>
+        <SpecLabel index={1}>{HERO.eyebrow}</SpecLabel>
         <h1 className="font-display uppercase text-[length:var(--text-display-lg)] leading-[var(--leading-display)] mt-4 max-w-[18ch]">
-          Fabricamos lo que otros no pueden
+          {HERO.title}
         </h1>
         <p className="max-w-[56ch] text-[length:var(--text-body-lg)] text-[var(--text-muted)] leading-[var(--leading-body)] mt-6">
-          Somos un estudio de manufactura aditiva industrial con base en Buenos Aires. Trabajamos
-          con empresas que necesitan precisión, escala y velocidad — no con hobbyistas que copian
-          archivos de internet.
+          {HERO.subtitle}
         </p>
       </div>
 
       {/* ── Stats ── */}
-      <StatBar items={STATS} />
+      <StatBar items={STATS_DATA} />
 
       {/* ── Quiénes somos ── */}
       <div className="max-w-[var(--container)] mx-auto px-[var(--gutter)] py-[var(--section-y)] grid gap-16 lg:grid-cols-2 items-start">
         <div>
-          <SpecLabel index={2}>Industria, no hobby</SpecLabel>
+          <SpecLabel index={2}>{QUIENES_SOMOS.eyebrow}</SpecLabel>
           <h2 className="font-display uppercase text-[length:var(--text-display-sm)] leading-[var(--leading-display)] mt-4 mb-6">
-            Quiénes somos
+            {QUIENES_SOMOS.title}
           </h2>
           <div className="grid gap-4 text-[var(--text-muted)] leading-[var(--leading-body)] max-w-[var(--measure)]">
-            <p>
-              3DARG nació para cambiar la percepción de la impresión 3D en Argentina. Mientras el
-              mercado estaba lleno de emprendedores con una sola máquina y archivos descargados,
-              nosotros apostamos a construir un estudio técnico de manufactura aditiva con
-              capacidad industrial real.
-            </p>
-            <p>
-              Hoy trabajamos con empresas del sector automotriz, médico, energético, arquitectónico
-              y de investigación. Nuestros clientes son equipos de ingeniería, estudios de diseño y
-              áreas de I+D que necesitan piezas funcionales — no decorativas.
-            </p>
-            <p>
-              Cada proyecto empieza con un brief técnico. Evaluamos material, tolerancias,
-              geometría y uso final antes de emitir cualquier presupuesto. No fabricamos sin
-              entender qué va a hacer la pieza.
-            </p>
+            <p>{QUIENES_SOMOS.paragraph1}</p>
+            <p>{QUIENES_SOMOS.paragraph2}</p>
+            <p>{QUIENES_SOMOS.paragraph3}</p>
           </div>
         </div>
 
         <div className="rounded-[var(--radius-2xl)] border border-[var(--border-hairline)] p-8">
-          <SpecLabel index={3}>Materiales disponibles</SpecLabel>
+          <SpecLabel index={3}>{MATERIALS_EYEBROW}</SpecLabel>
           <div className="grid gap-0 mt-6">
-            {MATERIALS.map(({ name, use }) => (
+            {MATERIALS_DATA.map(({ name, use }) => (
               <div
                 key={name}
                 className="flex justify-between items-baseline gap-4 border-b border-[var(--border-hairline)] py-3.5 last:border-0"
@@ -166,9 +221,11 @@ export default function CapacidadesPage() {
       {/* ── Tecnologías ── */}
       <div className="py-[var(--section-y)]" style={{ background: "var(--surface-inset)" }}>
         <div className="max-w-[var(--container)] mx-auto px-[var(--gutter)] grid gap-10">
-          <SectionHeading eyebrow="Tecnologías" index={4} title="Cuatro procesos, un solo criterio técnico" />
+          <SectionHeading eyebrow={TECHNOLOGIES_HEADING.eyebrow} index={4} title={TECHNOLOGIES_HEADING.title} />
           <div className="hairline-grid grid grid-cols-1 md:grid-cols-2">
-            {TECHNOLOGIES.map(({ icon: Icon, code, name, detail }) => (
+            {TECHNOLOGIES_DATA.map(({ code, name, detail }) => {
+              const Icon = TECH_ICONS[code] ?? Layers;
+              return (
               <div key={code} className="group p-8 md:p-10 grid gap-4">
                 <div className="flex items-center justify-between">
                   <div className="w-11 h-11 rounded-[var(--radius-md)] grid place-items-center bg-[var(--surface-inset)] text-[var(--text-strong)] transition-colors duration-[var(--dur-base)] ease-[var(--ease-standard)] group-hover:bg-[var(--ink-900)] group-hover:text-[var(--bone-050)]">
@@ -179,16 +236,17 @@ export default function CapacidadesPage() {
                 <h3 className="font-bold text-[17px] text-[var(--text-strong)] leading-snug">{name}</h3>
                 <p className="text-[length:var(--text-body-sm)] text-[var(--text-muted)] leading-[var(--leading-body)]">{detail}</p>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
 
       {/* ── Proyectos ── */}
       <div className="max-w-[var(--container)] mx-auto px-[var(--gutter)] py-[var(--section-y)] grid gap-10">
-        <SectionHeading eyebrow="Proyectos destacados" index={5} title="Casos reales, no renders" />
+        <SectionHeading eyebrow={PROJECTS_HEADING.eyebrow} index={5} title={PROJECTS_HEADING.title} />
         <div className="hairline-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {PROJECTS.map(({ client, title, description, tags }) => (
+          {PROJECTS_DATA.map(({ client, title, description, tags }) => (
             <div key={title} className="p-7 grid gap-4 content-start">
               <div>
                 <p className="font-mono text-[10px] tracking-[var(--tracking-label)] uppercase text-[var(--text-faint)] mb-1.5">{client}</p>
@@ -214,16 +272,27 @@ export default function CapacidadesPage() {
       <section className="theme-ink">
         <div className="max-w-[var(--container)] mx-auto px-[var(--gutter)] py-[var(--section-y)] grid gap-12 lg:grid-cols-[1.05fr_.95fr] items-center">
           <div>
-            <SpecLabel index={6} tone="onInk">Siguiente paso</SpecLabel>
+            <SpecLabel index={6} tone="onInk">{CTA.eyebrow}</SpecLabel>
             <h2 className="font-display uppercase text-white text-[length:var(--text-display-md)] leading-[var(--leading-display)] mt-4">
-              ¿Cuál es tu proyecto?
+              {CTA.title}
             </h2>
             <p className="max-w-[48ch] text-[var(--ink-300)] leading-[var(--leading-body)] mt-4">
-              Contanos qué necesitás fabricar — material, medidas, cantidad y plazo — y te
-              respondemos con una cotización técnica el mismo día hábil.
+              {CTA.paragraph}
             </p>
           </div>
-          <ImageSlot ratio="4 / 3" label="Foto del taller pendiente" className="rounded-[var(--radius-3xl)]" />
+          {ctaImg ? (
+            <Image
+              src={ctaImg}
+              alt="Foto del taller"
+              width={800}
+              height={600}
+              unoptimized
+              className="w-full object-cover rounded-[var(--radius-3xl)]"
+              style={{ aspectRatio: "4 / 3" }}
+            />
+          ) : (
+            <ImageSlot ratio="4 / 3" label="Foto del taller pendiente" className="rounded-[var(--radius-3xl)]" />
+          )}
         </div>
         <div className="max-w-[var(--container)] mx-auto px-[var(--gutter)] pb-[var(--section-y)] flex flex-wrap gap-4">
           <QuoteButton />

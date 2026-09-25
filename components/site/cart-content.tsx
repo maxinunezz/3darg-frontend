@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Trash2, ShoppingBag, CreditCard, Loader2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBrandNamespace } from "@/lib/brand-context";
 import type { CartItem } from "@/contexts/CartContext";
 import { resolveMediaUrl } from "@/lib/api";
 import { QuantityStepper } from "@/components/site/commerce";
@@ -37,36 +38,27 @@ async function createMpPreference(brandSlug: string, items: CartItem[], customer
   return res.json() as Promise<{ order_id: string; init_point: string; sandbox_init_point: string }>;
 }
 
-function groupByBrand(items: CartItem[]): Map<string, CartItem[]> {
-  const map = new Map<string, CartItem[]>();
-  for (const item of items) {
-    const brand = item.product.brand ?? "3darg";
-    if (!map.has(brand)) map.set(brand, []);
-    map.get(brand)!.push(item);
-  }
-  return map;
-}
-
 /** Carrito de la marca madre 3DARG — misma lógica de CartContext/checkout que el resto del sitio, capa visual del handoff. */
 export function SiteCartContent() {
   const { items, total, clearCart, removeItem, updateQuantity } = useCart();
   const { user, token } = useAuth();
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const brandSlug = useBrandNamespace();
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
 
-  const grouped = groupByBrand(items);
   const itemCount = items.reduce((s, i) => s + i.quantity, 0);
+  const unitPrice = (i: CartItem) => Number(i.product.final_price ?? i.product.price);
 
-  async function handleCheckout(brandSlug: string, brandItems: CartItem[]) {
-    setCheckoutLoading(brandSlug);
+  async function handleCheckout() {
+    setCheckoutLoading(true);
     setCheckoutError("");
     try {
-      const data = await createMpPreference(brandSlug, brandItems, user?.email, token ?? undefined);
+      const data = await createMpPreference(brandSlug, items, user?.email, token ?? undefined);
       window.location.href = USE_SANDBOX ? data.sandbox_init_point : data.init_point;
     } catch (e: unknown) {
       setCheckoutError(e instanceof Error ? e.message : "Error al conectar con MercadoPago");
     } finally {
-      setCheckoutLoading(null);
+      setCheckoutLoading(false);
     }
   }
 
@@ -102,87 +94,66 @@ export function SiteCartContent() {
         <div className="mb-6 p-4 rounded-[var(--radius-lg)] bg-[var(--signal-error-soft)] text-[var(--signal-error)] text-sm">{checkoutError}</div>
       )}
 
-      {grouped.size > 1 && (
-        <p className="mb-6 rounded-[var(--radius-lg)] bg-[var(--surface-inset)] p-3 text-sm text-[var(--text-muted)]">
-          Tenés productos de {grouped.size} marcas. Cada marca se paga por separado.
-        </p>
-      )}
+      <div className="border border-[var(--border-hairline)] rounded-[var(--radius-2xl)] overflow-hidden">
+        <div className="px-5 py-3 bg-[var(--surface-inset)] border-b border-[var(--border-hairline)] flex items-center justify-between">
+          <span className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)]">{brandSlug}</span>
+          <span className="font-mono text-[11px] text-[var(--text-muted)]">{itemCount} ítem{itemCount !== 1 ? "s" : ""}</span>
+        </div>
 
-      <div className="grid gap-8">
-        {Array.from(grouped.entries()).map(([brandSlug, brandItems]) => {
-          const unitPrice = (i: CartItem) => Number(i.product.final_price ?? i.product.price);
-          const subtotal = brandItems.reduce((s, i) => s + unitPrice(i) * i.quantity, 0);
-          return (
-            <div key={brandSlug} className="border border-[var(--border-hairline)] rounded-[var(--radius-2xl)] overflow-hidden">
-              <div className="px-5 py-3 bg-[var(--surface-inset)] border-b border-[var(--border-hairline)] flex items-center justify-between">
-                <span className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)]">{brandSlug}</span>
-                <span className="font-mono text-[11px] text-[var(--text-muted)]">{brandItems.length} ítem{brandItems.length !== 1 ? "s" : ""}</span>
-              </div>
-
-              <div className="divide-y divide-[var(--border-hairline)]">
-                {brandItems.map((item) => {
-                  const { product, quantity } = item;
-                  const unit = unitPrice(item);
-                  const img = resolveMediaUrl(product.images?.[0]?.image);
-                  return (
-                    <div key={product.id} className="flex gap-4 p-4 items-center">
-                      <div className="relative w-16 h-16 shrink-0 rounded-[var(--radius-lg)] overflow-hidden bg-[var(--surface-inset)]">
-                        {img ? (
-                          <Image src={img} alt={product.name} fill unoptimized className="object-contain p-1.5" />
-                        ) : (
-                          <ImageSlot className="absolute inset-0" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-sm truncate text-[var(--text-strong)]">{product.name}</p>
-                        <p className="font-mono text-[11px] text-[var(--text-faint)] uppercase tracking-[var(--tracking-mono)]">
-                          {[brandSlug, product.category?.name].filter(Boolean).join(" · ")}
-                        </p>
-                      </div>
-                      <QuantityStepper size="sm" value={quantity} onChange={(n) => updateQuantity(product.id, n)} />
-                      <span className="font-mono text-sm font-bold tabular-nums w-24 text-right shrink-0">{fmt(unit * quantity)}</span>
-                      <button onClick={() => removeItem(product.id)} aria-label="Eliminar" className="text-[var(--text-faint)] hover:text-[var(--signal-error)] transition-colors shrink-0">
-                        <Trash2 size={16} strokeWidth={1.5} />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Total en panel ink */}
-              <div className="bg-[var(--ink-900)] text-[var(--bone-050)] px-5 py-5 flex items-center justify-between">
-                <span className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--ink-400)]">Total</span>
-                <span className="font-display" style={{ fontSize: "clamp(30px,3.4vw,42px)", lineHeight: 1 }}>{fmt(subtotal)}</span>
-              </div>
-
-              <div className="p-4">
-                <button
-                  onClick={() => handleCheckout(brandSlug, brandItems)}
-                  disabled={checkoutLoading === brandSlug}
-                  className={buttonClass("ember", "lg", true)}
-                >
-                  {checkoutLoading === brandSlug ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" /> Redirigiendo...
-                    </>
+        <div className="divide-y divide-[var(--border-hairline)]">
+          {items.map((item) => {
+            const { product, quantity } = item;
+            const unit = unitPrice(item);
+            const img = resolveMediaUrl(product.images?.[0]?.image);
+            return (
+              <div key={product.id} className="flex gap-4 p-4 items-center">
+                <div className="relative w-16 h-16 shrink-0 rounded-[var(--radius-lg)] overflow-hidden bg-[var(--surface-inset)]">
+                  {img ? (
+                    <Image src={img} alt={product.name} fill unoptimized className="object-contain p-1.5" />
                   ) : (
-                    <>
-                      <CreditCard size={16} strokeWidth={1.5} /> Finalizar compra
-                    </>
+                    <ImageSlot className="absolute inset-0" />
                   )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-sm truncate text-[var(--text-strong)]">{product.name}</p>
+                  <p className="font-mono text-[11px] text-[var(--text-faint)] uppercase tracking-[var(--tracking-mono)]">
+                    {[brandSlug, product.category?.name].filter(Boolean).join(" · ")}
+                  </p>
+                </div>
+                <QuantityStepper size="sm" value={quantity} onChange={(n) => updateQuantity(product.id, n)} />
+                <span className="font-mono text-sm font-bold tabular-nums w-24 text-right shrink-0">{fmt(unit * quantity)}</span>
+                <button onClick={() => removeItem(product.id)} aria-label="Eliminar" className="text-[var(--text-faint)] hover:text-[var(--signal-error)] transition-colors shrink-0">
+                  <Trash2 size={16} strokeWidth={1.5} />
                 </button>
               </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {grouped.size > 1 && (
-        <div className="mt-8 rounded-[var(--radius-2xl)] border border-[var(--border-hairline)] p-5 text-center">
-          <p className="text-sm text-[var(--text-muted)] mb-1">Total combinado ({itemCount} ítems)</p>
-          <p className="font-display uppercase" style={{ fontSize: "clamp(30px,3.4vw,42px)" }}>{fmt(Number(total))}</p>
+            );
+          })}
         </div>
-      )}
+
+        {/* Total en panel ink */}
+        <div className="bg-[var(--ink-900)] text-[var(--bone-050)] px-5 py-5 flex items-center justify-between">
+          <span className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--ink-400)]">Total</span>
+          <span className="font-display" style={{ fontSize: "clamp(30px,3.4vw,42px)", lineHeight: 1 }}>{fmt(Number(total))}</span>
+        </div>
+
+        <div className="p-4">
+          <button
+            onClick={handleCheckout}
+            disabled={checkoutLoading}
+            className={buttonClass("ember", "lg", true)}
+          >
+            {checkoutLoading ? (
+              <>
+                <Loader2 size={16} className="animate-spin" /> Redirigiendo...
+              </>
+            ) : (
+              <>
+                <CreditCard size={16} strokeWidth={1.5} /> Finalizar compra
+              </>
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

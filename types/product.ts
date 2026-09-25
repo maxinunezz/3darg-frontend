@@ -9,6 +9,9 @@ export type CategoryType = {
   id: number;
   slug: string;
   name: string;
+  parent_id: number | null;
+  parent_name: string | null;
+  parent_slug: string | null;
 };
 
 export type ProductType = {

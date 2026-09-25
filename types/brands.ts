@@ -16,7 +16,56 @@ export type BrandStat = {
   label: string;
 };
 
+// Config específica de la home bespoke de Lumy (components/lumy/lumy-home.tsx + lumy-navbar.tsx).
+// Todos los campos son opcionales: lo que no se cargue en el admin usa el copy por defecto del código.
+export type LumyHomeConfig = {
+  nav_links?: { href: string; label: string }[];
+  hero?: {
+    rail_top?: string;
+    rail_bottom?: string;
+    title_line1?: string;
+    title_line2?: string;
+    title_highlight?: string;
+    title_line3?: string;
+    script_text?: string;
+    cta_primary_label?: string;
+    cta_secondary_label?: string;
+  };
+  marquee_words?: string[];
+  proceso?: {
+    eyebrow?: string;
+    title_prefix?: string;
+    title_highlight?: string;
+    steps?: { n: string; t: string; d: string; a: string }[];
+    cta_label?: string;
+  };
+  manifiesto?: {
+    eyebrow_prefix?: string;
+    text?: string;
+  };
+  tienda?: {
+    title_prefix?: string;
+    title_highlight?: string;
+    empty_text?: string;
+  };
+  inspiracion?: {
+    eyebrow?: string;
+    title_prefix?: string;
+    title_highlight?: string;
+    items?: { label: string; tag: string; title: string }[];
+    cta_label?: string;
+  };
+  cta_band?: {
+    script?: string;
+    title_lines?: string[];
+    subtitle?: string;
+    button_label?: string;
+  };
+};
+
 export type BrandPageConfig = {
+  // Copy/estructura de la home bespoke de Lumy — ver LumyHomeConfig. No lo usa la landing genérica.
+  lumy?: LumyHomeConfig;
   // Qué secciones mostrar y en qué orden
   sections?: Array<"hero" | "panels" | "stats" | "featured" | "categories" | "features" | "lifestyle" | "about" | "newsletter" | "community" | "social">;
   panels?: Array<{ title: string; subtitle?: string; href: string; image?: string }>;
@@ -48,6 +97,11 @@ export type BrandPageConfig = {
   community_cta_login?: string;
 };
 
+export type BrandMetaPublicConfig = {
+  pixel_id: string;
+  catalog_id: string;
+};
+
 export type BrandType = {
   id: number;
   name: string;
@@ -64,6 +118,7 @@ export type BrandType = {
   theme: Record<string, string>;
   social_links: Record<string, string>;
   page_config: BrandPageConfig;
+  meta_public_config: BrandMetaPublicConfig;
   links: BrandLinkType[];
   children: BrandType[];
   created_at: string;

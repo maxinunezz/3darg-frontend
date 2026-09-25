@@ -3,6 +3,10 @@
 @import "shadcn/tailwind.css";
 /* Design system 3DARG (marca madre) — scopeado bajo .site-3darg, no afecta a app/[brand]/ */
 @import "./site-3darg.css";
+/* Design system Print&Gym (sub-marca) — scopeado bajo .site-printgym, no afecta a otras marcas */
+@import "./site-printgym.css";
+/* Design system Lumy (sub-marca) — scopeado bajo .site-lumy, no afecta a otras marcas */
+@import "./site-lumy.css";
 
 @custom-variant dark (&:is(.dark *));
 

@@ -8,6 +8,8 @@ import type { BrandFeature, BrandStat, BrandPageConfig } from "@/types/brands";
 import { Instagram, Truck, Star, Zap, Shield, ArrowRight, ChevronRight, Cake, Heart, Gift, Camera, Leaf, Music } from "lucide-react";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { CommunityAuthCTAs } from "@/components/community-auth-ctas";
+import { PrintGymHome } from "@/components/printgym/printgym-home";
+import { LumyHome } from "@/components/lumy/lumy-home";
 import type { Metadata } from "next";
 
 export async function generateMetadata({
@@ -458,6 +460,18 @@ export default async function BrandPage({
   ]);
 
   if (!brand) notFound();
+
+  if (brand.slug === "printgym") {
+    return (
+      <PrintGymHome brand={brand} featured={featured} allProducts={allProducts} categories={categories} />
+    );
+  }
+
+  if (brand.slug === "lumy") {
+    return (
+      <LumyHome brand={brand} featured={featured} allProducts={allProducts} categories={categories} />
+    );
+  }
 
   const cfg = brand.page_config ?? {};
   const hasShop = brand.brand_type !== "services";
