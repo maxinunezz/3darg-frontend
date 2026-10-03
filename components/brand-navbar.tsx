@@ -133,7 +133,8 @@ export function BrandNavbar({ brand }: BrandNavbarProps) {
               </Link>
             )}
 
-            {hasShop && isAuthenticated && (
+            {/* Carrito y compra no requieren cuenta — el checkout acepta invitado. */}
+            {hasShop && (
               <button
                 onClick={() => router.push(`/${brand.slug}/cart`)}
                 className="relative text-muted-foreground hover:text-foreground transition-colors"

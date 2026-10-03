@@ -49,16 +49,24 @@ async function createMpPreference(
 // como antes: se muestran directamente los items y un solo botón de pago.
 export function CartPageContent() {
   const { items, total, clearCart, removeItem, updateQuantity } = useCart();
-  const { user, token } = useAuth();
+  const { user, token, isAuthenticated } = useAuth();
   const brandSlug = useBrandNamespace();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail);
+  const canCheckout = isAuthenticated || emailValid;
 
   async function handleCheckout() {
+    if (!canCheckout) {
+      setCheckoutError("Ingresá un email válido para continuar con la compra.");
+      return;
+    }
     setCheckoutLoading(true);
     setCheckoutError("");
     try {
-      const data = await createMpPreference(brandSlug, items, user?.email, token ?? undefined);
+      const data = await createMpPreference(brandSlug, items, user?.email ?? guestEmail, token ?? undefined);
       const url = USE_SANDBOX ? data.sandbox_init_point : data.init_point;
       window.location.href = url;
     } catch (e: unknown) {
@@ -182,13 +190,30 @@ export function CartPageContent() {
         </div>
 
         <div className="px-4 py-4 border-t border-border bg-muted/20">
+          {!isAuthenticated && (
+            <div className="mb-4">
+              <label className="block text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
+                Email para tu compra
+              </label>
+              <input
+                type="email"
+                value={guestEmail}
+                onChange={(e) => setGuestEmail(e.target.value)}
+                placeholder="tu@email.com"
+                className="w-full h-11 bg-card text-sm outline-none border border-border rounded-xl px-4 focus:border-primary transition-colors"
+              />
+              <p className="text-[11px] text-muted-foreground mt-1.5">
+                No hace falta crear una cuenta — te mandamos la confirmación de compra a este email.
+              </p>
+            </div>
+          )}
           <div className="flex justify-between items-center mb-3">
             <span className="text-sm text-muted-foreground">Total</span>
             <span className="font-bold">$ {Number(total).toLocaleString("es-AR")}</span>
           </div>
           <button
             onClick={handleCheckout}
-            disabled={checkoutLoading}
+            disabled={checkoutLoading || !canCheckout}
             className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3 rounded-full font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {checkoutLoading ? (

@@ -51,31 +51,30 @@ export function PrintGymNavbar({ brand }: PrintGymNavbarProps) {
 
         <div className="flex items-center gap-4">
           {isAuthenticated ? (
-            <>
-              <Link href={`${base}/profile`} aria-label="Mi cuenta" className="flex items-center">
-                <User className="w-5 h-5" strokeWidth={1.4} />
-              </Link>
-              <button
-                onClick={() => router.push(`${base}/cart`)}
-                className="relative flex items-center"
-                aria-label="Carrito"
-              >
-                <ShoppingCart className="w-5 h-5" strokeWidth={1.4} />
-                {count > 0 && (
-                  <span
-                    className="absolute -top-2 -right-2 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none"
-                    style={{ background: "var(--pg-red)", color: "#fff" }}
-                  >
-                    {count > 9 ? "9+" : count}
-                  </span>
-                )}
-              </button>
-            </>
+            <Link href={`${base}/profile`} aria-label="Mi cuenta" className="flex items-center">
+              <User className="w-5 h-5" strokeWidth={1.4} />
+            </Link>
           ) : (
             <Link className="btn btn-red" href={`${base}/auth/login`}>
               Ingresar
             </Link>
           )}
+          {/* Carrito y compra no requieren cuenta — el checkout acepta invitado. */}
+          <button
+            onClick={() => router.push(`${base}/cart`)}
+            className="relative flex items-center"
+            aria-label="Carrito"
+          >
+            <ShoppingCart className="w-5 h-5" strokeWidth={1.4} />
+            {count > 0 && (
+              <span
+                className="absolute -top-2 -right-2 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none"
+                style={{ background: "var(--pg-red)", color: "#fff" }}
+              >
+                {count > 9 ? "9+" : count}
+              </span>
+            )}
+          </button>
         </div>
       </div>
     </nav>

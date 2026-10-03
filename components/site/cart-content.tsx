@@ -41,19 +41,26 @@ async function createMpPreference(brandSlug: string, items: CartItem[], customer
 /** Carrito de la marca madre 3DARG — misma lógica de CartContext/checkout que el resto del sitio, capa visual del handoff. */
 export function SiteCartContent() {
   const { items, total, clearCart, removeItem, updateQuantity } = useCart();
-  const { user, token } = useAuth();
+  const { user, token, isAuthenticated } = useAuth();
   const brandSlug = useBrandNamespace();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
 
   const itemCount = items.reduce((s, i) => s + i.quantity, 0);
   const unitPrice = (i: CartItem) => Number(i.product.final_price ?? i.product.price);
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail);
+  const canCheckout = isAuthenticated || emailValid;
 
   async function handleCheckout() {
+    if (!canCheckout) {
+      setCheckoutError("Ingresá un email válido para continuar con la compra.");
+      return;
+    }
     setCheckoutLoading(true);
     setCheckoutError("");
     try {
-      const data = await createMpPreference(brandSlug, items, user?.email, token ?? undefined);
+      const data = await createMpPreference(brandSlug, items, user?.email ?? guestEmail, token ?? undefined);
       window.location.href = USE_SANDBOX ? data.sandbox_init_point : data.init_point;
     } catch (e: unknown) {
       setCheckoutError(e instanceof Error ? e.message : "Error al conectar con MercadoPago");
@@ -137,9 +144,26 @@ export function SiteCartContent() {
         </div>
 
         <div className="p-4">
+          {!isAuthenticated && (
+            <div className="mb-4">
+              <label className="block font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--text-faint)] mb-2">
+                Email para tu compra
+              </label>
+              <input
+                type="email"
+                value={guestEmail}
+                onChange={(e) => setGuestEmail(e.target.value)}
+                placeholder="tu@email.com"
+                className="w-full h-11 bg-[var(--surface-card)] text-sm outline-none border border-[var(--border-input)] rounded-[var(--radius-lg)] px-4 focus:border-[var(--ink-900)] transition-colors"
+              />
+              <p className="text-[11px] text-[var(--text-faint)] mt-1.5">
+                No hace falta crear una cuenta — te mandamos la confirmación de compra a este email.
+              </p>
+            </div>
+          )}
           <button
             onClick={handleCheckout}
-            disabled={checkoutLoading}
+            disabled={checkoutLoading || !canCheckout}
             className={buttonClass("ember", "lg", true)}
           >
             {checkoutLoading ? (

@@ -66,14 +66,6 @@ export const Navbar = () => {
         <div className="flex items-center gap-2 justify-self-end">
           {isAuthenticated ? (
             <>
-              <IconButton
-                tone="bare"
-                aria-label="Carrito"
-                badge={count > 0 ? (count > 9 ? "9+" : count) : undefined}
-                onClick={() => router.push("/cart")}
-              >
-                <ShoppingCart size={19} strokeWidth={1.5} />
-              </IconButton>
               <IconButton tone="bare" aria-label="Mi perfil" onClick={() => router.push("/profile")}>
                 <User size={19} strokeWidth={1.5} />
               </IconButton>
@@ -90,6 +82,15 @@ export const Navbar = () => {
               <span className="hidden sm:inline">Ingresar</span>
             </button>
           )}
+          {/* Carrito y compra no requieren cuenta — el checkout acepta invitado. */}
+          <IconButton
+            tone="bare"
+            aria-label="Carrito"
+            badge={count > 0 ? (count > 9 ? "9+" : count) : undefined}
+            onClick={() => router.push("/cart")}
+          >
+            <ShoppingCart size={19} strokeWidth={1.5} />
+          </IconButton>
 
           <button
             className="md:hidden inline-flex items-center justify-center w-9 h-9 text-[var(--text-body)]"

@@ -18,6 +18,7 @@ const DEFAULT_LINKS = [
   { href: "", label: "Inicio" },
   { href: "/shop", label: "Tienda" },
   { href: "/about", label: "Sobre Lumy" },
+  { href: "/contacto", label: "Contanos tu idea" },
 ];
 
 export function LumyNavbar({ brand }: LumyNavbarProps) {
@@ -58,24 +59,23 @@ export function LumyNavbar({ brand }: LumyNavbarProps) {
 
         <div className="lm-nav__actions">
           {isAuthenticated ? (
-            <>
-              <Link href={`${base}/profile`} className="lm-iconbtn lm-iconbtn--md" aria-label="Mi cuenta">
-                <User size={18} strokeWidth={1.6} />
-              </Link>
-              <button
-                onClick={() => router.push(`${base}/cart`)}
-                className="lm-iconbtn lm-iconbtn--md"
-                aria-label="Carrito"
-              >
-                <ShoppingBag size={18} strokeWidth={1.6} />
-                {count > 0 && <span className="lm-iconbtn__badge">{count > 9 ? "9+" : count}</span>}
-              </button>
-            </>
+            <Link href={`${base}/profile`} className="lm-iconbtn lm-iconbtn--md" aria-label="Mi cuenta">
+              <User size={18} strokeWidth={1.6} />
+            </Link>
           ) : (
             <Link className="lm-btn lm-btn--primary lm-btn--sm" href={`${base}/auth/login`}>
               Ingresar
             </Link>
           )}
+          {/* Carrito y compra no requieren cuenta — el checkout acepta invitado. */}
+          <button
+            onClick={() => router.push(`${base}/cart`)}
+            className="lm-iconbtn lm-iconbtn--md"
+            aria-label="Carrito"
+          >
+            <ShoppingBag size={18} strokeWidth={1.6} />
+            {count > 0 && <span className="lm-iconbtn__badge">{count > 9 ? "9+" : count}</span>}
+          </button>
           <button
             className="lm-iconbtn lm-iconbtn--md lm-navtoggle"
             aria-label={open ? "Cerrar menú" : "Abrir menú"}
