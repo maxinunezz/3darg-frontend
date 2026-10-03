@@ -25,6 +25,7 @@ export type ProductType = {
   members_only: boolean;            // solo visible/comprable con cuenta
   member_discount_percent: number;  // % de descuento para socios (0 = sin descuento)
   has_member_discount: boolean;
+  bundle_discounts: { quantity: number; discount_percent: number }[]; // tramos "llevá N, -X%". Vacío = sin oferta por cantidad
   stock: number;
   is_available: boolean;
   is_featured: boolean;

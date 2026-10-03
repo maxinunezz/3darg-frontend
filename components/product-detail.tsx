@@ -11,6 +11,8 @@ import type { BrandType } from "@/types/brands";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { FavoriteButton } from "@/components/favorite-button";
 import { ProductPrice } from "@/components/product-price";
+import { ProductBundlePicker } from "@/components/product-bundle-picker";
+import { RelatedByTheme } from "@/components/related-by-theme";
 
 interface Props {
   brand: BrandType;
@@ -193,7 +195,11 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
           )}
 
           <div className="pt-2">
-            <AddToCartButton product={product} disabled={!inStock} />
+            {product.bundle_discounts?.length > 0 ? (
+              <ProductBundlePicker product={product} disabled={!inStock} />
+            ) : (
+              <AddToCartButton product={product} disabled={!inStock} />
+            )}
           </div>
 
           {/* Trust signals */}
@@ -204,6 +210,8 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
           </div>
         </div>
       </div>
+
+      <RelatedByTheme product={product} brandSlug={brand.slug} />
     </div>
   );
 }
