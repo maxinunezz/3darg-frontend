@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { getBrandBySlug } from "@/lib/brands";
 import type { ProductType, CategoryType } from "@/types/product";
 import { SearchBar } from "@/components/search-bar";
@@ -146,7 +147,7 @@ export default async function ShopPage({
         {categories.length > 0 && (
           <aside className="md:w-56 shrink-0">
             <div className="md:sticky md:top-32">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
+              <h2 className="text-xl font-bold uppercase tracking-wider text-muted-foreground mb-3">
                 Categorías
               </h2>
               <nav className="flex flex-row md:flex-col gap-1 flex-wrap">
@@ -177,16 +178,22 @@ export default async function ShopPage({
                 ))}
 
                 {/* Categorías con subcategorías (ej: Cortantes > Halloween) — el nivel
-                    superior es un encabezado agrupador, solo el tema es clickeable,
-                    porque los productos siempre están asignados al tema, no al grupo. */}
+                    superior es un grupo desplegable (<details>, sin JS), solo el tema
+                    es clickeable, porque los productos siempre están asignados al tema,
+                    no al grupo. Se abre solo si contiene la subcategoría activa. */}
                 {topLevelCategories
                   .filter((cat) => subcategoriesByParent[cat.id])
                   .map((cat) => (
-                    <div key={cat.id} className="md:mt-3 w-full">
-                      <p className="px-3 pt-2 pb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <details
+                      key={cat.id}
+                      className="group md:mt-3 w-full"
+                      open={subcategoriesByParent[cat.id].some((sub) => sub.slug === category)}
+                    >
+                      <summary className="flex items-center gap-1 px-3 pt-2 pb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
+                        <ChevronRight className="w-3 h-3 shrink-0 transition-transform group-open:rotate-90" />
                         {cat.name}
-                      </p>
-                      <div className="flex flex-row md:flex-col gap-1 flex-wrap">
+                      </summary>
+                      <div className="flex flex-row md:flex-col gap-1 flex-wrap mt-1">
                         {subcategoriesByParent[cat.id]
                           .slice()
                           .sort((a, b) => a.name.localeCompare(b.name, "es"))
@@ -204,7 +211,7 @@ export default async function ShopPage({
                             </Link>
                           ))}
                       </div>
-                    </div>
+                    </details>
                   ))}
               </nav>
             </div>

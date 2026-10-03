@@ -53,7 +53,7 @@ export function ProductCard({ product, brandSlug }: Props) {
           )}
         </div>
         <div className="p-4">
-          <h3 className="font-semibold text-sm leading-snug line-clamp-2">{product.name}</h3>
+          <h3 className="font-semibold text-lg leading-snug line-clamp-2">{product.name}</h3>
           {product.category && (
             <p className="text-xs text-muted-foreground mt-1">{product.category.name}</p>
           )}

@@ -30,7 +30,7 @@ const DEFAULT_FILTERS = ["Cumpleaños", "Egresados", "Fiestas temáticas"];
 const DEFAULT_MARQUEE_WORDS = ["cortantes", "toppers", "sellos", "números", "souvenirs", "rodillos", "carteles", "lo que se te ocurra"];
 
 const DEFAULT_STEPS = [
-  { n: "01", t: "Contanos tu idea", d: "Un audio, una captura de Pinterest o un dibujo hecho en una servilleta.", a: "Sin mínimo de compra" },
+  { n: "01", t: "Contanos tu idea", d: "Un audio, una captura de pantalla o un dibujo en un papel.", a: "Sin mínimo de compra" },
   { n: "02", t: "La diseñamos con vos", d: "Te mandamos una vista previa en 3D y ajustamos hasta que sea exactamente eso.", a: "Diseño sin cargo" },
   { n: "03", t: "La imprimimos", d: "Capa por capa, en el color y el tamaño que hayamos definido juntas.", a: "48 a 72 hs" },
   { n: "04", t: "Decorás tu fiesta", d: "Te llega lista para usar, empaquetada y con todo lo que pediste.", a: "Envíos a todo el país" },
@@ -135,7 +135,7 @@ function Hero({
   const railBottom = cfg?.rail_bottom || "Est. Argentina";
   const line1 = cfg?.title_line1 || "Imaginá";
   const line2 = cfg?.title_line2 || "cualquier";
-  const highlight = cfg?.title_highlight || "torta";
+  const highlight = cfg?.title_highlight || "decoración";
   const line3 = cfg?.title_line3 || "para tu fiesta.";
   const script = cfg?.script_text || "si te lo imaginás, existe";
   const ctaPrimary = cfg?.cta_primary_label || "Contanos tu idea";
@@ -143,7 +143,30 @@ function Hero({
 
   return (
     <section style={{ position: "relative", overflow: "hidden", background: "var(--cream-100)", borderBottom: "1px solid var(--beige-300)" }}>
-      <div style={{ position: "absolute", top: "-22rem", left: "38%", width: "46rem", height: "46rem", borderRadius: "var(--radius-blob)", background: "var(--rose-50)" }} />
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          right: "6%",
+          width: "min(48vw, 46rem)",
+          aspectRatio: "2/1",
+          borderRadius: "0 0 50% 50% / 0 0 100% 100%",
+          background: "var(--rose-100)",
+          overflow: "hidden",
+          boxShadow: "0 30px 60px -20px rgba(0,0,0,0.18)",
+        }}
+      >
+        {heroImage && (
+          <Image
+            src={heroImage.src}
+            alt={heroImage.alt}
+            fill
+            className="object-cover"
+            style={{ objectPosition: "center 20%" }}
+            unoptimized
+          />
+        )}
+      </div>
       <div style={{ position: "relative", display: "grid", gridTemplateColumns: "4.5rem 1fr", minHeight: "min(88vh, 900px)" }}>
         <div style={{ borderRight: "1px solid var(--beige-300)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", padding: "var(--space-8) 0" }}>
           <span className="lm-rail" style={{ color: "var(--rose-600)" }}>{railTop}</span>
@@ -154,9 +177,6 @@ function Hero({
             <span style={{ display: "block" }}>{line1}</span>
             <span style={{ display: "flex", alignItems: "center", gap: "clamp(.75rem,1.6vw,1.5rem)", flexWrap: "wrap" }}>
               <span>{line2}</span>
-              <span style={{ position: "relative", display: "inline-flex", flex: "0 0 auto", height: "0.62em", width: "clamp(4rem,9vw,9rem)", borderRadius: "999px", background: "var(--rose-200)", overflow: "hidden" }}>
-                {heroImage && <Image src={heroImage.src} alt={heroImage.alt} fill className="object-cover" unoptimized />}
-              </span>
               <em style={{ fontStyle: "italic", color: "var(--rose-600)" }}>{highlight}</em>
             </span>
             <span style={{ display: "block" }}>{line3}</span>
@@ -168,7 +188,7 @@ function Hero({
                   "Diseñamos y armamos tu torta y decoración a medida, hecho pieza por pieza sobre tu idea."}
               </p>
               <div style={{ display: "flex", gap: "var(--space-3)", marginTop: "var(--space-8)", flexWrap: "wrap" }}>
-                <Link href={`${base}/about`} className="lm-btn lm-btn--primary lm-btn--lg">{ctaPrimary}</Link>
+                <Link href={`${base}/contacto`} className="lm-btn lm-btn--primary lm-btn--lg">{ctaPrimary}</Link>
                 <Link href={`${base}/shop`} className="lm-btn lm-btn--ghost lm-btn--lg">{ctaSecondary}</Link>
               </div>
             </div>
@@ -203,8 +223,8 @@ function Marquee({ words }: { words: string[] }) {
 
 function Proceso({ base, cfg }: { base: string; cfg?: LumyHomeConfig["proceso"] }) {
   const eyebrow = cfg?.eyebrow || "Cómo trabajamos";
-  const titlePrefix = cfg?.title_prefix || "No hace falta que sepas nada de";
-  const titleHighlight = cfg?.title_highlight || "repostería.";
+  const titlePrefix = cfg?.title_prefix || "No hace falta ser experta para armar una";
+  const titleHighlight = cfg?.title_highlight || "fiesta soñada.";
   const steps = cfg?.steps?.length ? cfg.steps : DEFAULT_STEPS;
   const ctaLabel = cfg?.cta_label || "Ver el proceso completo";
 
@@ -246,7 +266,7 @@ function Manifiesto({
   const eyebrowPrefix = cfg?.eyebrow_prefix || "Por qué";
   const text =
     cfg?.text ||
-    "No vendemos un catálogo cerrado. Trabajamos sobre tu idea: el nombre de tu hija, la flor de la invitación, el personaje que le gusta. Todo eso se puede imprimir, y todo eso combina con los cortantes, rodillos y sellos que usás para la mesa.";
+    "Además de contar con un extenso catálogo, también trabajamos sobre tu idea: el nombre de un familiar, el egreso de tu amiga o ese personaje que te gusta. Todo eso se imprime con la mejor calidad para que tengas tu increíble fiesta temática.";
 
   return (
     <section style={{ background: "var(--rose-50)", padding: "var(--section-y) 0", overflow: "hidden" }}>
