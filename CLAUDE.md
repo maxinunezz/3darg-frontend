@@ -63,10 +63,13 @@ auth/{login,register}/
 - `loginWithGoogle(idToken, brandSlug?)`: hace `POST /api/users/google/` y guarda el mismo par access/refresh que `login()` (bajo el namespace actual). La usa `<GoogleLoginButton>` (`components/google-login-button.tsx`), montado en `/login`, `/register` y en `components/brand-auth-forms.tsx` (login/register de cada sub-marca).
 
 ### CartContext (`useCart()`)
-- **Server-side**: cada mutación (add/remove/update) llama al backend. No hay estado local optimista.
-- **Un carrito por (usuario, marca)** — brand-aware vía `useBrandNamespace()`. Todas las llamadas (`GET/DELETE /api/cart/`, `POST /api/cart/items/`) mandan `brand_slug` (query param o body) con el namespace actual; el backend lo exige y devuelve 400 si falta. Refetchea cuando cambia el token O el namespace.
-- Sin token → items vacíos, no mostrar ícono del carrito.
-- Al `logout` → `clearCart()` automático.
+- **Híbrido server-side / localStorage según sesión** (cambio de regla, lanzamiento Lumy: cart y checkout ya NO requieren login, solo favoritos).
+  - **Con token**: igual que antes — cada mutación (add/remove/update) llama al backend. **Un carrito por (usuario, marca)**, brand-aware vía `useBrandNamespace()`. Todas las llamadas (`GET/DELETE /api/cart/`, `POST /api/cart/items/`) mandan `brand_slug` (query param o body) con el namespace actual; el backend lo exige y devuelve 400 si falta. Refetchea cuando cambia el token O el namespace.
+  - **Sin token**: el carrito vive en `localStorage`, namespaced igual que los tokens (`guest_cart__<brand_slug>`, helpers `loadGuestCart`/`saveGuestCart`/`clearGuestCart`). `addItem`/`removeItem`/`updateQuantity` mutan ese estado local directo (respetando `product.stock` como tope), sin llamar al backend.
+  - **Migración al loguearse**: se detecta la transición (`prevTokenRef`) y se postean los items del cart de invitado uno por uno a `/cart/items/` con `brand_slug`; los que fallen (ej: sin stock) se descartan sin cortar el flujo. Después se limpia el `localStorage` y se refetchea el cart server-side.
+- El ícono del carrito **se muestra siempre**, haya o no token (antes se ocultaba sin sesión). Ver comentario `// Carrito y compra no requieren cuenta — el checkout acepta invitado.` en `navbar.tsx`, `brand-navbar.tsx`, `lumy-navbar.tsx`, `printgym-navbar.tsx`.
+- Al `logout` → `clearCart()` solo limpia el cart server-side del namespace actual; el cart de invitado en `localStorage` no se toca (no es dato sensible de cuenta).
+- **Checkout sin cuenta**: `cart-page-content.tsx` (sub-marcas) y `site/cart-content.tsx` (3DARG) piden un email (`guestEmail`, validado con regex) cuando `!isAuthenticated`; `canCheckout = isAuthenticated || emailValid` gatea el botón, y el email viaja como `customer_email` a `createMpPreference`.
 - `DELETE /api/cart/` devuelve **204 sin body** → nunca llamar `.json()` sin chequear `response.ok` primero.
 - Como el carrito ya pertenece a una sola marca, `components/cart-page-content.tsx` y `components/site/cart-content.tsx` ya NO agrupan items por marca (`groupByBrand` se eliminó) — un solo listado, un solo botón de checkout con el `brand_slug` del namespace actual.
 
