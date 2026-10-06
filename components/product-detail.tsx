@@ -32,6 +32,7 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
   const { token, loading: authLoading, isAuthenticated } = useAuth();
   const [product, setProduct] = useState<ProductType | null>(initialProduct);
   const [fetching, setFetching] = useState(false);
+  const [activeImage, setActiveImage] = useState(0);
 
   useEffect(() => {
     if (authLoading || !token) return;
@@ -53,6 +54,10 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
       cancelled = true;
     };
   }, [token, authLoading, slug]);
+
+  useEffect(() => {
+    setActiveImage(0);
+  }, [slug]);
 
   // Producto no público y todavía resolviendo sesión / fetch → placeholder.
   if (!product) {
@@ -89,7 +94,8 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
   }
 
   const inStock = product.is_available && product.stock > 0;
-  const mainImage = resolveMediaUrl(product.images?.[0]?.image);
+  const images = product.images ?? [];
+  const mainImage = resolveMediaUrl(images[activeImage]?.image ?? images[0]?.image);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
@@ -124,7 +130,7 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
             {mainImage ? (
               <Image
                 src={mainImage}
-                alt={product.images[0].alt || product.name}
+                alt={images[activeImage]?.alt || product.name}
                 fill
                 className="object-cover"
                 unoptimized
@@ -137,12 +143,15 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
               </div>
             )}
           </div>
-          {product.images.length > 1 && (
+          {images.length > 1 && (
             <div className="grid grid-cols-4 gap-2">
-              {product.images.slice(1, 5).map((img) => (
-                <div
+              {images.slice(0, 4).map((img, i) => (
+                <button
                   key={img.id}
-                  className="aspect-square bg-muted rounded-lg overflow-hidden relative"
+                  onClick={() => setActiveImage(i)}
+                  className={`aspect-square bg-muted rounded-lg overflow-hidden relative border transition-colors ${
+                    activeImage === i ? "border-primary" : "border-transparent"
+                  }`}
                 >
                   <Image
                     src={resolveMediaUrl(img.image)!}
@@ -151,7 +160,7 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
                     className="object-cover"
                     unoptimized
                   />
-                </div>
+                </button>
               ))}
             </div>
           )}
