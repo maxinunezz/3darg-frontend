@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Package, Lock } from "lucide-react";
+import { Package, Lock, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiUrl, cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import type { ProductType } from "@/types/product";
@@ -32,6 +32,16 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
   const { token, loading: authLoading, isAuthenticated } = useAuth();
   const [product, setProduct] = useState<ProductType | null>(initialProduct);
   const [fetching, setFetching] = useState(false);
+  const [activeImage, setActiveImage] = useState(0);
+  // Si cambia el slug (producto nuevo), reseteamos a la primera imagen.
+  // Ajuste de estado durante el render (patrón recomendado por React para
+  // "resetear estado cuando cambia una prop") en vez de un useEffect, que
+  // dispararía un render en cascada (regla react-hooks/set-state-in-effect).
+  const [prevSlug, setPrevSlug] = useState(slug);
+  if (slug !== prevSlug) {
+    setPrevSlug(slug);
+    setActiveImage(0);
+  }
 
   useEffect(() => {
     if (authLoading || !token) return;
@@ -89,7 +99,14 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
   }
 
   const inStock = product.is_available && product.stock > 0;
-  const mainImage = cloudinaryUrl(resolveMediaUrl(product.images?.[0]?.image), 800);
+  const images = product.images ?? [];
+  const safeActiveImage = images.length > 0 ? Math.min(activeImage, images.length - 1) : 0;
+  const mainImage = cloudinaryUrl(resolveMediaUrl(images[safeActiveImage]?.image), 800);
+
+  const goToPrevImage = () =>
+    setActiveImage((i) => (images.length === 0 ? 0 : (i - 1 + images.length) % images.length));
+  const goToNextImage = () =>
+    setActiveImage((i) => (images.length === 0 ? 0 : (i + 1) % images.length));
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
@@ -120,11 +137,11 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
         {/* Images */}
         <div className="space-y-3">
-          <div className="aspect-square bg-muted rounded-2xl overflow-hidden relative">
+          <div className="aspect-square bg-muted rounded-2xl overflow-hidden relative group">
             {mainImage ? (
               <Image
                 src={mainImage}
-                alt={product.images[0].alt || product.name}
+                alt={images[safeActiveImage]?.alt || product.name}
                 fill
                 className="object-cover"
                 unoptimized
@@ -136,13 +153,39 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
                 <span className="text-sm">Sin imagen</span>
               </div>
             )}
+            {images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={goToPrevImage}
+                  aria-label="Foto anterior"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background text-foreground rounded-full p-2 shadow-sm opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={goToNextImage}
+                  aria-label="Foto siguiente"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background text-foreground rounded-full p-2 shadow-sm opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </>
+            )}
           </div>
-          {product.images.length > 1 && (
+          {images.length > 1 && (
             <div className="grid grid-cols-4 gap-2">
-              {product.images.slice(1, 5).map((img) => (
-                <div
+              {images.slice(0, 4).map((img, i) => (
+                <button
                   key={img.id}
-                  className="aspect-square bg-muted rounded-lg overflow-hidden relative"
+                  type="button"
+                  onClick={() => setActiveImage(i)}
+                  aria-label={`Ver foto ${i + 1}`}
+                  aria-current={safeActiveImage === i}
+                  className={`aspect-square bg-muted rounded-lg overflow-hidden relative border-2 transition-colors ${
+                    safeActiveImage === i ? "border-primary" : "border-transparent hover:border-muted-foreground/30"
+                  }`}
                 >
                   <Image
                     src={cloudinaryUrl(resolveMediaUrl(img.image), 150)!}
@@ -151,7 +194,7 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
                     className="object-cover"
                     unoptimized
                   />
-                </div>
+                </button>
               ))}
             </div>
           )}
