@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 import Link from "next/link";
@@ -44,6 +44,22 @@ function headerFor(status: string | null) {
 }
 
 export default function CheckoutSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-xl mx-auto px-4 py-24 text-center">
+          <Loader2 className="w-16 h-16 mx-auto animate-spin text-muted-foreground mb-6" />
+          <h1 className="text-2xl font-bold mb-2">Confirmando tu pago…</h1>
+          <p className="text-muted-foreground">Un momento, estamos verificando con MercadoPago.</p>
+        </div>
+      }
+    >
+      <CheckoutSuccessContent />
+    </Suspense>
+  );
+}
+
+function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("order_id");
   const { clearCart } = useCart();

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { resolveMediaUrl } from "@/lib/api";
+import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import type { ProductType, CategoryType } from "@/types/product";
 import type { BrandType, LumyHomeConfig } from "@/types/brands";
 
@@ -303,7 +303,7 @@ function Manifiesto({
 }
 
 function ProductTile({ product, base }: { product: ProductType; base: string }) {
-  const image = product.images?.[0]?.image ? resolveMediaUrl(product.images[0].image) : null;
+  const image = product.images?.[0]?.image ? cloudinaryUrl(resolveMediaUrl(product.images[0].image), 400) : null;
   const price = product.final_price ?? product.price;
   return (
     <Link href={`${base}/product/${product.slug}`} className="lm-product">
@@ -484,13 +484,13 @@ export function LumyHome({ brand, featured, allProducts, categories }: LumyHomeP
     shopProducts.push(p);
   }
 
-  const productImage = (p?: ProductType) => {
-    const url = p?.images?.[0]?.image ? resolveMediaUrl(p.images[0].image) : null;
+  const productImage = (p?: ProductType, width = 800) => {
+    const url = p?.images?.[0]?.image ? cloudinaryUrl(resolveMediaUrl(p.images[0].image), width) : null;
     return url ? { src: url, alt: p!.images[0]?.alt || p!.name } : null;
   };
 
-  const heroImage = productImage(shopProducts[0]);
-  const manifiestoImages = [productImage(shopProducts[1]), productImage(shopProducts[2])].filter(
+  const heroImage = productImage(shopProducts[0], 1200);
+  const manifiestoImages = [productImage(shopProducts[1], 500), productImage(shopProducts[2], 500)].filter(
     (i): i is { src: string; alt: string } => !!i
   );
 

@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Lock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { apiUrl, resolveMediaUrl } from "@/lib/api";
+import { apiUrl, cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import type { ProductType } from "@/types/product";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { FavoriteButton } from "@/components/favorite-button";
@@ -77,7 +77,7 @@ export function SiteProductDetail({ slug, initialProduct, related }: Props) {
 
   const inStock = product.is_available && product.stock > 0;
   const images = product.images ?? [];
-  const mainImage = resolveMediaUrl(images[activeImage]?.image ?? images[0]?.image);
+  const mainImage = cloudinaryUrl(resolveMediaUrl(images[activeImage]?.image ?? images[0]?.image), 800);
   const specs = [
     { k: "Material", v: "PLA / PETG técnico" },
     { k: "Tolerancia", v: "0.15 mm" },
@@ -112,7 +112,7 @@ export function SiteProductDetail({ slug, initialProduct, related }: Props) {
                     activeImage === i ? "border-[var(--ink-900)]" : "border-transparent"
                   }`}
                 >
-                  <Image src={resolveMediaUrl(img.image)!} alt={img.alt || product.name} fill unoptimized className="object-contain p-1.5" />
+                  <Image src={cloudinaryUrl(resolveMediaUrl(img.image), 150)!} alt={img.alt || product.name} fill unoptimized className="object-contain p-1.5" />
                 </button>
               ))}
             </div>
@@ -172,7 +172,7 @@ export function SiteProductDetail({ slug, initialProduct, related }: Props) {
                 name={p.name}
                 brand={p.brand}
                 price={p.final_price ?? p.price}
-                image={resolveMediaUrl(p.images?.[0]?.image) ?? undefined}
+                image={cloudinaryUrl(resolveMediaUrl(p.images?.[0]?.image), 500) ?? undefined}
               />
             ))}
           </div>

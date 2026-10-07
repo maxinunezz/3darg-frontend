@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { resolveMediaUrl } from "@/lib/api";
+import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import type { BrandType } from "@/types/brands";
 import { PasswordFields, validatePassword } from "@/components/password-fields";
 import { GoogleLoginButton } from "@/components/google-login-button";
@@ -46,7 +46,7 @@ export function BrandLoginForm({ brand }: Props) {
         <div className="text-center mb-8">
           {brand.logo ? (
             <Image
-              src={resolveMediaUrl(brand.logo)!}
+              src={cloudinaryUrl(resolveMediaUrl(brand.logo), 150)!}
               alt={brand.name}
               width={120}
               height={48}
@@ -162,7 +162,7 @@ export function BrandRegisterForm({ brand }: Props) {
         <div className="text-center mb-8">
           {brand.logo ? (
             <Image
-              src={resolveMediaUrl(brand.logo)!}
+              src={cloudinaryUrl(resolveMediaUrl(brand.logo), 150)!}
               alt={brand.name}
               width={120}
               height={48}

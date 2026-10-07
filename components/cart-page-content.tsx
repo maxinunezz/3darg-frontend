@@ -5,7 +5,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBrandNamespace } from "@/lib/brand-context";
 import type { CartItem } from "@/contexts/CartContext";
-import { resolveMediaUrl } from "@/lib/api";
+import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
 import { Trash2, Minus, Plus, ShoppingBag, Loader2 } from "lucide-react";
@@ -129,7 +129,7 @@ export function CartPageContent() {
                 <div className="w-16 h-16 bg-muted rounded-xl overflow-hidden shrink-0 relative">
                   {product.images?.[0]?.image ? (
                     <Image
-                      src={resolveMediaUrl(product.images[0].image)!}
+                      src={cloudinaryUrl(resolveMediaUrl(product.images[0].image), 150)!}
                       alt={product.name}
                       fill
                       className="object-cover"

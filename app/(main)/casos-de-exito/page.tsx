@@ -3,7 +3,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { ImageSlot, SpecLabel, buttonClass } from "@/components/site/core";
 import { getCmsPage, getSection, getSectionImage } from "@/lib/cms";
-import { resolveMediaUrl } from "@/lib/api";
+import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 
 export const metadata: Metadata = {
   title: "Casos de éxito | 3DARG",
@@ -78,7 +78,7 @@ export default async function CasosPage() {
 
       <div className="grid gap-16">
         {CASOS_DATA.map((c, i) => {
-          const casoImg = resolveMediaUrl(getSectionImage(casosSection, `caso_${i}`));
+          const casoImg = cloudinaryUrl(resolveMediaUrl(getSectionImage(casosSection, `caso_${i}`)), 600);
           return (
           <article
             key={c.cliente}

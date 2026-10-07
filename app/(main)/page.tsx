@@ -8,7 +8,7 @@ import { buttonClass, ImageSlot } from "@/components/site/core";
 import { SectionHeading } from "@/components/site/layout";
 import { FeatureCard, CategoryTile } from "@/components/site/commerce";
 import { getCmsPage, getSection, getSectionImage } from "@/lib/cms";
-import { resolveMediaUrl } from "@/lib/api";
+import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 
 export const metadata: Metadata = {
   title: "3DARG | Impresión 3D en Argentina",
@@ -279,7 +279,7 @@ export default async function Home() {
           <SectionHeading eyebrow={DETALLE_HEADING.eyebrow} index={4} title={DETALLE_HEADING.title} />
           <div className="hairline-grid grid grid-cols-1 md:grid-cols-3">
             {DETALLE.map((d, i) => {
-              const imgUrl = resolveMediaUrl(getSectionImage(detalleSection, `detalle_${i}`));
+              const imgUrl = cloudinaryUrl(resolveMediaUrl(getSectionImage(detalleSection, `detalle_${i}`)), 600);
               return (
               <figure key={d.t} className="p-0 grid">
                 {imgUrl ? (
@@ -346,7 +346,7 @@ export default async function Home() {
             </div>
           </div>
           {(() => {
-            const tallerImg = resolveMediaUrl(getSectionImage(enseñanzaSection, "taller"));
+            const tallerImg = cloudinaryUrl(resolveMediaUrl(getSectionImage(enseñanzaSection, "taller")), 800);
             return tallerImg ? (
               <Image
                 src={tallerImg}

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Search } from "lucide-react";
-import { resolveMediaUrl } from "@/lib/api";
+import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import type { ProductType, CategoryType } from "@/types/product";
 import { SpecLabel } from "@/components/site/core";
 import { SiteProductCard } from "@/components/site/commerce";
@@ -110,7 +110,7 @@ export default async function ShopPage({
               name={product.name}
               brand={product.brand}
               price={product.final_price ?? product.price}
-              image={resolveMediaUrl(product.images?.[0]?.image) ?? undefined}
+              image={cloudinaryUrl(resolveMediaUrl(product.images?.[0]?.image), 500) ?? undefined}
             />
           ))}
         </div>

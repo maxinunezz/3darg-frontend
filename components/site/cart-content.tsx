@@ -8,7 +8,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBrandNamespace } from "@/lib/brand-context";
 import type { CartItem } from "@/contexts/CartContext";
-import { resolveMediaUrl } from "@/lib/api";
+import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { QuantityStepper } from "@/components/site/commerce";
 import { ImageSlot, SpecLabel, buttonClass } from "@/components/site/core";
 
@@ -111,7 +111,7 @@ export function SiteCartContent() {
           {items.map((item) => {
             const { product, quantity } = item;
             const unit = unitPrice(item);
-            const img = resolveMediaUrl(product.images?.[0]?.image);
+            const img = cloudinaryUrl(resolveMediaUrl(product.images?.[0]?.image), 150);
             return (
               <div key={product.id} className="flex gap-4 p-4 items-center">
                 <div className="relative w-16 h-16 shrink-0 rounded-[var(--radius-lg)] overflow-hidden bg-[var(--surface-inset)]">

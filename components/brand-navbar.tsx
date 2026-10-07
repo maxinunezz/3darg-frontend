@@ -6,7 +6,7 @@ import { ShoppingCart, ChevronDown, User, LayoutDashboard, LogOut } from "lucide
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import type { BrandType } from "@/types/brands";
-import { resolveMediaUrl } from "@/lib/api";
+import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { ToggleTheme } from "./ui/toggle-theme";
@@ -43,7 +43,7 @@ export function BrandNavbar({ brand }: BrandNavbarProps) {
           <Link href={`/${brand.slug}`} className="flex items-center gap-3 shrink-0">
             {brand.logo ? (
               <Image
-                src={resolveMediaUrl(brand.logo)!}
+                src={cloudinaryUrl(resolveMediaUrl(brand.logo), 300)!}
                 alt={`${brand.name} logo`}
                 width={280}
                 height={112}

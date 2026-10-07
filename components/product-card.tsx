@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { resolveMediaUrl } from "@/lib/api";
+import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import type { ProductType } from "@/types/product";
 import { FavoriteButton } from "@/components/favorite-button";
 import { ProductPrice } from "@/components/product-price";
@@ -33,7 +33,7 @@ export function ProductCard({ product, brandSlug }: Props) {
         <div className="aspect-square bg-muted relative overflow-hidden">
           {product.images?.[0]?.image ? (
             <Image
-              src={resolveMediaUrl(product.images[0].image)!}
+              src={cloudinaryUrl(resolveMediaUrl(product.images[0].image), 500)!}
               alt={product.images[0].alt || product.name}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"

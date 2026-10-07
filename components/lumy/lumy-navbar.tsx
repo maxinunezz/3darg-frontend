@@ -6,7 +6,7 @@ import Image from "next/image";
 import { ShoppingBag, User, Menu, X } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import type { BrandType } from "@/types/brands";
-import { resolveMediaUrl } from "@/lib/api";
+import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -29,7 +29,7 @@ export function LumyNavbar({ brand }: LumyNavbarProps) {
   const [open, setOpen] = useState(false);
   const base = `/${brand.slug}`;
   const isHome = pathname === base;
-  const logo = resolveMediaUrl(brand.logo);
+  const logo = cloudinaryUrl(resolveMediaUrl(brand.logo), 200);
   const LINKS = brand.page_config?.lumy?.nav_links?.length ? brand.page_config.lumy.nav_links : DEFAULT_LINKS;
 
   return (

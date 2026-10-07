@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { SpecLabel } from "@/components/site/core";
 import { getCmsPage, getSection, getSectionImage } from "@/lib/cms";
-import { resolveMediaUrl } from "@/lib/api";
+import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { ContactoForm } from "./contacto-form";
 
 export const metadata: Metadata = {
@@ -44,7 +44,7 @@ export default async function ContactoPage() {
   const canalesSection = getSection(cmsPage, "canales");
   const CANALES_DATA: typeof CANALES = canalesSection?.data?.items?.length ? canalesSection.data.items : CANALES;
 
-  const tallerImg = resolveMediaUrl(getSectionImage(canalesSection, "taller"));
+  const tallerImg = cloudinaryUrl(resolveMediaUrl(getSectionImage(canalesSection, "taller")), 800);
 
   return (
     <div className="max-w-[var(--container)] mx-auto px-[var(--gutter)] py-[var(--section-y)]">

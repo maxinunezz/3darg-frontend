@@ -110,12 +110,24 @@ export default async function BrandLayout({
             Una marca de 3DARG
           </a>
         </p>
-        <p>
+        <p className="flex flex-wrap justify-center gap-x-4 gap-y-1">
           <a
-            href={`/${brand.slug}/terms`}
+            href={`/${brand.slug}/legal/terminos`}
             className="text-xs underline underline-offset-4 hover:text-foreground transition-colors"
           >
-            Términos y condiciones del Grupo
+            Términos y condiciones
+          </a>
+          <a
+            href={`/${brand.slug}/legal/privacidad`}
+            className="text-xs underline underline-offset-4 hover:text-foreground transition-colors"
+          >
+            Privacidad
+          </a>
+          <a
+            href={`/${brand.slug}/legal/envios-y-devoluciones`}
+            className="text-xs underline underline-offset-4 hover:text-foreground transition-colors"
+          >
+            Envíos y devoluciones
           </a>
         </p>
       </footer>

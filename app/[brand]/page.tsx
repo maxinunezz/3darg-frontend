@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { getBrandBySlug } from "@/lib/brands";
-import { resolveMediaUrl } from "@/lib/api";
+import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import type { ProductType, CategoryType } from "@/types/product";
 import type { BrandFeature, BrandStat, BrandPageConfig } from "@/types/brands";
 import { Instagram, Truck, Star, Zap, Shield, ArrowRight, ChevronRight, Cake, Heart, Gift, Camera, Leaf, Music } from "lucide-react";
@@ -490,7 +490,7 @@ export default async function BrandPage({
         <section className="relative overflow-hidden min-h-[92vh] flex items-center justify-center">
           {brand.cover_image ? (
             <Image
-              src={resolveMediaUrl(brand.cover_image)!}
+              src={cloudinaryUrl(resolveMediaUrl(brand.cover_image), 1600)!}
               alt={brand.name}
               fill
               className="object-cover scale-105"
@@ -505,7 +505,7 @@ export default async function BrandPage({
           <div className="relative z-10 text-center px-4 py-32 text-white max-w-4xl mx-auto">
             {brand.logo ? (
               <Image
-                src={resolveMediaUrl(brand.logo)!}
+                src={cloudinaryUrl(resolveMediaUrl(brand.logo), 300)!}
                 alt={`${brand.name} logo`}
                 width={260}
                 height={104}
@@ -570,7 +570,7 @@ export default async function BrandPage({
                 {/* Background */}
                 {panel.image ? (
                   <Image
-                    src={resolveMediaUrl(panel.image)!}
+                    src={cloudinaryUrl(resolveMediaUrl(panel.image), 800)!}
                     alt={panel.title}
                     fill
                     className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
@@ -672,7 +672,7 @@ export default async function BrandPage({
                 <div className="aspect-square bg-muted relative overflow-hidden">
                   {product.images?.[0]?.image ? (
                     <Image
-                      src={resolveMediaUrl(product.images[0].image)!}
+                      src={cloudinaryUrl(resolveMediaUrl(product.images[0].image), 500)!}
                       alt={product.images[0].alt || product.name}
                       fill
                       className="object-cover group-hover:scale-110 transition-transform duration-500"

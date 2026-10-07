@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { getBrandBySlug } from "@/lib/brands";
-import { resolveMediaUrl } from "@/lib/api";
+import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import type { ProductType } from "@/types/product";
 import type { Metadata } from "next";
 
@@ -73,7 +73,7 @@ export default async function AboutPage({
         <div className="max-w-4xl mx-auto px-6 text-center">
           {brand.logo && (
             <Image
-              src={resolveMediaUrl(brand.logo)!}
+              src={cloudinaryUrl(resolveMediaUrl(brand.logo), 200)!}
               alt={brand.name}
               width={180}
               height={72}
@@ -170,7 +170,7 @@ export default async function AboutPage({
                   <div className="aspect-square bg-muted rounded-xl overflow-hidden relative mb-2 border border-border group-hover:border-primary transition-colors">
                     {product.images?.[0]?.image ? (
                       <Image
-                        src={resolveMediaUrl(product.images[0].image)!}
+                        src={cloudinaryUrl(resolveMediaUrl(product.images[0].image), 300)!}
                         alt={product.images[0].alt || product.name}
                         fill
                         className="object-cover group-hover:scale-110 transition-transform duration-500"

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { apiUrl, resolveMediaUrl } from "@/lib/api";
+import { apiUrl, cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import type { ProductType } from "@/types/product";
 
 interface Props {
@@ -93,7 +93,7 @@ export function RelatedByTheme({ product, brandSlug }: Props) {
       </p>
       <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1">
         {related.map((p) => {
-          const img = resolveMediaUrl(p.images?.[0]?.image);
+          const img = cloudinaryUrl(resolveMediaUrl(p.images?.[0]?.image), 200);
           return (
             <Link
               key={p.id}

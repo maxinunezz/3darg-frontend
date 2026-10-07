@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Package, Lock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { apiUrl, resolveMediaUrl } from "@/lib/api";
+import { apiUrl, cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import type { ProductType } from "@/types/product";
 import type { BrandType } from "@/types/brands";
 import { AddToCartButton } from "@/components/add-to-cart-button";
@@ -89,7 +89,7 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
   }
 
   const inStock = product.is_available && product.stock > 0;
-  const mainImage = resolveMediaUrl(product.images?.[0]?.image);
+  const mainImage = cloudinaryUrl(resolveMediaUrl(product.images?.[0]?.image), 800);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
@@ -145,7 +145,7 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
                   className="aspect-square bg-muted rounded-lg overflow-hidden relative"
                 >
                   <Image
-                    src={resolveMediaUrl(img.image)!}
+                    src={cloudinaryUrl(resolveMediaUrl(img.image), 150)!}
                     alt={img.alt || product.name}
                     fill
                     className="object-cover"

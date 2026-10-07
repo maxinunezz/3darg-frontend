@@ -6,7 +6,7 @@ import { useFavorites } from "@/contexts/FavoritesContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { resolveMediaUrl } from "@/lib/api";
+import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { LogOut, Package, User as UserIcon, Heart } from "lucide-react";
 
 type OrderItem = {
@@ -130,7 +130,7 @@ export default function ProfilePage() {
                 <div className="aspect-square bg-muted relative overflow-hidden">
                   {product.images?.[0]?.image ? (
                     <Image
-                      src={resolveMediaUrl(product.images[0].image)!}
+                      src={cloudinaryUrl(resolveMediaUrl(product.images[0].image), 300)!}
                       alt={product.images[0].alt || product.name}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { resolveMediaUrl } from "@/lib/api";
+import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import type { ProductType, CategoryType } from "@/types/product";
 import type { BrandType } from "@/types/brands";
 
@@ -45,7 +45,7 @@ function formatPrice(price: number | string): string {
 }
 
 function ProductCard({ product, base }: { product: ProductType; base: string }) {
-  const image = product.images?.[0]?.image ? resolveMediaUrl(product.images[0].image) : null;
+  const image = product.images?.[0]?.image ? cloudinaryUrl(resolveMediaUrl(product.images[0].image), 400) : null;
   return (
     <Link href={`${base}/product/${product.slug}`} className="pcard">
       {image ? (
@@ -142,7 +142,7 @@ export function PrintGymHome({ brand, featured, allProducts, categories }: Print
             {shopProducts[0]?.images?.[0]?.image ? (
               <div className="ph" style={{ position: "relative" }}>
                 <Image
-                  src={resolveMediaUrl(shopProducts[0].images[0].image)!}
+                  src={cloudinaryUrl(resolveMediaUrl(shopProducts[0].images[0].image), 600)!}
                   alt={shopProducts[0].images[0]?.alt || shopProducts[0].name}
                   fill
                   className="object-cover"

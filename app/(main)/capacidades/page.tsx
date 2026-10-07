@@ -6,7 +6,7 @@ import { ImageSlot, SpecLabel } from "@/components/site/core";
 import { SectionHeading } from "@/components/site/layout";
 import { StatBar } from "@/components/site/commerce";
 import { getCmsPage, getSection, getSectionImage } from "@/lib/cms";
-import { resolveMediaUrl } from "@/lib/api";
+import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 
 export const metadata: Metadata = {
   title: "Capacidades | 3DARG",
@@ -170,7 +170,7 @@ export default async function CapacidadesPage() {
 
   const ctaSection = getSection(cmsPage, "cta");
   const CTA = { ...CTA_FALLBACK, ...(ctaSection?.data ?? {}) };
-  const ctaImg = resolveMediaUrl(getSectionImage(ctaSection, "taller"));
+  const ctaImg = cloudinaryUrl(resolveMediaUrl(getSectionImage(ctaSection, "taller")), 800);
 
   return (
     <div>

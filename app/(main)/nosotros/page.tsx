@@ -4,7 +4,7 @@ import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import { ImageSlot, SpecLabel, buttonClass } from "@/components/site/core";
 import { getBrands } from "@/lib/brands";
-import { resolveMediaUrl } from "@/lib/api";
+import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { getCmsPage, getSection, getSectionImage } from "@/lib/cms";
 import type { BrandType } from "@/types/brands";
 
@@ -53,7 +53,7 @@ export default async function NosotrosPage() {
 
   const introSection = getSection(cmsPage, "intro");
   const INTRO = { ...INTRO_FALLBACK, ...(introSection?.data ?? {}) };
-  const tallerImg = resolveMediaUrl(getSectionImage(introSection, "taller"));
+  const tallerImg = cloudinaryUrl(resolveMediaUrl(getSectionImage(introSection, "taller")), 800);
 
   const timelineSection = getSection(cmsPage, "timeline");
   const TIMELINE_DATA: typeof TIMELINE = timelineSection?.data?.items?.length
@@ -126,7 +126,7 @@ export default async function NosotrosPage() {
         <SpecLabel index={3}>{EQUIPO_EYEBROW}</SpecLabel>
         <div className="grid gap-6 md:grid-cols-3 mt-8">
           {EQUIPO_DATA.map((m, i) => {
-            const memberImg = resolveMediaUrl(getSectionImage(equipoSection, `equipo_${i}`));
+            const memberImg = cloudinaryUrl(resolveMediaUrl(getSectionImage(equipoSection, `equipo_${i}`)), 450);
             return (
               <div key={m.nombre} className="grid gap-4">
                 {memberImg ? (
@@ -174,7 +174,7 @@ export default async function NosotrosPage() {
                   <div className="flex items-center justify-between">
                     {brand.logo ? (
                       <Image
-                        src={resolveMediaUrl(brand.logo) ?? ""}
+                        src={cloudinaryUrl(resolveMediaUrl(brand.logo), 150) ?? ""}
                         alt={brand.name}
                         width={120}
                         height={40}
