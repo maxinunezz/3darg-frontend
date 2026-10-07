@@ -126,6 +126,19 @@ export default async function ShopPage({
     (c) => !c.parent_id && !subcategoriesByParent[c.id],
   );
 
+  // "Todos" y "Sets" van primero dentro de cada grupo (subcategorías genéricas,
+  // no atadas a un tema puntual), el resto queda alfabético — mismo criterio que
+  // el dropdown de categoría agrupado del admin (ver _GroupedCategoryIterator
+  // en products/admin.py).
+  const SUBCATEGORY_PRIORITY: Record<string, number> = { todos: 0, sets: 1 };
+  const sortSubcategories = (subcats: CategoryType[]) =>
+    subcats.slice().sort((a, b) => {
+      const pa = SUBCATEGORY_PRIORITY[a.name.trim().toLowerCase()] ?? 2;
+      const pb = SUBCATEGORY_PRIORITY[b.name.trim().toLowerCase()] ?? 2;
+      if (pa !== pb) return pa - pb;
+      return a.name.localeCompare(b.name, "es");
+    });
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       {/* Header */}
@@ -153,10 +166,10 @@ export default async function ShopPage({
               <nav className="flex flex-row md:flex-col gap-1 flex-wrap">
                 <Link
                   href={`/${slug}/shop`}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-3 py-2 rounded-lg text-sm transition-colors ${
                     !category
-                      ? "bg-primary text-primary-foreground"
-                      : "text-foreground hover:bg-muted"
+                      ? "bg-primary text-primary-foreground font-semibold"
+                      : "text-foreground hover:bg-muted font-medium"
                   }`}
                 >
                   Todos
@@ -167,15 +180,35 @@ export default async function ShopPage({
                   <Link
                     key={cat.id}
                     href={`/${slug}/shop?category=${cat.slug}`}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    className={`px-3 py-2 rounded-lg text-sm transition-colors ${
                       category === cat.slug
-                        ? "bg-primary text-primary-foreground"
-                        : "text-foreground hover:bg-muted"
+                        ? "bg-primary text-primary-foreground font-semibold"
+                        : "text-foreground hover:bg-muted font-medium"
                     }`}
                   >
                     {cat.name}
                   </Link>
                 ))}
+
+                {/* Atajo "Todos los X" para cada raíz con subcategorías (ej: Cortantes,
+                    Rodillos Texturizadores) — filtra la raíz + todos sus temas de una,
+                    sin tener que abrir el desplegable de abajo (mismo href que el "Todos"
+                    anidado dentro de cada grupo, ver más abajo). */}
+                {topLevelCategories
+                  .filter((cat) => subcategoriesByParent[cat.id])
+                  .map((cat) => (
+                    <Link
+                      key={`todos-${cat.id}`}
+                      href={`/${slug}/shop?category=${cat.slug}`}
+                      className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                        category === cat.slug
+                          ? "bg-primary text-primary-foreground font-semibold"
+                          : "text-foreground hover:bg-muted font-medium"
+                      }`}
+                    >
+                      Todos los {cat.name.split(" ")[0].toLowerCase()}
+                    </Link>
+                  ))}
 
                 {/* Categorías con subcategorías (ej: Cortantes > Halloween) — el nivel
                     superior es un grupo desplegable (<details>, sin JS), solo el tema
@@ -187,29 +220,38 @@ export default async function ShopPage({
                     <details
                       key={cat.id}
                       className="group md:mt-3 w-full"
-                      open={subcategoriesByParent[cat.id].some((sub) => sub.slug === category)}
+                      open={
+                        subcategoriesByParent[cat.id].some((sub) => sub.slug === category) ||
+                        cat.slug === category
+                      }
                     >
                       <summary className="flex items-center gap-1 px-3 pt-2 pb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
                         <ChevronRight className="w-3 h-3 shrink-0 transition-transform group-open:rotate-90" />
                         {cat.name}
                       </summary>
                       <div className="flex flex-row md:flex-col gap-1 flex-wrap mt-1">
-                        {subcategoriesByParent[cat.id]
-                          .slice()
-                          .sort((a, b) => a.name.localeCompare(b.name, "es"))
-                          .map((sub) => (
+                        {sortSubcategories(subcategoriesByParent[cat.id]).map((sub) => {
+                          // "Todos" no filtra por su propia subcategoría (quedaría vacío,
+                          // casi nunca hay productos tageados ahí) — apunta al slug de la
+                          // categoría RAÍZ (ej: "cortantes"), que el backend expande a
+                          // raíz + todas sus hijas (ver ProductListAPIView.get_queryset).
+                          const isTodos = sub.name.trim().toLowerCase() === "todos";
+                          const href = `/${slug}/shop?category=${isTodos ? cat.slug : sub.slug}`;
+                          const isActive = isTodos ? category === cat.slug : category === sub.slug;
+                          return (
                             <Link
                               key={sub.id}
-                              href={`/${slug}/shop?category=${sub.slug}`}
-                              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                category === sub.slug
-                                  ? "bg-primary text-primary-foreground"
-                                  : "text-foreground hover:bg-muted"
+                              href={href}
+                              className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                                isActive
+                                  ? "bg-primary text-primary-foreground font-semibold"
+                                  : "text-foreground hover:bg-muted font-medium"
                               }`}
                             >
                               {sub.name}
                             </Link>
-                          ))}
+                          );
+                        })}
                       </div>
                     </details>
                   ))}
