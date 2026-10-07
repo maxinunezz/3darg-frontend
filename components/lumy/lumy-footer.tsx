@@ -79,6 +79,11 @@ export function LumyFooter({ brand, categories = [] }: LumyFooterProps) {
 
         <div className="lm-footer__bottom">
           <span>© {year} {brand.name} · una marca de 3DARG</span>
+          <div style={{ display: "flex", gap: "1.25rem" }}>
+            <Link href={`${base}/legal/terminos`}>Términos</Link>
+            <Link href={`${base}/legal/privacidad`}>Privacidad</Link>
+            <Link href={`${base}/legal/envios-y-devoluciones`}>Envíos y devoluciones</Link>
+          </div>
           <span>Hecho con amor en Argentina</span>
         </div>
       </div>

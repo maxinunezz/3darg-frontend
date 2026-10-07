@@ -21,6 +21,16 @@ BACKEND_INTERNAL_URL=http://web:8000/api   # solo server-side dentro del contain
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=...   # login con Google. Vacío = botón oculto (ver sección Google login)
 BRAND_DOMAINS=                     # ej: "lumy.com:lumy". Vacío = sin cambios (ver sección Dominios propios)
 
+# Páginas legales (/legal/*). Vacío = placeholder "a completar" visible (ver sección Páginas legales)
+NEXT_PUBLIC_LEGAL_RAZON_SOCIAL=
+NEXT_PUBLIC_LEGAL_CUIT=
+NEXT_PUBLIC_LEGAL_DOMICILIO=
+NEXT_PUBLIC_LEGAL_CONTACT_EMAIL=3darg1@gmail.com
+NEXT_PUBLIC_LEGAL_ENVIO_TRANSPORTISTA=
+NEXT_PUBLIC_LEGAL_ENVIO_PLAZO=24 a 72 horas hábiles desde la confirmación del pago
+NEXT_PUBLIC_LEGAL_DEVOLUCION_DIAS=10
+NEXT_PUBLIC_LEGAL_ULTIMA_ACTUALIZACION=
+
 El backend Django debe estar corriendo. `next.config.ts` whitelists `localhost:8000/media/**` para `<Image>`.
 
 ## Stack
@@ -110,6 +120,24 @@ auth/{login,register}/
 - Vacía por default = no-op total, todo sigue navegándose por path (`/lumy`, etc.).
 - Cuando exista un dominio real: agregar la entrada en `BRAND_DOMAINS` (frontend `.env`) + el dominio en `CORS_ALLOWED_ORIGINS`/`CSRF_TRUSTED_ORIGINS`/`DJANGO_ALLOWED_HOSTS` (backend `.env`). No requiere tocar código.
 - Los `<Link href="/${brand.slug}/...">` internos siguen mostrando `/lumy` en la URL dentro del dominio propio (rewrite, no redirect) — funciona pero no es 100% "limpio". Hacer los links brand-aware del dominio es un cambio más grande a encarar si se confirma el dominio.
+
+## Páginas legales (`/legal/*`)
+
+Tres documentos independientes, generados dinámicamente por un único set de datos en `lib/legal.ts`:
+
+- `/legal/terminos` — Términos y Condiciones.
+- `/legal/privacidad` — Política de Privacidad (Ley 25.326).
+- `/legal/envios-y-devoluciones` — Envíos, cambios y derecho de arrepentimiento (Ley 24.240 / Resolución 424/2020).
+
+Cada uno existe en dos variantes, igual patrón que el resto del sitio:
+- Espacio raíz (`app/(main)/legal/<doc>/page.tsx`) → `brandName="Grupo 3DARG"`, `basePath=""`.
+- Por sub-marca (`app/[brand]/legal/<doc>/page.tsx`) → resuelve `brand` con `getBrandBySlug()` y pasa `brandName={brand.name}` / `basePath={"/"+brand.slug}` al componente de contenido (`components/legal/*-content.tsx`).
+
+**Todo el contenido variable sale de env vars `NEXT_PUBLIC_LEGAL_*`** (`lib/legal.ts`), no está hardcodeado — razón social, CUIT, domicilio, email de contacto, transportista, plazo de envío, días de devolución y fecha de última actualización. Mientras una variable esté vacía, se muestra un placeholder `[Campo — a completar]` resaltado (`<LegalValue>` en `components/legal/legal-ui.tsx`) en vez de inventar un dato — así nunca sale a producción un texto legal falso por accidente, y completarlas después es solo cambiar el `.env`, sin tocar código.
+
+Pendiente explícito (NO implementado todavía): el **"botón de arrepentimiento"** exigido por la Resolución 424/2020 — un link prominente desde la home para revocar la compra sin registro previo. Hoy la página de Envíos y Devoluciones solo informa que se puede ejercer ese derecho por email; falta el componente de UI dedicado.
+
+Rutas viejas `/terms` y `/[brand]/terms` (documento único anterior) quedan como **redirect 307** a `/legal/terminos` — no romper ese alias si se los encuentra en código o analytics históricos.
 
 ## Línea vending (`/maquina-expendedora`)
 

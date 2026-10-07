@@ -1,12 +1,8 @@
-import type { Metadata } from "next";
-import { TermsContent } from "@/components/terms-content";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Términos y Condiciones | 3DARG",
-  description:
-    "Términos y Condiciones del Grupo 3DARG: Lumy, Print&Gym, MiniSlam y CyberWeed. Cuenta unificada y política de datos compartidos.",
-};
-
-export default function TermsPage() {
-  return <TermsContent />;
+// Ruta histórica: el documento único de Términos se dividió en 3 páginas
+// independientes (Términos, Privacidad, Envíos y Devoluciones) bajo /legal/.
+// Se mantiene este redirect para no romper enlaces ya compartidos/indexados.
+export default function TermsLegacyRedirect() {
+  redirect("/legal/terminos");
 }

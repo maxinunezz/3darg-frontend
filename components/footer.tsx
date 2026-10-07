@@ -98,8 +98,14 @@ export const Footer = ({ data, logoUrl }: { data?: Partial<FooterData>; logoUrl?
         <div className="py-5 flex flex-col sm:flex-row justify-between items-center gap-3 font-mono text-[11px] tracking-[var(--tracking-mono)] text-[var(--ink-500)]">
           <span>© {year} 3DARG. Todos los derechos reservados.</span>
           <div className="flex items-center gap-5">
-            <Link href="/terms" className="hover:text-[var(--ink-300)] transition-colors uppercase tracking-[var(--tracking-label)]">
+            <Link href="/legal/terminos" className="hover:text-[var(--ink-300)] transition-colors uppercase tracking-[var(--tracking-label)]">
               Términos y condiciones
+            </Link>
+            <Link href="/legal/privacidad" className="hover:text-[var(--ink-300)] transition-colors uppercase tracking-[var(--tracking-label)]">
+              Privacidad
+            </Link>
+            <Link href="/legal/envios-y-devoluciones" className="hover:text-[var(--ink-300)] transition-colors uppercase tracking-[var(--tracking-label)]">
+              Envíos y devoluciones
             </Link>
             <span>{F.made_in}</span>
           </div>

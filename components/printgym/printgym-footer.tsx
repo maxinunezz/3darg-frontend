@@ -85,6 +85,11 @@ export function PrintGymFooter({ brand, categories = [] }: PrintGymFooterProps) 
           <span>
             © {year} Print&amp;Gym · 3DARG
           </span>
+          <div style={{ display: "flex", gap: "1.25rem" }}>
+            <a href={`${base}/legal/terminos`}>Términos</a>
+            <a href={`${base}/legal/privacidad`}>Privacidad</a>
+            <a href={`${base}/legal/envios-y-devoluciones`}>Envíos y devoluciones</a>
+          </div>
           <span>Fabricado en Argentina</span>
         </div>
       </div>
