@@ -108,6 +108,7 @@ export function PrivacidadContent({ brandName = "Grupo 3DARG", basePath = "" }: 
           <li><strong>Proveedores de email transaccional</strong> — Para enviarte notificaciones de tu cuenta y pedidos.</li>
           <li><strong>Proveedores de infraestructura cloud</strong> — Donde se alojan nuestros servidores, base de datos e imágenes.</li>
           <li><strong>Herramientas de analítica y publicidad</strong> (ej. PostHog, Meta Pixel) — Para entender el uso del sitio y medir campañas, de forma agregada por marca.</li>
+          <li><strong>Google LLC</strong> — Para ofrecer el inicio de sesión con tu cuenta de Google. Ver detalle en la sección siguiente.</li>
         </ul>
         <p>
           Estos terceros sólo reciben los datos estrictamente necesarios para cumplir su función y no
@@ -115,7 +116,52 @@ export function PrivacidadContent({ brandName = "Grupo 3DARG", basePath = "" }: 
         </p>
       </Section>
 
-      <Section number="3" title="Tus derechos sobre tus datos (Ley 25.326)">
+      <Section number="3" title="Inicio de sesión con Google">
+        <p>
+          En <strong className="text-foreground">{brandName}</strong> ofrecemos la opción de
+          registrarte o iniciar sesión usando tu cuenta de Google ("Iniciar sesión con Google"),
+          en lugar de crear una contraseña nueva. Esta función usa Google Identity Services.
+        </p>
+
+        <h3 className="text-xl font-bold mt-8 mb-3">3.1 Qué datos recibimos de Google</h3>
+        <p>Cuando elegís iniciar sesión con Google y lo autorizás desde la pantalla de Google, recibimos únicamente:</p>
+        <ul>
+          <li>Tu nombre completo.</li>
+          <li>Tu dirección de email (y si está verificada por Google).</li>
+          <li>Tu foto de perfil de Google, si la tenés configurada.</li>
+          <li>Un identificador único de tu cuenta de Google, que usamos para reconocerte en próximos inicios de sesión.</li>
+        </ul>
+        <p>
+          <strong>No recibimos tu contraseña de Google</strong>, ni accedemos a tu casilla de Gmail,
+          contactos, archivos de Drive, agenda ni ningún otro dato de tu cuenta de Google. La
+          verificación corre enteramente del lado de Google: nosotros solo recibimos la confirmación
+          de identidad (un token) y los datos básicos de perfil detallados arriba.
+        </p>
+
+        <h3 className="text-xl font-bold mt-8 mb-3">3.2 Para qué usamos estos datos</h3>
+        <ul>
+          <li>Crear tu cuenta de usuario en el Grupo 3DARG o identificarte si ya existía una cuenta con ese mismo email.</li>
+          <li>Completar automáticamente tu nombre y email, para que no tengas que tipearlos a mano.</li>
+          <li>Mostrar tu foto de perfil en tu panel de cuenta (opcional, solo a modo de identificación visual).</li>
+        </ul>
+        <p>
+          A partir de ahí, estos datos pasan a formar parte de tu cuenta y se tratan igual que el
+          resto de tus datos personales, según el punto 2 de esta política (incluido, si corresponde,
+          el uso compartido entre marcas del Grupo).
+        </p>
+
+        <h3 className="text-xl font-bold mt-8 mb-3">3.3 Cómo revocar el acceso</h3>
+        <p>
+          Podés desconectar el Grupo 3DARG de tu cuenta de Google en cualquier momento desde{" "}
+          <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">
+            myaccount.google.com/permissions
+          </a>. Esto no elimina tu cuenta en nuestro sitio: seguís pudiendo acceder con email y
+          contraseña si configuraste una, o escribirnos para solicitar la baja de tu cuenta (ver
+          punto 4, "Tus derechos", más abajo).
+        </p>
+      </Section>
+
+      <Section number="4" title="Tus derechos sobre tus datos (Ley 25.326)">
         <p>
           De acuerdo con la <strong>Ley 25.326 de Protección de Datos Personales</strong> de la
           República Argentina, podés ejercer en cualquier momento los siguientes derechos sobre tu
@@ -142,7 +188,7 @@ export function PrivacidadContent({ brandName = "Grupo 3DARG", basePath = "" }: 
         </p>
       </Section>
 
-      <Section number="4" title="Cookies, sesiones y almacenamiento local">
+      <Section number="5" title="Cookies, sesiones y almacenamiento local">
         <p>Nuestros sitios utilizan tecnologías de almacenamiento en tu navegador para funcionar correctamente:</p>
         <ul>
           <li><strong>Tokens de sesión (JWT):</strong> guardados en localStorage, aislados por marca, para mantener tu sesión iniciada.</li>
@@ -157,7 +203,7 @@ export function PrivacidadContent({ brandName = "Grupo 3DARG", basePath = "" }: 
         </p>
       </Section>
 
-      <Section number="5" title="Contacto y autoridad de control">
+      <Section number="6" title="Contacto y autoridad de control">
         <p>Para consultas sobre esta política o para ejercer tus derechos, escribinos a:</p>
         <p className="text-lg">
           📧{" "}
