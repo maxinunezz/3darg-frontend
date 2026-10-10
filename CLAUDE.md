@@ -107,6 +107,13 @@ auth/{login,register}/
 - `components/product-price.tsx` (`<ProductPrice>`) centraliza el render del precio (socio vs anónimo). Usar siempre este componente, no formatear `price` a mano.
 - Cart/total usan `final_price ?? price`. El cobro lo valida el backend en checkout — no confiar en el precio del cliente.
 
+## Integración de costeo (presupuestos3d → catálogo → Mercado Libre)
+
+El sistema interno `presupuestos3d` (repo aparte, ver `../CLAUDE.md` del monorepo) puede empujar precio/medidas de un presupuesto de costeo hacia uno o varios `Product` del backend (`CostTemplate`/`ProductVariant`, ver `3darg-backend/CLAUDE.md` → "Modelos clave" e "Integración inversa: sync de costeo → ecommerce"), y republicarlos automáticamente en Mercado Libre.
+
+- **100% backend-to-backend, sin ningún cambio de contrato con este frontend.** `ProductSerializer` no expone `ProductVariant`/`CostTemplate` — el catálogo sigue leyendo únicamente `Product` (`price`, `final_price`, `is_available`, etc.) como siempre. No hay nada que integrar ni consumir acá.
+- Un producto creado/actualizado por esta vía se ve en el shop exactamente igual que cualquier otro: visible si `is_available=True AND is_available_web=True` (regla ya cubierta en "Productos para socios" más abajo), sin flag especial que lo distinga.
+
 ## Login con Google
 
 - `<GoogleAuthProvider>` (`components/google-auth-provider.tsx`) envuelve la app en `app/layout.tsx`; si `NEXT_PUBLIC_GOOGLE_CLIENT_ID` está vacío, es un passthrough (no rompe nada).
