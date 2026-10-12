@@ -120,6 +120,8 @@ El sistema interno `presupuestos3d` (repo aparte, ver `../CLAUDE.md` del monorep
 - `<GoogleLoginButton brandSlug? redirectTo onError>` (`components/google-login-button.tsx`) devuelve `null` si no hay client ID configurado — así el botón queda oculto sin tocar código hasta activar Google Cloud Console.
 - Usa `@react-oauth/google` (`<GoogleLogin>`) para obtener el `id_token`, y `loginWithGoogle()` de `AuthContext` para canjearlo por el JWT propio.
 - Mismo usuario unificado del Grupo: no crea sesiones ni cuentas separadas por marca, solo pasa `brand_slug` como metadata de registro (igual que el registro por email/password).
+- **Verificación de marca OAuth ante Google, en curso**: Google rechazó una primera verificación por "contenido insuficiente" en la política de privacidad — se sumó una sección dedicada (`components/legal/privacidad-content.tsx`, "3. Inicio de sesión con Google") detallando qué datos se reciben, para qué se usan y cómo revocar el acceso, más Google como tercero operador. Los datos del responsable del tratamiento (razón social, CUIT, domicilio) se completan vía env vars en Vercel, no están hardcodeados. También se agregó `public/google53cfe8a8d64ab3cb.html` (archivo de verificación de propiedad de dominio de `3darg.com` en Google Search Console/Auth Platform, requisito para publicar la app OAuth a producción) — no tocar/borrar, es el método de verificación activo.
+- `<GoogleLoginButton>` va envuelto en un contenedor con `bg-card` (el botón nativo de Google solo admite 3 temas fijos — outline/filled_blue/filled_black — por guía de marca de Google, no acepta color custom; el wrapper lo integra contra el fondo temático de cada marca).
 
 ## Dominios propios por sub-marca (preparado, inactivo por default)
 
