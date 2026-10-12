@@ -20,6 +20,10 @@ BACKEND_INTERNAL_URL=http://web:8000/api   # solo server-side dentro del contain
 
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=...   # login con Google. Vacío = botón oculto (ver sección Google login)
 BRAND_DOMAINS=                     # ej: "lumy.com:lumy". Vacío = sin cambios (ver sección Dominios propios)
+NEXT_PUBLIC_MAIN_BRAND_SLUG=3darg  # slug de la marca raíz, usado para redirects /[brand] -> / y defaults de brand_slug en fetch. Default hardcodeado "3darg" si falta
+NEXT_PUBLIC_MP_SANDBOX=false       # "true" fuerza sandbox de MercadoPago en el checkout del cart (ver cart-content.tsx/cart-page-content.tsx)
+NEXT_PUBLIC_POSTHOG_KEY=...  NEXT_PUBLIC_POSTHOG_HOST=...   # product analytics (ver sección Analytics)
+SENTRY_DSN=...  NEXT_PUBLIC_SENTRY_DSN=...                  # monitoreo de errores (ver sección Analytics)
 
 # Páginas legales (/legal/*). Vacío = placeholder "a completar" visible (ver sección Páginas legales)
 NEXT_PUBLIC_LEGAL_RAZON_SOCIAL=
@@ -153,6 +157,7 @@ Rutas viejas `/terms` y `/[brand]/terms` (documento único anterior) quedan como
 - No es una sub-marca (no vive bajo `[brand]/`, no tiene `Brand` asociado) — es una landing standalone dentro de `(main)/` para captar leads de la máquina expendedora de impresión 3D, línea en validación de mercado.
 - `vending-form.tsx` (client component) postea directo a `POST /api/vending/leads/` (sin auth) con `{nombre, email, telefono, segmento, mensaje}`. `segmento` es uno de: `cotillon`, `empresa`, `submarca`, `alquiler`, `otro` — debe coincidir 1:1 con `VendingLead.Segmento` del backend.
 - Sin optimismo ni retry: si el POST falla muestra un mensaje de error simple y deja reintentar. Al confirmarse, reemplaza el form por un estado "Recibido".
+- **Ojo: el link de "Máquina expendedora" en `components/navbar.tsx` NO apunta a esta ruta interna** — apunta externo a `https://maquina3d-landing.vercel.app/` (`external: true`), un prototipo standalone anterior (mismo copy, pero con un form que postea a Formspree, no a `POST /api/vending/leads/`). Es casi seguro un resabio de antes de que se portara la landing adentro de este repo: hoy conviven las dos, y el tráfico real del navbar de producción va al prototipo viejo, no a `/maquina-expendedora` ni al backend propio — los leads de ahí quedan en el dashboard de Formspree, no le llegan a `CONTACT_EMAIL`. Pendiente de decisión del dueño: corregir el link a `/maquina-expendedora` y decidir qué hacer con el proyecto de Vercel viejo (`maquina3d-landing`, creado 2026-09-10) y su form de Formspree.
 
 ## Analytics (doble tracking, ambos por marca)
 
@@ -166,6 +171,8 @@ Dos providers montados en `app/layout.tsx`, dentro del árbol raíz (`PostHogPro
   - Es el lado client-side del mismo evento que manda `brands/services/meta_conversions.py::send_event()` server-side en el backend (Conversions API) — para `Purchase` comparten `event_id` (`order.external_reference`) para que Meta deduplique.
 
 Ambos providers son no-ops seguros si falta configuración (mismo patrón que `GoogleAuthProvider`): no rompen la app si no hay Pixel o API key cargados.
+
+**Sentry (monitoreo de errores, no es "analytics" de producto pero vive en el mismo lugar del árbol)**: `sentry.server.config.ts`/`sentry.edge.config.ts`/`instrumentation-client.ts`/`app/global-error.tsx`, activado vía `SENTRY_DSN` (server) y `NEXT_PUBLIC_SENTRY_DSN` (client), ya seteadas en Vercel producción. Es un proyecto de Sentry **independiente** del que usa `3darg-backend` (ver su `CLAUDE.md`) — cada servicio reporta al suyo, sin relación de código entre ambos.
 
 ## Brand theming
 
