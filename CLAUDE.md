@@ -172,6 +172,15 @@ Dos providers montados en `app/layout.tsx`, dentro del árbol raíz (`PostHogPro
 
 Ambos providers son no-ops seguros si falta configuración (mismo patrón que `GoogleAuthProvider`): no rompen la app si no hay Pixel o API key cargados.
 
+### Monitoreo de errores (Sentry)
+
+No es parte de los providers de arriba (no es analytics de producto, es observabilidad) pero vive en el mismo bloque de env vars — por eso el `.env` de ejemplo linkea acá. Integración estándar del wizard de Sentry para Next.js, **ya activa en producción** (Vercel tiene `SENTRY_DSN`/`NEXT_PUBLIC_SENTRY_DSN` seteadas):
+
+- `sentry.server.config.ts` / `sentry.edge.config.ts` / `instrumentation-client.ts`: inicializan Sentry para cada runtime (server, edge, browser) — los tres leen el DSN de su propia env var, vacío = no-op.
+- `instrumentation.ts`: hook de Next.js que carga la config server/edge correspondiente al boot.
+- `app/global-error.tsx`: error boundary raíz que reporta a Sentry cualquier error no capturado por un boundary más específico.
+- Es un proyecto de Sentry **separado e independiente** del de `3darg-backend` (cada servicio tiene el suyo, sin relación de código ni de datos entre sí) — ver `3darg-backend/CLAUDE.md` para el lado del backend.
+
 **Sentry (monitoreo de errores, no es "analytics" de producto pero vive en el mismo lugar del árbol)**: `sentry.server.config.ts`/`sentry.edge.config.ts`/`instrumentation-client.ts`/`app/global-error.tsx`, activado vía `SENTRY_DSN` (server) y `NEXT_PUBLIC_SENTRY_DSN` (client), ya seteadas en Vercel producción. Es un proyecto de Sentry **independiente** del que usa `3darg-backend` (ver su `CLAUDE.md`) — cada servicio reporta al suyo, sin relación de código entre ambos.
 
 ## Brand theming
