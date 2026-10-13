@@ -37,6 +37,114 @@ const LUMY_FAQ: { q: string; a: string }[] = [
   { q: "¿Hacen descuentos por cantidad?", a: "Sí, consultanos por compras mayoristas." },
 ];
 
+type DescriptionBlock =
+  | { type: "lead"; text: string }
+  | { type: "heading"; text: string }
+  | { type: "paragraph"; text: string }
+  | { type: "list"; items: string[] };
+
+// Convención opcional que puede usarse en `product.description` (texto plano,
+// cargado desde el admin) para estructurar secciones: una línea de guiones, un
+// título, otra línea de guiones marca un encabezado; líneas que arrancan con
+// "- " son un ítem de lista. El primer párrafo (antes del primer encabezado) se
+// destaca como copete. Si el texto no usa esta convención (la mayoría de los
+// productos hoy, una sola oración) no se detecta ningún "heading" y se renderiza
+// como un párrafo simple, igual que siempre.
+function parseDescriptionBlocks(raw: string): DescriptionBlock[] {
+  const lines = raw.split(/\r?\n/);
+  const blocks: DescriptionBlock[] = [];
+  let paragraphBuf: string[] = [];
+  let listBuf: string[] = [];
+  const isDashLine = (l: string) => /^-{3,}$/.test(l.trim());
+
+  const flushParagraph = () => {
+    if (!paragraphBuf.length) return;
+    const text = paragraphBuf.join(" ").trim();
+    blocks.push({ type: blocks.length === 0 ? "lead" : "paragraph", text });
+    paragraphBuf = [];
+  };
+  const flushList = () => {
+    if (!listBuf.length) return;
+    blocks.push({ type: "list", items: listBuf });
+    listBuf = [];
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    if (isDashLine(line) && lines[i + 1]?.trim() && isDashLine((lines[i + 2] ?? "").trim())) {
+      flushParagraph();
+      flushList();
+      blocks.push({ type: "heading", text: lines[i + 1].trim() });
+      i += 2;
+      continue;
+    }
+    if (line.startsWith("- ")) {
+      flushParagraph();
+      listBuf.push(line.slice(2).trim());
+      continue;
+    }
+    if (line === "") {
+      flushParagraph();
+      flushList();
+      continue;
+    }
+    flushList();
+    paragraphBuf.push(line);
+  }
+  flushParagraph();
+  flushList();
+  return blocks;
+}
+
+function DescriptionRichText({ description, brandSlug }: { description: string; brandSlug: string }) {
+  const blocks = parseDescriptionBlocks(description);
+  if (!blocks.some((b) => b.type === "heading")) {
+    // Sin secciones: formato simple de siempre (pt-16, no mt-16, ver comentario
+    // de más abajo sobre la especificidad de `.site-lumy p`).
+    return <p className="text-muted-foreground leading-relaxed pt-16 max-w-3xl">{description}</p>;
+  }
+
+  // `!text-[var(--rose-600)]` solo existe como variable en el tema de Lumy — para
+  // el resto de las marcas usamos `text-primary` (theme-aware, ver Brand.theme).
+  const headingColor = brandSlug === "lumy" ? "!text-[var(--rose-600)]" : "text-primary";
+
+  return (
+    <div className="max-w-3xl pt-16">
+      {blocks.map((block, i) => {
+        if (block.type === "lead") {
+          return (
+            <p key={i} className="text-lg md:text-xl font-bold leading-relaxed">
+              {block.text}
+            </p>
+          );
+        }
+        if (block.type === "heading") {
+          return (
+            <h2 key={i} className={`text-2xl md:text-3xl font-bold pt-8 pb-2 ${headingColor}`}>
+              {block.text}
+            </h2>
+          );
+        }
+        if (block.type === "list") {
+          return (
+            <ul key={i} className="pt-2 list-disc pl-5 space-y-1 text-muted-foreground leading-relaxed">
+              {block.items.map((item, j) => (
+                <li key={j}>{item}</li>
+              ))}
+            </ul>
+          );
+        }
+        return (
+          <p key={i} className="pt-2 text-muted-foreground leading-relaxed">
+            {block.text}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 /**
  * Detalle de producto consciente de la sesión.
  *
@@ -294,12 +402,7 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
 
       {/* Descripción debajo de la galería + info, a lo ancho — antes vivía
           arriba del botón de compra, dentro de la columna de info. */}
-      {/* padding-top, no margin-top: la regla ".site-lumy p" (que resetea el
-          margin de los párrafos a 0) es más específica que la utilidad mt-*
-          y lo anularía dentro de ese tema. */}
-      {product.description && (
-        <p className="text-muted-foreground leading-relaxed pt-16 max-w-3xl">{product.description}</p>
-      )}
+      {product.description && <DescriptionRichText description={product.description} brandSlug={brand.slug} />}
 
       {brand.slug === "lumy" && (
         <div className="mt-12 max-w-3xl">
