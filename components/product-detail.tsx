@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Package, Lock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Package, Lock, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiUrl, cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import type { ProductType } from "@/types/product";
@@ -21,6 +21,21 @@ interface Props {
   /** Producto público resuelto en SSR. `null` si no es público (p.ej. members_only). */
   initialProduct: ProductType | null;
 }
+
+// FAQ fija de los cortantes 3D de Lumy (moldes para repostería) — no aplica al
+// catálogo de otras sub-marcas (ej. Print&Gym), por eso se muestra solo si
+// `brand.slug === "lumy"`. Si en el futuro se necesita por producto/categoría,
+// migrar a un campo del backend en vez de hardcodear acá.
+const LUMY_FAQ: { q: string; a: string }[] = [
+  { q: "¿Es apto para alimentos?", a: "Sí, está fabricado en PLA, material apto para contacto con alimentos." },
+  { q: "¿Se puede lavar en lavavajillas?", a: "No. Recomendamos lavar a mano con agua fría para conservar su forma." },
+  {
+    q: "¿Sirve para fondant y cerámica?",
+    a: "Sí, funciona tanto en masas comestibles como en arcilla, porcelana fría y cerámica. Recomendamos usar piezas distintas para alimentos y para cerámica.",
+  },
+  { q: "¿Tienen stock?", a: "Sí, trabajamos con stock disponible para que recibas tu pedido lo antes posible." },
+  { q: "¿Hacen descuentos por cantidad?", a: "Sí, consultanos por compras mayoristas." },
+];
 
 /**
  * Detalle de producto consciente de la sesión.
@@ -279,10 +294,38 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
 
       {/* Descripción debajo de la galería + info, a lo ancho — antes vivía
           arriba del botón de compra, dentro de la columna de info. */}
-      {/* padding-top, no margin-top: `.site-lumy p { margin: 0 }` (más específico que
-          la utilidad mt-*) anula cualquier margen en párrafos dentro de ese tema. */}
+      {/* padding-top, no margin-top: la regla ".site-lumy p" (que resetea el
+          margin de los párrafos a 0) es más específica que la utilidad mt-*
+          y lo anularía dentro de ese tema. */}
       {product.description && (
         <p className="text-muted-foreground leading-relaxed pt-16 max-w-3xl">{product.description}</p>
+      )}
+
+      {brand.slug === "lumy" && (
+        <div className="mt-12 max-w-3xl">
+          {/* pb-4/pt-2 (no mb-4/mt-2): `.site-lumy h1,h2,h3,h4` y `.site-lumy p`
+              resetean su margin a 0 con más especificidad que las utilidades
+              de Tailwind — ver mismo caso en la descripción, arriba. */}
+          {/* var(--rose-600), no text-primary: es el mismo rosa que usa el texto
+              script de la home de Lumy (".lm-script", ej. "decoración") — más
+              oscuro que --primary (rose-500). Solo aplica acá porque este bloque
+              ya está gateado a brand.slug === "lumy". `!text-*` (importante) porque
+              `.site-lumy h1,h2,h3,h4` fija su propio color con más especificidad
+              que una utilidad de Tailwind sola (mismo caso que !text-primary-foreground
+              más abajo, en QuantityInquiryButton). */}
+          <h2 className="text-2xl md:text-3xl font-bold !text-[var(--rose-600)] pb-4">Preguntas frecuentes</h2>
+          <div className="divide-y divide-border border-y border-border">
+            {LUMY_FAQ.map((item) => (
+              <details key={item.q} className="group py-4">
+                <summary className="flex items-center justify-between gap-4 cursor-pointer list-none font-medium [&::-webkit-details-marker]:hidden">
+                  {item.q}
+                  <ChevronDown className="w-4 h-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+                </summary>
+                <p className="pt-2 text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
       )}
 
       <RelatedByTheme product={product} brandSlug={brand.slug} />
