@@ -27,6 +27,96 @@ const SHAPES = [
 
 const DEFAULT_FILTERS = ["Cumpleaños", "Egresados", "Fiestas temáticas"];
 
+// Colores de las luces, misma luminosidad/cromaticidad que los tokens de marca (rose/honey/sage)
+// pero cubriendo más matices para que se lea como guirnalda multicolor.
+const LIGHT_COLORS = [
+  "oklch(0.785 0.100 8)",
+  "oklch(0.80 0.09 230)",
+  "oklch(0.868 0.084 82)",
+  "oklch(0.80 0.09 300)",
+  "oklch(0.780 0.052 152)",
+  "oklch(0.80 0.11 40)",
+];
+
+// Dimensiones de referencia (el clamp en rem del dome, min(48vw,46rem) x min(58vh,34rem))
+// usadas solo para calcular proporciones reales de longitud de arco — no afectan el tamaño renderizado.
+const DOME_REF_W = 46 * 16;
+const DOME_REF_H = 34 * 16;
+
+// Puntos espaciados uniformemente por longitud de arco a lo largo de TODO el perímetro del dome:
+// el borde recto de arriba + la curva elíptica de abajo (mismo radio que el border-radius),
+// recorridos como un solo contorno cerrado. Devuelve porcentajes de ancho/alto.
+function domePerimeterPoints(n: number) {
+  const W = DOME_REF_W;
+  const H = DOME_REF_H;
+  const a = W / 2;
+  const b = H;
+  const STEPS = 400;
+  const curvePts: { x: number; y: number }[] = [];
+  for (let s = 0; s <= STEPS; s++) {
+    const t = (s / STEPS) * Math.PI;
+    curvePts.push({ x: a + a * Math.cos(t), y: b * Math.sin(t) });
+  }
+  const curveCum: number[] = [0];
+  for (let s = 1; s < curvePts.length; s++) {
+    const dx = curvePts[s].x - curvePts[s - 1].x;
+    const dy = curvePts[s].y - curvePts[s - 1].y;
+    curveCum.push(curveCum[s - 1] + Math.sqrt(dx * dx + dy * dy));
+  }
+  const curveLen = curveCum[curveCum.length - 1];
+  const topLen = W;
+  const total = topLen + curveLen;
+
+  function pointAtDistance(d: number) {
+    if (d <= topLen) return { x: d, y: 0 };
+    const target = d - topLen;
+    let lo = 0;
+    let hi = curveCum.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (curveCum[mid] < target) lo = mid + 1;
+      else hi = mid;
+    }
+    return curvePts[lo];
+  }
+
+  return Array.from({ length: n }, (_, i) => {
+    const d = ((i + 0.5) / n) * total;
+    const { x, y } = pointAtDistance(d);
+    return { x: (x / W) * 100, y: (y / H) * 100 };
+  });
+}
+
+function HeroLights({ n = 22 }: { n?: number }) {
+  const points = domePerimeterPoints(n);
+  return (
+    <div style={{ position: "absolute", inset: 0, overflow: "visible", pointerEvents: "none" }}>
+      {points.map((p, i) => {
+        const color = LIGHT_COLORS[i % LIGHT_COLORS.length];
+        const duration = 1.8 + ((i * 37) % 9) / 10;
+        const delay = ((i * 53) % 24) / 10;
+        return (
+          <span
+            key={i}
+            className="lm-light"
+            style={
+              {
+                position: "absolute",
+                left: `${p.x}%`,
+                top: `${p.y}%`,
+                transform: "translate(-50%, -50%)",
+                "--lm-glow": color,
+                animationDuration: `${duration}s`,
+                animationDelay: `${delay}s`,
+              } as React.CSSProperties
+            }
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 const DEFAULT_MARQUEE_WORDS = ["cortantes", "toppers", "sellos", "números", "souvenirs", "rodillos", "carteles", "lo que se te ocurra"];
 
 const DEFAULT_STEPS = [
@@ -144,28 +234,37 @@ function Hero({
   return (
     <section style={{ position: "relative", overflow: "hidden", background: "var(--cream-100)", borderBottom: "1px solid var(--beige-300)" }}>
       <div
+        className="lm-hero-float"
         style={{
           position: "absolute",
           top: 0,
           right: "6%",
           width: "min(48vw, 46rem)",
-          aspectRatio: "2/1",
-          borderRadius: "0 0 50% 50% / 0 0 100% 100%",
-          background: "var(--rose-100)",
-          overflow: "hidden",
-          boxShadow: "0 30px 60px -20px rgba(0,0,0,0.18)",
+          height: "min(58vh, 34rem)",
         }}
       >
-        {heroImage && (
-          <Image
-            src={heroImage.src}
-            alt={heroImage.alt}
-            fill
-            className="object-cover"
-            style={{ objectPosition: "center 20%" }}
-            unoptimized
-          />
-        )}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: "0 0 50% 50% / 0 0 100% 100%",
+            background: "var(--rose-100)",
+            overflow: "hidden",
+            boxShadow: "0 30px 60px -20px rgba(0,0,0,0.18)",
+          }}
+        >
+          {heroImage && (
+            <Image
+              src={heroImage.src}
+              alt={heroImage.alt}
+              fill
+              className="object-cover"
+              style={{ objectPosition: "center 20%" }}
+              unoptimized
+            />
+          )}
+        </div>
+        <HeroLights n={22} />
       </div>
       <div style={{ position: "relative", display: "grid", gridTemplateColumns: "4.5rem 1fr", minHeight: "min(88vh, 900px)" }}>
         <div style={{ borderRight: "1px solid var(--beige-300)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", padding: "var(--space-8) 0" }}>
@@ -489,7 +588,9 @@ export function LumyHome({ brand, featured, allProducts, categories }: LumyHomeP
     return url ? { src: url, alt: p!.images[0]?.alt || p!.name } : null;
   };
 
-  const heroImage = productImage(shopProducts[0], 1200);
+  const heroImage = brand.cover_image
+    ? { src: cloudinaryUrl(resolveMediaUrl(brand.cover_image), 1200)!, alt: brand.name }
+    : productImage(shopProducts[0], 1200);
   const manifiestoImages = [productImage(shopProducts[1], 500), productImage(shopProducts[2], 500)].filter(
     (i): i is { src: string; alt: string } => !!i
   );

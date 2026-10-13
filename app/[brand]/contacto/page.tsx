@@ -27,8 +27,8 @@ export default async function ContactoPage({
   if (!brand) notFound();
 
   return (
-    <div className="min-h-screen">
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/20 via-primary/5 to-background py-24">
+    <div className="min-h-screen bg-gradient-to-b from-background via-primary/10 to-primary/20">
+      <section className="relative overflow-hidden py-24">
         <div className="max-w-2xl mx-auto px-6 text-center">
           <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">
             Contanos tu idea

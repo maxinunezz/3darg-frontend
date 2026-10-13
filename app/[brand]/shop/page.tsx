@@ -100,6 +100,7 @@ export default async function ShopPage({
 
   if (!brand) notFound();
 
+  const isLumy = slug === "lumy";
   const currentPage = Math.max(1, parseInt(page ?? "1", 10) || 1);
   const totalPages = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE));
 
@@ -140,11 +141,13 @@ export default async function ShopPage({
     });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className={`mx-auto px-4 py-12 ${isLumy ? "max-w-[96rem]" : "max-w-7xl"}`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-4xl font-black uppercase tracking-tight">{brand.name}</h1>
+          {!isLumy && (
+            <h1 className="text-4xl font-black uppercase tracking-tight">{brand.name}</h1>
+          )}
         {brand.short_description && (
           <p className="text-muted-foreground mt-2 text-lg">{brand.short_description}</p>
         )}
@@ -158,17 +161,23 @@ export default async function ShopPage({
       <div className="flex flex-col md:flex-row gap-8">
         {/* Sidebar: categorías */}
         {categories.length > 0 && (
-          <aside className="md:w-56 shrink-0">
+          <aside className={isLumy ? "md:w-72 shrink-0" : "md:w-56 shrink-0"}>
             <div className="md:sticky md:top-32">
-              <h2 className="text-xl font-bold uppercase tracking-wider text-muted-foreground mb-3">
+              <h2
+                className={`font-bold uppercase tracking-wider text-muted-foreground ${
+                  isLumy ? "text-3xl mb-5" : "text-xl mb-3"
+                }`}
+              >
                 Categorías
               </h2>
               <nav className="flex flex-row md:flex-col gap-1 flex-wrap">
                 <Link
                   href={`/${slug}/shop`}
-                  className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`lm-cat-link px-3 py-2 rounded-lg transition-colors ${
+                    isLumy ? "text-lg" : "text-sm"
+                  } ${
                     !category
-                      ? "bg-primary text-primary-foreground font-semibold"
+                      ? "lm-cat-link--active bg-primary text-primary-foreground font-semibold"
                       : "text-foreground hover:bg-muted font-medium"
                   }`}
                 >
@@ -180,9 +189,11 @@ export default async function ShopPage({
                   <Link
                     key={cat.id}
                     href={`/${slug}/shop?category=${cat.slug}`}
-                    className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                    className={`lm-cat-link px-3 py-2 rounded-lg transition-colors ${
+                      isLumy ? "text-lg" : "text-sm"
+                    } ${
                       category === cat.slug
-                        ? "bg-primary text-primary-foreground font-semibold"
+                        ? "lm-cat-link--active bg-primary text-primary-foreground font-semibold"
                         : "text-foreground hover:bg-muted font-medium"
                     }`}
                   >
@@ -200,9 +211,11 @@ export default async function ShopPage({
                     <Link
                       key={`todos-${cat.id}`}
                       href={`/${slug}/shop?category=${cat.slug}`}
-                      className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                      className={`lm-cat-link px-3 py-2 rounded-lg transition-colors ${
+                        isLumy ? "text-lg" : "text-sm"
+                      } ${
                         category === cat.slug
-                          ? "bg-primary text-primary-foreground font-semibold"
+                          ? "lm-cat-link--active bg-primary text-primary-foreground font-semibold"
                           : "text-foreground hover:bg-muted font-medium"
                       }`}
                     >
@@ -225,7 +238,11 @@ export default async function ShopPage({
                         cat.slug === category
                       }
                     >
-                      <summary className="flex items-center gap-1 px-3 pt-2 pb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
+                      <summary
+                        className={`flex items-center gap-1 px-3 pt-2 pb-1 font-bold uppercase tracking-wider text-muted-foreground cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden ${
+                          isLumy ? "text-sm" : "text-[11px]"
+                        }`}
+                      >
                         <ChevronRight className="w-3 h-3 shrink-0 transition-transform group-open:rotate-90" />
                         {cat.name}
                       </summary>
@@ -242,9 +259,11 @@ export default async function ShopPage({
                             <Link
                               key={sub.id}
                               href={href}
-                              className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                              className={`lm-cat-link px-3 py-1.5 rounded-lg transition-colors ${
+                                isLumy ? "text-lg" : "text-sm"
+                              } ${
                                 isActive
-                                  ? "bg-primary text-primary-foreground font-semibold"
+                                  ? "lm-cat-link--active bg-primary text-primary-foreground font-semibold"
                                   : "text-foreground hover:bg-muted font-medium"
                               }`}
                             >

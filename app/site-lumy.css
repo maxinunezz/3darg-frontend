@@ -242,6 +242,52 @@
   width: max-content;
   animation: lm-marquee 34s linear infinite;
 }
+@keyframes lm-hero-float-in {
+  from {
+    transform: translateY(55vh) scale(0.92);
+    opacity: 0;
+  }
+  55% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+.site-lumy .lm-hero-float {
+  animation: lm-hero-float-in 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes lm-light-blink {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 16px 5px var(--lm-glow);
+  }
+  50% {
+    opacity: 0.35;
+    box-shadow: 0 0 3px 0 var(--lm-glow);
+  }
+}
+.site-lumy .lm-light {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--lm-glow);
+  border: 2px solid var(--cream-100);
+  box-shadow: 0 0 16px 5px var(--lm-glow);
+  animation-name: lm-light-blink;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-lumy .lm-hero-float {
+    animation: none;
+  }
+  .site-lumy .lm-light {
+    animation: none;
+  }
+}
 .site-lumy .lm-idx {
   display: grid;
   grid-template-columns: 5.5rem 1fr 15rem 4rem;
@@ -355,6 +401,14 @@
 .site-lumy .lm-chip:hover { border-color: var(--rose-300); color: var(--ink-900); }
 .site-lumy .lm-chip[aria-pressed="true"] { background: var(--rose-500); border-color: var(--rose-500); color: var(--white); }
 
+/* ── Category links (shop sidebar) ──────────────────────── */
+.site-lumy .lm-cat-link { position: relative; isolation: isolate; overflow: hidden; transition: color var(--duration-base) var(--ease-standard); }
+.site-lumy .lm-cat-link::before { content: ""; position: absolute; inset: 0; background: var(--rose-400); transform: scaleX(0); transform-origin: left; transition: transform var(--duration-base) var(--ease-standard); z-index: -1; }
+.site-lumy .lm-cat-link:hover { color: var(--white); }
+.site-lumy .lm-cat-link:hover::before { transform: scaleX(1); }
+.site-lumy .lm-cat-link--active { background: var(--rose-400); color: var(--white); }
+.site-lumy .lm-cat-link--active::before { content: none; }
+
 /* ── Input / Select / Textarea ──────────────────────────── */
 .site-lumy .lm-field { display: flex; flex-direction: column; gap: var(--space-2); }
 .site-lumy .lm-field__label { font-size: var(--text-caption); font-weight: var(--weight-semibold); color: var(--ink-700); }
@@ -428,10 +482,11 @@
 /* ── Navbar ─────────────────────────────────────────────── */
 .site-lumy .lm-nav { position: sticky; top: 0; z-index: 50; background: oklch(0.976 0.011 84 / 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
 .site-lumy .lm-nav__inner { max-width: var(--container-max); margin: 0 auto; padding: 0 var(--gutter); height: var(--nav-height); display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); }
-.site-lumy .lm-nav__logo { display: flex; align-items: center; gap: var(--space-2); cursor: pointer; }
-.site-lumy .lm-nav__logo img { height: 2.5rem; width: auto; mix-blend-mode: multiply; }
+.site-lumy .lm-nav__logo { position: relative; display: flex; align-items: center; gap: var(--space-2); cursor: pointer; align-self: flex-start; padding: 0 var(--space-2); }
+.site-lumy .lm-nav__logo::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: calc(var(--nav-height) + 0.5rem); background: var(--cream-100); z-index: -1; }
+.site-lumy .lm-nav__logo img { height: 8.5rem; width: auto; }
 .site-lumy .lm-nav__links { display: flex; align-items: center; gap: var(--space-6); }
-.site-lumy .lm-nav__link { background: none; border: 0; padding: 0; cursor: pointer; font-family: var(--font-sans); font-size: var(--text-body-s); font-weight: var(--weight-medium); color: var(--ink-700); transition: color var(--duration-base) var(--ease-standard); }
+.site-lumy .lm-nav__link { background: none; border: 0; padding: 0; cursor: pointer; font-family: var(--font-sans); font-size: var(--text-body-l); font-weight: var(--weight-medium); color: var(--ink-700); transition: color var(--duration-base) var(--ease-standard); }
 .site-lumy .lm-nav__link:hover { color: var(--rose-600); }
 .site-lumy .lm-nav__link--active { color: var(--rose-600); font-weight: var(--weight-semibold); }
 .site-lumy .lm-nav__actions { display: flex; align-items: center; gap: var(--space-2); }

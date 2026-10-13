@@ -14,6 +14,13 @@ interface Props {
 }
 
 export function ProductCard({ product, brandSlug }: Props) {
+  const isLumy = brandSlug === "lumy";
+  const categoryLabel = product.category
+    ? product.category.parent_name
+      ? `${product.category.parent_name} - ${product.category.name}`
+      : product.category.name
+    : null;
+
   return (
     <div className="group border border-border rounded-2xl overflow-hidden hover:shadow-lg transition-all hover:-translate-y-0.5 bg-card relative">
       {/* Favorite button — top right, absolute over image */}
@@ -52,14 +59,33 @@ export function ProductCard({ product, brandSlug }: Props) {
             </div>
           )}
         </div>
-        <div className="p-4">
-          <h3 className="font-semibold text-lg leading-snug line-clamp-2">{product.name}</h3>
-          {product.category && (
-            <p className="text-xs text-muted-foreground mt-1">{product.category.name}</p>
+        <div className={isLumy ? "p-5" : "p-4"}>
+          <h3
+            className={`font-semibold leading-snug line-clamp-2 ${
+              isLumy ? "text-xl" : "text-lg"
+            }`}
+          >
+            {product.name}
+          </h3>
+          {isLumy ? (
+            <div className="mt-2 flex items-end justify-between gap-2">
+              <ProductPrice product={product} />
+              {categoryLabel && (
+                <span className="text-xs text-muted-foreground text-right shrink-0 leading-snug">
+                  {categoryLabel}
+                </span>
+              )}
+            </div>
+          ) : (
+            <>
+              {product.category && (
+                <p className="text-xs text-muted-foreground mt-1">{product.category.name}</p>
+              )}
+              <div className="mt-2">
+                <ProductPrice product={product} />
+              </div>
+            </>
           )}
-          <div className="mt-2">
-            <ProductPrice product={product} />
-          </div>
         </div>
       </Link>
     </div>

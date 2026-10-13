@@ -53,6 +53,7 @@ export default async function AboutPage({
 
   if (!brand) notFound();
 
+  const isLumy = slug === "lumy";
   const cfg = brand.page_config ?? {};
   const hasShop = brand.brand_type !== "services";
 
@@ -66,10 +67,10 @@ export default async function AboutPage({
     ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-b from-background via-primary/15 to-background">
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/20 via-primary/5 to-background py-28">
+      <section className="relative overflow-hidden py-28">
         <div className="max-w-4xl mx-auto px-6 text-center">
           {brand.logo && (
             <Image
@@ -85,9 +86,11 @@ export default async function AboutPage({
           <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">
             Sobre nosotros
           </p>
-          <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter leading-none mb-6">
-            {brand.name}
-          </h1>
+          {!isLumy && (
+            <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter leading-none mb-6">
+              {brand.name}
+            </h1>
+          )}
           {brand.slogan && (
             <p className="text-xl text-muted-foreground font-light max-w-xl mx-auto leading-relaxed">
               {brand.slogan}
@@ -111,7 +114,7 @@ export default async function AboutPage({
       )}
 
       {/* ── PROBLEMAS QUE RESOLVEMOS ─────────────────────────────────────── */}
-      <section className="bg-muted/30 py-20">
+      <section className="py-20">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-14">
             <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">
