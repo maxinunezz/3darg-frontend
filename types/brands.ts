@@ -42,6 +42,7 @@ export type LumyHomeConfig = {
   manifiesto?: {
     eyebrow_prefix?: string;
     text?: string;
+    values?: string[];
   };
   tienda?: {
     title_prefix?: string;

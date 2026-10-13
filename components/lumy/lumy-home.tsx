@@ -168,11 +168,10 @@ const DEFAULT_STEPS = [
   { n: "04", t: "Decorás tu fiesta", d: "Te llega lista para usar, empaquetada y con todo lo que pediste.", a: "Envíos a todo el país" },
 ];
 
-const DEFAULT_STATS = [
-  { value: "+400", label: "fiestas decoradas" },
-  { value: "72 hs", label: "del diseño a tu casa" },
-  { value: "100%", label: "hecho a medida" },
-];
+// Reemplaza las stats numéricas genéricas (page_config.stats, pensadas para la landing
+// genérica de app/[brand]/page.tsx) por estos 3 valores de marca, en la tipografía itálica
+// del highlight del hero (ver Hero > <em>{highlight}</em>).
+const DEFAULT_MANIFIESTO_VALUES = ["Compromiso", "Calidad", "Calidez"];
 
 // Posiciones/rotaciones fijas del collage de Inspiración — se ciclan si hay más o menos de 3 items cargados desde el admin.
 const INSPIRATION_LAYOUT: { r: string; w: string; top: string; tone?: "blush" }[] = [
@@ -189,6 +188,13 @@ const DEFAULT_INSPIRATION_ITEMS = [
 
 function formatPrice(price: number | string): string {
   return `$ ${Number(price).toLocaleString("es-AR")}`;
+}
+
+// Arma una lista en español con "y" antes del último elemento: ["Compromiso","Calidad","Calidez"]
+// -> "Compromiso, Calidad y Calidez" (se le agrega el punto final donde se usa).
+function joinSpanishList(items: string[]): string {
+  if (items.length <= 1) return items.join("");
+  return `${items.slice(0, -1).join(", ")} y ${items[items.length - 1]}`;
 }
 
 function ShapeRow({
@@ -272,7 +278,7 @@ function Hero({
   const ctaSecondary = cfg?.cta_secondary_label || "Ver la tienda →";
 
   return (
-    <section style={{ position: "relative", overflow: "hidden", background: "var(--cream-100)", borderBottom: "1px solid var(--beige-300)" }}>
+    <section style={{ position: "relative", overflow: "hidden", borderBottom: "1px solid var(--beige-300)" }}>
       <div
         className="lm-hero-float"
         style={{
@@ -392,14 +398,14 @@ function Manifiesto({
   images: { src: string; alt: string }[];
   cfg?: LumyHomeConfig["manifiesto"];
 }) {
-  const stats = brand.page_config?.stats?.length ? brand.page_config.stats : DEFAULT_STATS;
+  const values = cfg?.values?.length ? cfg.values : DEFAULT_MANIFIESTO_VALUES;
   const eyebrowPrefix = cfg?.eyebrow_prefix || "Por qué";
   const text =
     cfg?.text ||
     "Además de contar con un extenso catálogo, también trabajamos sobre tu idea: el nombre de un familiar, el egreso de tu amiga o ese personaje que te gusta. Todo eso se imprime con la mejor calidad para que tengas tu increíble fiesta temática.";
 
   return (
-    <section style={{ background: "var(--rose-50)", padding: "var(--section-y) 0", overflow: "hidden" }}>
+    <section style={{ padding: "var(--section-y) 0", overflow: "hidden" }}>
       <div className="lm-wrap" style={{ display: "grid", gridTemplateColumns: "0.85fr 1.15fr", gap: "var(--space-16)", alignItems: "center" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-4)" }}>
           {images[0] ? (
@@ -418,13 +424,20 @@ function Manifiesto({
           <p style={{ fontFamily: "var(--font-display)", fontSize: "clamp(1.75rem,3.2vw,2.75rem)", lineHeight: 1.16, letterSpacing: "-0.015em", color: "var(--ink-900)", marginTop: "var(--space-5)" }}>
             {text}
           </p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "var(--space-6)", marginTop: "var(--space-10)", borderTop: "1px solid var(--rose-200)", paddingTop: "var(--space-6)" }}>
-            {stats.map((s) => (
-              <div key={s.label}>
-                <div style={{ fontFamily: "var(--font-display)", fontSize: "clamp(1.75rem,2.8vw,2.5rem)", color: "var(--rose-600)", lineHeight: 1 }}>{s.value}</div>
-                <div style={{ fontSize: "var(--text-caption)", color: "var(--ink-500)", marginTop: 4 }}>{s.label}</div>
-              </div>
-            ))}
+          <div style={{ marginTop: "var(--space-16)", borderTop: "1px solid var(--rose-200)", paddingTop: "var(--space-8)" }}>
+            <span
+              style={{
+                fontFamily: "var(--font-display)",
+                fontStyle: "italic",
+                fontSize: "clamp(1.5rem,2.4vw,2rem)",
+                color: "var(--rose-600)",
+                lineHeight: 1.1,
+                letterSpacing: "0.01em",
+                wordSpacing: "0.3em",
+              }}
+            >
+              {joinSpanishList(values)}.
+            </span>
           </div>
         </div>
       </div>
@@ -535,7 +548,7 @@ function Inspiracion({ base, cfg }: { base: string; cfg?: LumyHomeConfig["inspir
   const ctaLabel = cfg?.cta_label || "Más ideas →";
 
   return (
-    <section className="lm-sec" style={{ background: "var(--cream-50)", borderTop: "1px solid var(--beige-300)" }}>
+    <section className="lm-sec" style={{ borderTop: "1px solid var(--beige-300)" }}>
       <div className="lm-wrap">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: "var(--space-6)", flexWrap: "wrap" }}>
           <div>
@@ -624,7 +637,9 @@ export function LumyHome({ brand, featured, allProducts, categories }: LumyHomeP
   );
 
   return (
-    <div>
+    // Mismo degradé suave que /[brand]/about ("Sobre Lumy") — from-background via-primary/15
+    // to-background — para que el fondo del inicio y el de "Sobre Lumy" se vean iguales.
+    <div className="bg-gradient-to-b from-background via-primary/15 to-background">
       <Hero brand={brand} base={base} cfg={cfg?.hero} />
       <Marquee words={marqueeWords} />
       <Proceso base={base} cfg={cfg?.proceso} />
