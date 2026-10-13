@@ -68,10 +68,12 @@ export function ProductCard({ product, brandSlug }: Props) {
             {product.name}
           </h3>
           {isLumy ? (
-            <div className="mt-2 flex items-end justify-between gap-2">
-              <ProductPrice product={product} size="md" />
+            <div className="mt-2 flex flex-col items-center gap-0.5">
+              <div className="whitespace-nowrap">
+                <ProductPrice product={product} size="md" />
+              </div>
               {categoryLabel && (
-                <span className="text-xs text-muted-foreground text-right shrink-0 leading-snug">
+                <span className="text-xs text-muted-foreground text-center leading-snug">
                   {categoryLabel}
                 </span>
               )}
