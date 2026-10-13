@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Plus } from "lucide-react";
@@ -117,6 +118,47 @@ function HeroLights({ n = 22 }: { n?: number }) {
   );
 }
 
+// Fotografía real del hero (dome), subida a Cloudinary en Lumy/Pagina web/Contenido —
+// rota cada 1s en orden fijo (no depende del catálogo ni del cover_image de la marca).
+const HERO_CAROUSEL_IMAGES = [
+  { src: "https://res.cloudinary.com/aelxmwcx/image/upload/v1791893345/cortantes_varios_1.jpg", alt: "Cortantes variados Lumy" },
+  { src: "https://res.cloudinary.com/aelxmwcx/image/upload/v1791893344/galleta_cruda_2.jpg", alt: "Galletita cruda lista para hornear" },
+  { src: "https://res.cloudinary.com/aelxmwcx/image/upload/v1791893346/galleta_horneada_5.jpg", alt: "Galletita horneada decorada" },
+];
+
+function HeroCarousel({ images, intervalMs = 1000 }: { images: { src: string; alt: string }[]; intervalMs?: number }) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (images.length <= 1) return;
+    const id = setInterval(() => {
+      setIndex((i) => (i + 1) % images.length);
+    }, intervalMs);
+    return () => clearInterval(id);
+  }, [images.length, intervalMs]);
+
+  return (
+    <>
+      {images.map((img, i) => (
+        <Image
+          key={img.src}
+          src={img.src}
+          alt={img.alt}
+          fill
+          priority={i === 0}
+          className="object-cover"
+          style={{
+            objectPosition: "center 20%",
+            opacity: i === index ? 1 : 0,
+            transition: "opacity 0.9s ease",
+          }}
+          unoptimized
+        />
+      ))}
+    </>
+  );
+}
+
 const DEFAULT_MARQUEE_WORDS = ["cortantes", "toppers", "sellos", "números", "souvenirs", "rodillos", "carteles", "lo que se te ocurra"];
 
 const DEFAULT_STEPS = [
@@ -212,12 +254,10 @@ function Photo({
 
 function Hero({
   brand,
-  heroImage,
   base,
   cfg,
 }: {
   brand: BrandType;
-  heroImage: { src: string; alt: string } | null;
   base: string;
   cfg?: LumyHomeConfig["hero"];
 }) {
@@ -253,16 +293,7 @@ function Hero({
             boxShadow: "0 30px 60px -20px rgba(0,0,0,0.18)",
           }}
         >
-          {heroImage && (
-            <Image
-              src={heroImage.src}
-              alt={heroImage.alt}
-              fill
-              className="object-cover"
-              style={{ objectPosition: "center 20%" }}
-              unoptimized
-            />
-          )}
+          <HeroCarousel images={HERO_CAROUSEL_IMAGES} intervalMs={3000} />
         </div>
         <HeroLights n={22} />
       </div>
@@ -588,16 +619,13 @@ export function LumyHome({ brand, featured, allProducts, categories }: LumyHomeP
     return url ? { src: url, alt: p!.images[0]?.alt || p!.name } : null;
   };
 
-  const heroImage = brand.cover_image
-    ? { src: cloudinaryUrl(resolveMediaUrl(brand.cover_image), 1200)!, alt: brand.name }
-    : productImage(shopProducts[0], 1200);
   const manifiestoImages = [productImage(shopProducts[1], 500), productImage(shopProducts[2], 500)].filter(
     (i): i is { src: string; alt: string } => !!i
   );
 
   return (
     <div>
-      <Hero brand={brand} heroImage={heroImage} base={base} cfg={cfg?.hero} />
+      <Hero brand={brand} base={base} cfg={cfg?.hero} />
       <Marquee words={marqueeWords} />
       <Proceso base={base} cfg={cfg?.proceso} />
       <Manifiesto brand={brand} images={manifiestoImages} cfg={cfg?.manifiesto} />

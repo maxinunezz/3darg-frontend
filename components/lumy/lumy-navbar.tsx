@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ShoppingBag, User, Menu, X } from "lucide-react";
@@ -27,13 +27,26 @@ export function LumyNavbar({ brand }: LumyNavbarProps) {
   const { count } = useCart();
   const { isAuthenticated } = useAuth();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const base = `/${brand.slug}`;
   const isHome = pathname === base;
-  const logo = cloudinaryUrl(resolveMediaUrl(brand.logo), 200);
+  // w_400 (en vez de 200) para que no se vea pixelado en pantallas retina/HiDPI — el logo se
+  // muestra grande (8.5rem) al tope de la página, 200px de ancho se queda corto ahí.
+  const logo = cloudinaryUrl(resolveMediaUrl(brand.logo), 400);
   const LINKS = brand.page_config?.lumy?.nav_links?.length ? brand.page_config.lumy.nav_links : DEFAULT_LINKS;
 
+  // Logo grande "asomando" sobre el hero al tope de la página (ver lm-nav__logo en site-lumy.css);
+  // al scrollear lo achicamos para que quede contenido dentro de la navbar y no se superponga
+  // visualmente con el contenido de abajo (texto del hero, marquee, etc.).
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 16);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <nav className="lm-nav">
+    <nav className={`lm-nav${scrolled ? " lm-nav--scrolled" : ""}`}>
       <div className="lm-nav__inner">
         <Link className="lm-nav__logo" href={base} onClick={() => setOpen(false)}>
           {logo ? (

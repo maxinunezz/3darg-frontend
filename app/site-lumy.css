@@ -244,7 +244,7 @@
 }
 @keyframes lm-hero-float-in {
   from {
-    transform: translateY(55vh) scale(0.92);
+    transform: translateY(-55vh) scale(0.92);
     opacity: 0;
   }
   55% {
@@ -482,9 +482,15 @@
 /* ── Navbar ─────────────────────────────────────────────── */
 .site-lumy .lm-nav { position: sticky; top: 0; z-index: 50; background: oklch(0.976 0.011 84 / 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
 .site-lumy .lm-nav__inner { max-width: var(--container-max); margin: 0 auto; padding: 0 var(--gutter); height: var(--nav-height); display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); }
-.site-lumy .lm-nav__logo { position: relative; display: flex; align-items: center; gap: var(--space-2); cursor: pointer; align-self: flex-start; padding: 0 var(--space-2); }
-.site-lumy .lm-nav__logo::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: calc(var(--nav-height) + 0.5rem); background: var(--cream-100); z-index: -1; }
-.site-lumy .lm-nav__logo img { height: 8.5rem; width: auto; }
+.site-lumy .lm-nav__logo { position: relative; display: flex; align-items: center; gap: var(--space-2); cursor: pointer; align-self: flex-start; padding: 0 var(--space-2); transition: align-self var(--duration-base) var(--ease-standard); }
+.site-lumy .lm-nav__logo::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: calc(var(--nav-height) + 0.5rem); background: var(--cream-100); z-index: -1; transition: opacity var(--duration-base) var(--ease-standard); }
+.site-lumy .lm-nav__logo img { height: 8.5rem; width: auto; transition: height 0.3s var(--ease-standard); }
+/* Al scrollear, el logo (que al tope "asoma" sobre el hero, más alto que la navbar) se achica
+   para quedar contenido adentro de la navbar — si no, se superpone visualmente con el contenido
+   que pasa por debajo (texto del hero, marquee, etc.), ver lm-navbar.tsx (scroll listener). */
+.site-lumy .lm-nav--scrolled .lm-nav__logo { align-self: center; }
+.site-lumy .lm-nav--scrolled .lm-nav__logo::before { opacity: 0; }
+.site-lumy .lm-nav--scrolled .lm-nav__logo img { height: calc(var(--nav-height) - 0.75rem); }
 .site-lumy .lm-nav__links { display: flex; align-items: center; gap: var(--space-6); }
 .site-lumy .lm-nav__link { background: none; border: 0; padding: 0; cursor: pointer; font-family: var(--font-sans); font-size: var(--text-body-l); font-weight: var(--weight-medium); color: var(--ink-700); transition: color var(--duration-base) var(--ease-standard); }
 .site-lumy .lm-nav__link:hover { color: var(--rose-600); }
