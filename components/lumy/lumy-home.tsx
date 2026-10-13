@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
+import { pickRandomByCategory } from "@/lib/pick-random-products";
 import type { ProductType, CategoryType } from "@/types/product";
 import type { BrandType, LumyHomeConfig } from "@/types/brands";
 
@@ -685,34 +686,9 @@ function CtaBand({ base, cfg }: { base: string; cfg?: LumyHomeConfig["cta_band"]
   );
 }
 
-// Fisher-Yates — shuffle sin sesgo (a diferencia de `.sort(() => Math.random() - 0.5)`).
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-// Sortea `count` categorías distintas (de las que tengan stock cargado en `pool`) y, dentro de
-// cada una, un producto al azar — full random, no "el primero" de cada categoría.
-function pickRandomShopProducts(pool: ProductType[], count: number): ProductType[] {
-  const byCategory = new Map<string, ProductType[]>();
-  for (const p of pool) {
-    if (!p.category) continue;
-    const key = p.category.slug;
-    if (!byCategory.has(key)) byCategory.set(key, []);
-    byCategory.get(key)!.push(p);
-  }
-  const picks: ProductType[] = [];
-  for (const key of shuffle([...byCategory.keys()])) {
-    if (picks.length >= count) break;
-    const group = byCategory.get(key)!;
-    picks.push(group[Math.floor(Math.random() * group.length)]);
-  }
-  return picks;
-}
+// Sorteo compartido con las sugerencias al pie del detalle de producto — ver
+// lib/pick-random-products.ts.
+const pickRandomShopProducts = pickRandomByCategory;
 
 export function LumyHome({ brand, featured, allProducts, categories }: LumyHomeProps) {
   const base = `/${brand.slug}`;
