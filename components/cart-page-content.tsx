@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useBrandNamespace } from "@/lib/brand-context";
 import type { CartItem } from "@/contexts/CartContext";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
+import { ShippingEstimator, type ShippingEstimate } from "@/components/shipping-estimator";
 import Image from "next/image";
 import Link from "next/link";
 import { Trash2, Minus, Plus, ShoppingBag, Loader2 } from "lucide-react";
@@ -17,7 +18,8 @@ async function createMpPreference(
   brandSlug: string,
   items: CartItem[],
   customerEmail?: string,
-  token?: string
+  token?: string,
+  postalCode?: string
 ) {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -27,6 +29,7 @@ async function createMpPreference(
     body: JSON.stringify({
       brand_slug: brandSlug,
       customer_email: customerEmail ?? "",
+      postal_code: postalCode ?? "",
       items: items.map(({ product, quantity }) => ({
         product_id: product.id,
         quantity,
@@ -48,12 +51,13 @@ async function createMpPreference(
 // ver lib/brand-context.ts), así que no hace falta agrupar/mostrar por marca
 // como antes: se muestran directamente los items y un solo botón de pago.
 export function CartPageContent() {
-  const { items, total, clearCart, removeItem, updateQuantity } = useCart();
+  const { items, total, clearCart, removeItem, updateQuantity, getUnitPrice } = useCart();
   const { user, token, isAuthenticated } = useAuth();
   const brandSlug = useBrandNamespace();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
+  const [shippingEstimate, setShippingEstimate] = useState<ShippingEstimate>(null);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail);
   const canCheckout = isAuthenticated || emailValid;
@@ -66,7 +70,13 @@ export function CartPageContent() {
     setCheckoutLoading(true);
     setCheckoutError("");
     try {
-      const data = await createMpPreference(brandSlug, items, user?.email ?? guestEmail, token ?? undefined);
+      const data = await createMpPreference(
+        brandSlug,
+        items,
+        user?.email ?? guestEmail,
+        token ?? undefined,
+        shippingEstimate?.postalCode
+      );
       const url = USE_SANDBOX ? data.sandbox_init_point : data.init_point;
       window.location.href = url;
     } catch (e: unknown) {
@@ -93,8 +103,6 @@ export function CartPageContent() {
       </div>
     );
   }
-
-  const unitPrice = (i: CartItem) => Number(i.product.final_price ?? i.product.price);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
@@ -123,7 +131,7 @@ export function CartPageContent() {
         <div className="divide-y divide-border">
           {items.map((item) => {
             const { product, quantity } = item;
-            const unit = unitPrice(item);
+            const unit = getUnitPrice(item);
             return (
               <div key={product.id} className="flex gap-4 p-4">
                 <div className="w-16 h-16 bg-muted rounded-xl overflow-hidden shrink-0 relative">
@@ -190,6 +198,9 @@ export function CartPageContent() {
         </div>
 
         <div className="px-4 py-4 border-t border-border bg-muted/20">
+          <div className="mb-4">
+            <ShippingEstimator items={items} subtotal={total} onEstimateChange={setShippingEstimate} />
+          </div>
           {!isAuthenticated && (
             <div className="mb-4">
               <label className="block text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
@@ -207,9 +218,25 @@ export function CartPageContent() {
               </p>
             </div>
           )}
+          <div className="flex justify-between items-center text-sm text-muted-foreground mb-1">
+            <span>Subtotal</span>
+            <span>$ {Number(total).toLocaleString("es-AR")}</span>
+          </div>
+          <div className="flex justify-between items-center text-sm text-muted-foreground mb-3">
+            <span>Envío</span>
+            <span>
+              {shippingEstimate
+                ? shippingEstimate.cost > 0
+                  ? `$ ${shippingEstimate.cost.toLocaleString("es-AR")}`
+                  : "Gratis"
+                : "A calcular"}
+            </span>
+          </div>
           <div className="flex justify-between items-center mb-3">
             <span className="text-sm text-muted-foreground">Total</span>
-            <span className="font-bold">$ {Number(total).toLocaleString("es-AR")}</span>
+            <span className="font-bold">
+              $ {Number(total + (shippingEstimate?.cost ?? 0)).toLocaleString("es-AR")}
+            </span>
           </div>
           <button
             onClick={handleCheckout}

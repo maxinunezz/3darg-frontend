@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useBrandNamespace } from "@/lib/brand-context";
 import type { CartItem } from "@/contexts/CartContext";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
+import { ShippingEstimator, type ShippingEstimate } from "@/components/shipping-estimator";
 import { QuantityStepper } from "@/components/site/commerce";
 import { ImageSlot, SpecLabel, buttonClass } from "@/components/site/core";
 
@@ -19,7 +20,13 @@ function fmt(n: number) {
   return "$ " + Number(n).toLocaleString("es-AR");
 }
 
-async function createMpPreference(brandSlug: string, items: CartItem[], customerEmail?: string, token?: string) {
+async function createMpPreference(
+  brandSlug: string,
+  items: CartItem[],
+  customerEmail?: string,
+  token?: string,
+  postalCode?: string
+) {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
   const res = await fetch(`${API}/payments/mp/checkout-pro/`, {
@@ -28,6 +35,7 @@ async function createMpPreference(brandSlug: string, items: CartItem[], customer
     body: JSON.stringify({
       brand_slug: brandSlug,
       customer_email: customerEmail ?? "",
+      postal_code: postalCode ?? "",
       items: items.map(({ product, quantity }) => ({ product_id: product.id, quantity })),
     }),
   });
@@ -40,15 +48,15 @@ async function createMpPreference(brandSlug: string, items: CartItem[], customer
 
 /** Carrito de la marca madre 3DARG — misma lógica de CartContext/checkout que el resto del sitio, capa visual del handoff. */
 export function SiteCartContent() {
-  const { items, total, clearCart, removeItem, updateQuantity } = useCart();
+  const { items, total, clearCart, removeItem, updateQuantity, getUnitPrice } = useCart();
   const { user, token, isAuthenticated } = useAuth();
   const brandSlug = useBrandNamespace();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
+  const [shippingEstimate, setShippingEstimate] = useState<ShippingEstimate>(null);
 
   const itemCount = items.reduce((s, i) => s + i.quantity, 0);
-  const unitPrice = (i: CartItem) => Number(i.product.final_price ?? i.product.price);
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail);
   const canCheckout = isAuthenticated || emailValid;
 
@@ -60,7 +68,13 @@ export function SiteCartContent() {
     setCheckoutLoading(true);
     setCheckoutError("");
     try {
-      const data = await createMpPreference(brandSlug, items, user?.email ?? guestEmail, token ?? undefined);
+      const data = await createMpPreference(
+        brandSlug,
+        items,
+        user?.email ?? guestEmail,
+        token ?? undefined,
+        shippingEstimate?.postalCode
+      );
       window.location.href = USE_SANDBOX ? data.sandbox_init_point : data.init_point;
     } catch (e: unknown) {
       setCheckoutError(e instanceof Error ? e.message : "Error al conectar con MercadoPago");
@@ -110,7 +124,7 @@ export function SiteCartContent() {
         <div className="divide-y divide-[var(--border-hairline)]">
           {items.map((item) => {
             const { product, quantity } = item;
-            const unit = unitPrice(item);
+            const unit = getUnitPrice(item);
             const img = cloudinaryUrl(resolveMediaUrl(product.images?.[0]?.image), 150);
             return (
               <div key={product.id} className="flex gap-4 p-4 items-center">
@@ -137,10 +151,28 @@ export function SiteCartContent() {
           })}
         </div>
 
+        <div className="p-4 border-t border-[var(--border-hairline)]">
+          <ShippingEstimator items={items} subtotal={total} onEstimateChange={setShippingEstimate} />
+        </div>
+
         {/* Total en panel ink */}
-        <div className="bg-[var(--ink-900)] text-[var(--bone-050)] px-5 py-5 flex items-center justify-between">
-          <span className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--ink-400)]">Total</span>
-          <span className="font-display" style={{ fontSize: "clamp(30px,3.4vw,42px)", lineHeight: 1 }}>{fmt(Number(total))}</span>
+        <div className="bg-[var(--ink-900)] text-[var(--bone-050)] px-5 py-4">
+          <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--ink-400)] mb-1">
+            <span>Subtotal</span>
+            <span>{fmt(Number(total))}</span>
+          </div>
+          <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--ink-400)] mb-3">
+            <span>Envío</span>
+            <span>
+              {shippingEstimate ? (shippingEstimate.cost > 0 ? fmt(shippingEstimate.cost) : "Gratis") : "A calcular"}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--ink-400)]">Total</span>
+            <span className="font-display" style={{ fontSize: "clamp(30px,3.4vw,42px)", lineHeight: 1 }}>
+              {fmt(total + (shippingEstimate?.cost ?? 0))}
+            </span>
+          </div>
         </div>
 
         <div className="p-4">

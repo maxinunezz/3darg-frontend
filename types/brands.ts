@@ -103,6 +103,14 @@ export type BrandMetaPublicConfig = {
   catalog_id: string;
 };
 
+// Config de envío por marca. Clave disponible hoy: `free_shipping_threshold`
+// (monto de subtotal a partir del cual el envío es gratis). Vacío/sin la
+// clave = sin envío gratis para esa marca — ver `shipping-estimator.tsx` y
+// `Brand.shipping_config` en el backend (`brands/models.py`).
+export type BrandShippingConfig = {
+  free_shipping_threshold?: number;
+};
+
 export type BrandType = {
   id: number;
   name: string;
@@ -120,6 +128,7 @@ export type BrandType = {
   social_links: Record<string, string>;
   page_config: BrandPageConfig;
   meta_public_config: BrandMetaPublicConfig;
+  shipping_config: BrandShippingConfig;
   links: BrandLinkType[];
   children: BrandType[];
   created_at: string;
