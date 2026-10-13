@@ -279,8 +279,10 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
 
       {/* Descripción debajo de la galería + info, a lo ancho — antes vivía
           arriba del botón de compra, dentro de la columna de info. */}
+      {/* padding-top, no margin-top: `.site-lumy p { margin: 0 }` (más específico que
+          la utilidad mt-*) anula cualquier margen en párrafos dentro de ese tema. */}
       {product.description && (
-        <p className="text-muted-foreground leading-relaxed mt-8 max-w-3xl">{product.description}</p>
+        <p className="text-muted-foreground leading-relaxed pt-16 max-w-3xl">{product.description}</p>
       )}
 
       <RelatedByTheme product={product} brandSlug={brand.slug} />
