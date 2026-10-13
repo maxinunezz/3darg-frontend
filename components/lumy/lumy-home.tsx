@@ -126,6 +126,16 @@ const HERO_CAROUSEL_IMAGES = [
   { src: "https://res.cloudinary.com/aelxmwcx/image/upload/v1791893346/galleta_horneada_5.jpg", alt: "Galletita horneada decorada" },
 ];
 
+// Fotos fijas del collage de "Por qué Lumy" (sección Manifiesto) — mismo set de Cloudinary
+// que el hero, no dependen del catálogo cargado (antes usaban las 2 primeras fotos de producto).
+const MANIFIESTO_IMAGES = [
+  // Clip en loop (<video>, no .gif) — el .mp4 original ya viene a 352x624 (el tope real de
+  // calidad disponible, no hay una versión más HD subida a Cloudinary de este video). Va a la izquierda.
+  { src: "https://res.cloudinary.com/aelxmwcx/video/upload/v1791897849/llaveros_recibida_arq.mp4", alt: "Llaveros recibidos por un cliente" },
+  // Foto, a la derecha.
+  { src: "https://res.cloudinary.com/aelxmwcx/image/upload/v1791897854/llaveros_batidora.jpg", alt: "Llaveros batidora" },
+];
+
 function HeroCarousel({ images, intervalMs = 1000 }: { images: { src: string; alt: string }[]; intervalMs?: number }) {
   const [index, setIndex] = useState(0);
 
@@ -244,16 +254,50 @@ function Photo({
   ratio = "1/1",
   radius,
   style,
+  objectPosition,
 }: {
   src: string;
   alt: string;
   ratio?: string;
   radius?: string;
   style?: React.CSSProperties;
+  // Algunas fotos (ej. llaveros_batidora) traen un título/leyenda incrustado arriba de la
+  // imagen misma — con el recorte centrado por default (object-cover) queda tapado por el
+  // marco en arco. "top" muestra más de la parte superior de la foto para no cortarlo.
+  objectPosition?: "center" | "top" | "bottom";
 }) {
   return (
     <div style={{ position: "relative", aspectRatio: ratio, borderRadius: radius, overflow: "hidden", background: "var(--cream-200)", ...style }}>
-      <Image src={src} alt={alt} fill className="object-cover" unoptimized />
+      <Image src={src} alt={alt} fill className="object-cover" style={{ objectPosition: objectPosition || "center" }} unoptimized />
+    </div>
+  );
+}
+
+// Igual que <Photo> pero para clips cortos en loop (ej. llaveros_recibida_arq.mp4) — un <video>
+// nativo da mucha mejor calidad y pesa muchísimo menos que el mismo clip convertido a .gif
+// (el .gif usa paleta de 256 colores + dithering; el video usa compresión H.264 real).
+function LoopVideo({
+  src,
+  ratio = "1/1",
+  radius,
+  style,
+}: {
+  src: string;
+  ratio?: string;
+  radius?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <div style={{ position: "relative", aspectRatio: ratio, borderRadius: radius, overflow: "hidden", background: "var(--cream-200)", ...style }}>
+      <video
+        src={src}
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="object-cover"
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+      />
     </div>
   );
 }
@@ -391,10 +435,12 @@ function Proceso({ base, cfg }: { base: string; cfg?: LumyHomeConfig["proceso"] 
 
 function Manifiesto({
   brand,
+  base,
   images,
   cfg,
 }: {
   brand: BrandType;
+  base: string;
   images: { src: string; alt: string }[];
   cfg?: LumyHomeConfig["manifiesto"];
 }) {
@@ -405,18 +451,20 @@ function Manifiesto({
     "Además de contar con un extenso catálogo, también trabajamos sobre tu idea: el nombre de un familiar, el egreso de tu amiga o ese personaje que te gusta. Todo eso se imprime con la mejor calidad para que tengas tu increíble fiesta temática.";
 
   return (
-    <section style={{ padding: "var(--section-y) 0", overflow: "hidden" }}>
-      <div className="lm-wrap" style={{ display: "grid", gridTemplateColumns: "0.85fr 1.15fr", gap: "var(--space-16)", alignItems: "center" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-4)" }}>
+    <section style={{ padding: "var(--space-10) 0 var(--space-10)", overflow: "hidden" }}>
+      <div className="lm-wrap" style={{ display: "grid", gridTemplateColumns: "0.95fr 1.05fr", gap: "var(--space-16)", alignItems: "start" }}>
+        {/* Ratio 9/16 = aspect-ratio nativo real de las dos piezas (foto 828x1472, video 352x624) —
+            así se ven completas, sin recortar nada, y de paso los recuadros quedan más grandes. */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-8)" }}>
           {images[0] ? (
-            <Photo src={images[0].src} alt={images[0].alt} ratio="3/4" radius="999px 999px 24px 24px" style={{ marginTop: "var(--space-10)" }} />
+            <LoopVideo src={images[0].src} ratio="9/16" radius="999px 999px 24px 24px" />
           ) : (
-            <ImagePlaceholder label="[IMAGEN PIEZA 3D]" ratio="3/4" radius="999px 999px 24px 24px" style={{ marginTop: "var(--space-10)" }} />
+            <ImagePlaceholder label="[IMAGEN PIEZA 3D]" ratio="9/16" radius="999px 999px 24px 24px" />
           )}
           {images[1] ? (
-            <Photo src={images[1].src} alt={images[1].alt} ratio="3/4" radius="24px 24px 999px 999px" />
+            <Photo src={images[1].src} alt={images[1].alt} ratio="9/16" radius="24px 24px 999px 999px" />
           ) : (
-            <ImagePlaceholder label="[IMAGEN MESA DULCE]" ratio="3/4" radius="24px 24px 999px 999px" tone="blush" />
+            <ImagePlaceholder label="[IMAGEN MESA DULCE]" ratio="9/16" radius="24px 24px 999px 999px" tone="blush" />
           )}
         </div>
         <div>
@@ -424,7 +472,7 @@ function Manifiesto({
           <p style={{ fontFamily: "var(--font-display)", fontSize: "clamp(1.75rem,3.2vw,2.75rem)", lineHeight: 1.16, letterSpacing: "-0.015em", color: "var(--ink-900)", marginTop: "var(--space-5)" }}>
             {text}
           </p>
-          <div style={{ marginTop: "var(--space-16)", borderTop: "1px solid var(--rose-200)", paddingTop: "var(--space-8)" }}>
+          <div style={{ marginTop: "var(--space-16)" }}>
             <span
               style={{
                 fontFamily: "var(--font-display)",
@@ -438,6 +486,11 @@ function Manifiesto({
             >
               {joinSpanishList(values)}.
             </span>
+            <div style={{ borderTop: "1px solid var(--rose-200)", marginTop: "var(--space-8)", paddingTop: "var(--space-8)" }}>
+              <Link href={`${base}/contacto`} className="lm-btn lm-btn--primary lm-btn--lg">
+                Hacé tu pedido
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -627,14 +680,7 @@ export function LumyHome({ brand, featured, allProducts, categories }: LumyHomeP
     shopProducts.push(p);
   }
 
-  const productImage = (p?: ProductType, width = 800) => {
-    const url = p?.images?.[0]?.image ? cloudinaryUrl(resolveMediaUrl(p.images[0].image), width) : null;
-    return url ? { src: url, alt: p!.images[0]?.alt || p!.name } : null;
-  };
-
-  const manifiestoImages = [productImage(shopProducts[1], 500), productImage(shopProducts[2], 500)].filter(
-    (i): i is { src: string; alt: string } => !!i
-  );
+  const manifiestoImages = MANIFIESTO_IMAGES;
 
   return (
     // Mismo degradé suave que /[brand]/about ("Sobre Lumy") — from-background via-primary/15
@@ -643,7 +689,7 @@ export function LumyHome({ brand, featured, allProducts, categories }: LumyHomeP
       <Hero brand={brand} base={base} cfg={cfg?.hero} />
       <Marquee words={marqueeWords} />
       <Proceso base={base} cfg={cfg?.proceso} />
-      <Manifiesto brand={brand} images={manifiestoImages} cfg={cfg?.manifiesto} />
+      <Manifiesto brand={brand} base={base} images={manifiestoImages} cfg={cfg?.manifiesto} />
       <Tienda base={base} products={shopProducts} categories={categories} cfg={cfg?.tienda} />
       <Inspiracion base={base} cfg={cfg?.inspiracion} />
       <CtaBand base={base} cfg={cfg?.cta_band} />
