@@ -353,7 +353,7 @@
 .site-lumy .lm-btn--md { height: 2.75rem; padding: 0 var(--space-6); font-size: var(--text-body-s); }
 .site-lumy .lm-btn--lg { height: 3.25rem; padding: 0 var(--space-8); font-size: var(--text-body-m); }
 .site-lumy .lm-btn--primary { background: var(--rose-500); color: var(--white); box-shadow: var(--shadow-sm); }
-.site-lumy .lm-btn--primary:hover { background: var(--rose-600); box-shadow: var(--shadow-md); }
+.site-lumy .lm-btn--primary:hover { background: var(--rose-600); color: var(--white); box-shadow: var(--shadow-md); }
 .site-lumy .lm-btn--secondary { background: var(--white); color: var(--ink-900); border-color: var(--beige-300); box-shadow: var(--shadow-xs); }
 .site-lumy .lm-btn--secondary:hover { background: var(--cream-50); border-color: var(--beige-400); }
 .site-lumy .lm-btn--outline { background: transparent; color: var(--rose-700); border-color: var(--rose-300); }
