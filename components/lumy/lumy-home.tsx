@@ -133,7 +133,7 @@ const MANIFIESTO_IMAGES = [
   // calidad disponible, no hay una versión más HD subida a Cloudinary de este video). Va a la izquierda.
   { src: "https://res.cloudinary.com/aelxmwcx/video/upload/v1791897849/llaveros_recibida_arq.mp4", alt: "Llaveros recibidos por un cliente" },
   // Foto, a la derecha.
-  { src: "https://res.cloudinary.com/aelxmwcx/image/upload/v1791897854/llaveros_batidora.jpg", alt: "Llaveros batidora" },
+  { src: "https://res.cloudinary.com/aelxmwcx/image/upload/v1791906611/Pedido_cotillon_1.jpg", alt: "Pedido de cotillón" },
 ];
 
 function HeroCarousel({ images, intervalMs = 1000 }: { images: { src: string; alt: string }[]; intervalMs?: number }) {
@@ -185,15 +185,26 @@ const DEFAULT_MANIFIESTO_VALUES = ["Compromiso", "Calidad", "Calidez"];
 
 // Posiciones/rotaciones fijas del collage de Inspiración — se ciclan si hay más o menos de 3 items cargados desde el admin.
 const INSPIRATION_LAYOUT: { r: string; w: string; top: string; tone?: "blush" }[] = [
-  { r: "-2deg", w: "44%", top: "0" },
-  { r: "1.5deg", w: "38%", top: "16%" },
-  { r: "-1deg", w: "42%", top: "6%", tone: "blush" },
+  { r: "-2deg", w: "22%", top: "0" },
+  { r: "1.5deg", w: "19%", top: "16%" },
+  { r: "-1deg", w: "21%", top: "6%", tone: "blush" },
 ];
 
 const DEFAULT_INSPIRATION_ITEMS = [
-  { label: "[IMAGEN CUMPLEAÑOS]", tag: "Cumpleaños", title: "Un primer añito en tonos suaves" },
-  { label: "[IMAGEN EGRESADOS]", tag: "Egresados", title: "Mesa de egreso con nombres impresos" },
-  { label: "[IMAGEN FIESTA TEMÁTICA]", tag: "Fiestas temáticas", title: "Jardín encantado, de la torta al souvenir" },
+  {
+    label: "[IMAGEN CUMPLEAÑOS]",
+    tag: "Mayorista",
+    title: "Ideal para cotillón o revendedores",
+    // Clip real subido a Cloudinary, reemplaza el placeholder solo en este item.
+    media: { type: "video" as const, src: "https://res.cloudinary.com/aelxmwcx/video/upload/v1791909966/pedido_cotillon_2.mp4" },
+  },
+  {
+    label: "[IMAGEN EGRESADOS]",
+    tag: "Personalizaciones",
+    title: "Llaveros o lo que se te ocurra para animar tu evento!",
+    // "top" para no tapar el texto "personalizados para eventos" que trae la foto incrustado arriba.
+    media: { type: "image" as const, src: "https://res.cloudinary.com/aelxmwcx/image/upload/v1791897854/llaveros_batidora.jpg", objectPosition: "top" as const },
+  },
 ];
 
 function formatPrice(price: number | string): string {
@@ -595,9 +606,10 @@ function Tienda({
 
 function Inspiracion({ base, cfg }: { base: string; cfg?: LumyHomeConfig["inspiracion"] }) {
   const eyebrow = cfg?.eyebrow || "Inspiración";
-  const titlePrefix = cfg?.title_prefix || "Fiestas que ya";
-  const titleHighlight = cfg?.title_highlight || "armamos";
-  const items = cfg?.items?.length ? cfg.items : DEFAULT_INSPIRATION_ITEMS;
+  const titlePrefix = cfg?.title_prefix || "Nuestros";
+  const titleHighlight = cfg?.title_highlight || "trabajos";
+  const items: { label: string; tag: string; title: string; media?: { type: "video" | "image"; src: string; objectPosition?: "center" | "top" | "bottom" } }[] =
+    cfg?.items?.length ? cfg.items : DEFAULT_INSPIRATION_ITEMS;
   const ctaLabel = cfg?.cta_label || "Más ideas →";
 
   return (
@@ -610,21 +622,28 @@ function Inspiracion({ base, cfg }: { base: string; cfg?: LumyHomeConfig["inspir
           </div>
           <Link href={`${base}/shop`} className="lm-btn lm-btn--link">{ctaLabel}</Link>
         </div>
-        <div style={{ display: "flex", gap: "var(--space-6)", marginTop: "var(--space-12)", alignItems: "flex-start", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: "var(--space-10)", marginTop: "var(--space-12)", alignItems: "flex-start", flexWrap: "wrap" }}>
           {items.map((it, i) => {
             const layout = INSPIRATION_LAYOUT[i % INSPIRATION_LAYOUT.length];
             return (
-              <Link
+              <div
                 key={`${it.tag}-${i}`}
-                href={`${base}/shop`}
-                style={{ flex: `1 1 ${layout.w}`, minWidth: 260, marginTop: layout.top, transform: `rotate(${layout.r})`, cursor: "pointer" }}
+                style={{ flex: `1 1 ${layout.w}`, minWidth: 244, maxWidth: 357, marginTop: layout.top, transform: `rotate(${layout.r})` }}
               >
-                <ImagePlaceholder label={it.label} ratio="4/5" radius="var(--radius-xl)" tone={layout.tone} />
+                {it.media ? (
+                  it.media.type === "video" ? (
+                    <LoopVideo src={it.media.src} ratio="4/5" radius="var(--radius-xl)" />
+                  ) : (
+                    <Photo src={it.media.src} alt={it.title} ratio="4/5" radius="var(--radius-xl)" objectPosition={it.media.objectPosition} />
+                  )
+                ) : (
+                  <ImagePlaceholder label={it.label} ratio="4/5" radius="var(--radius-xl)" tone={layout.tone} />
+                )}
                 <div style={{ display: "flex", alignItems: "baseline", gap: "var(--space-3)", marginTop: "var(--space-4)" }}>
                   <span className="lm-badge lm-badge--outline">{it.tag}</span>
                   <h3 style={{ fontSize: "1.35rem" }}>{it.title}</h3>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>
@@ -690,8 +709,8 @@ export function LumyHome({ brand, featured, allProducts, categories }: LumyHomeP
       <Marquee words={marqueeWords} />
       <Proceso base={base} cfg={cfg?.proceso} />
       <Manifiesto brand={brand} base={base} images={manifiestoImages} cfg={cfg?.manifiesto} />
-      <Tienda base={base} products={shopProducts} categories={categories} cfg={cfg?.tienda} />
       <Inspiracion base={base} cfg={cfg?.inspiracion} />
+      <Tienda base={base} products={shopProducts} categories={categories} cfg={cfg?.tienda} />
       <CtaBand base={base} cfg={cfg?.cta_band} />
     </div>
   );
