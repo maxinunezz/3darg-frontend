@@ -12,6 +12,7 @@ import { AddToCartButton } from "@/components/add-to-cart-button";
 import { FavoriteButton } from "@/components/favorite-button";
 import { ProductPrice } from "@/components/product-price";
 import { ProductBundlePicker } from "@/components/product-bundle-picker";
+import { CategoryBundlePicker } from "@/components/category-bundle-picker";
 import { RelatedByTheme } from "@/components/related-by-theme";
 
 interface Props {
@@ -46,8 +47,11 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
   useEffect(() => {
     if (authLoading || !token) return;
     let cancelled = false;
-    setFetching(true);
+    // `setFetching(true)` va dentro del IIFE (no como primera línea sincrónica
+    // del efecto) para no disparar react-hooks/set-state-in-effect — mismo
+    // patrón que `ComboGrid` en category-bundle-picker.tsx.
     (async () => {
+      setFetching(true);
       try {
         const res = await fetch(apiUrl(`/products/${slug}/`), {
           headers: { Authorization: `Bearer ${token}` },
@@ -233,15 +237,34 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
             </span>
           </div>
 
-          {product.description && (
-            <p className="text-muted-foreground leading-relaxed">{product.description}</p>
-          )}
-
           <div className="pt-2">
-            {product.bundle_discounts?.length > 0 ? (
-              <ProductBundlePicker product={product} disabled={!inStock} />
+            {/* Precedencia: combo de categoría (productos distintos de la misma
+                subcategoría exacta, config por marca/backend) > oferta por volumen
+                del propio producto > stepper simple. Ver Category.bundle_discounts
+                / Product.bundle_discounts en el backend. Cuando hay tramos, la
+                acción "consultar por cantidad" se ubica a la derecha de la fila
+                de tramos (ver prop `quantityInquiry`); sin tramos no hay fila
+                donde anclarla, así que queda suelta debajo del botón. */}
+            {product.category?.bundle_discounts?.length ? (
+              <CategoryBundlePicker
+                product={product}
+                brandSlug={brand.slug}
+                disabled={!inStock}
+                quantityInquiry={<QuantityInquiryButton brandSlug={brand.slug} productName={product.name} />}
+              />
+            ) : product.bundle_discounts?.length > 0 ? (
+              <ProductBundlePicker
+                product={product}
+                disabled={!inStock}
+                quantityInquiry={<QuantityInquiryButton brandSlug={brand.slug} productName={product.name} />}
+              />
             ) : (
-              <AddToCartButton product={product} disabled={!inStock} />
+              <div className="flex flex-col gap-2">
+                <AddToCartButton product={product} disabled={!inStock} />
+                <div className="flex justify-end">
+                  <QuantityInquiryButton brandSlug={brand.slug} productName={product.name} />
+                </div>
+              </div>
             )}
           </div>
 
@@ -254,7 +277,42 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
         </div>
       </div>
 
+      {/* Descripción debajo de la galería + info, a lo ancho — antes vivía
+          arriba del botón de compra, dentro de la columna de info. */}
+      {product.description && (
+        <p className="text-muted-foreground leading-relaxed mt-8 max-w-3xl">{product.description}</p>
+      )}
+
       <RelatedByTheme product={product} brandSlug={brand.slug} />
     </div>
+  );
+}
+
+/**
+ * Deriva al form de contacto genérico de la marca (`/[brand]/contacto`) con
+ * el producto pre-cargado en asunto/mensaje, para pedidos grandes que no
+ * entran en los tramos configurados. Mismo estilo pill rosa/texto blanco que
+ * el botón "Ingresar" del navbar (`bg-primary` / `text-primary-foreground`,
+ * ya theme-able por marca vía `Brand.theme` — no hardcodea color).
+ */
+function QuantityInquiryButton({ brandSlug, productName }: { brandSlug: string; productName: string }) {
+  const href = `/${brandSlug}/contacto?${new URLSearchParams({
+    title: `Consulta por cantidad - ${productName}`,
+    body: `Hola! Quería consultar por una cantidad grande de "${productName}". ¿Me pasan precio y disponibilidad?`,
+  }).toString()}`;
+
+  return (
+    <Link
+      href={href}
+      // `!text-primary-foreground`: algunos temas de marca (ej. site-lumy.css,
+      // regla `.site-lumy a { color: var(--text-brand) }`) definen un color
+      // global para <a> más específico que la utility de Tailwind — se fuerza
+      // acá para que el texto quede blanco igual que el resto de los botones
+      // "primary" (que son <button>, no afectados por esa regla de <a>).
+      className="shrink-0 flex flex-col items-center justify-center text-center bg-primary !text-primary-foreground text-xs font-bold leading-tight rounded-full px-4 py-3 hover:opacity-90 active:scale-95 transition-all"
+    >
+      <span className="block">¡Consultar por</span>
+      <span className="block">cantidad!</span>
+    </Link>
   );
 }

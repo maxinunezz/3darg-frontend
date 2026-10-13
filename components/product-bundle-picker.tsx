@@ -8,6 +8,9 @@ import type { ProductType } from "@/types/product";
 interface Props {
   product: ProductType;
   disabled?: boolean;
+  /** Acción extra (ej. "Consultar por cantidad") anclada a la derecha de la
+   * fila de tramos, fuera de la grilla para no afectar su ancho de columnas. */
+  quantityInquiry?: React.ReactNode;
 }
 
 function fmt(n: number) {
@@ -24,7 +27,7 @@ function fmt(n: number) {
  * `Product.unit_price_for()`); el precio real que se cobra siempre lo resuelve
  * el backend en cart/checkout, nunca se confía en lo que manda el cliente.
  */
-export function ProductBundlePicker({ product, disabled }: Props) {
+export function ProductBundlePicker({ product, disabled, quantityInquiry }: Props) {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
 
@@ -43,6 +46,11 @@ export function ProductBundlePicker({ product, disabled }: Props) {
 
   const maxQty = product.stock > 0 ? product.stock : 0;
   const bestTier = tiers.reduce((best, t) => (t.discount_percent > best.discount_percent ? t : best), tiers[0]);
+  // El tramo más chico que ya trae descuento se marca como "Más elegida"; el
+  // de mayor % como "Mayor descuento". Si coinciden en el mismo tramo, se
+  // prioriza "Mayor descuento" para no duplicar cartel (ver mismo patrón en
+  // CategoryBundlePicker).
+  const mostChosenTier = tiers.find((t) => t.discount_percent > 0) ?? null;
 
   const [selectedQty, setSelectedQty] = useState(() => {
     const initial = tiers.find((t) => t.quantity === bestTier.quantity) ?? tiers[0];
@@ -66,37 +74,41 @@ export function ProductBundlePicker({ product, disabled }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${tiers.length}, minmax(0, 1fr))` }}>
-        {tiers.map((t) => {
-          const isBest = t.quantity === bestTier.quantity && bestTier.discount_percent > 0;
-          const outOfStock = maxQty > 0 && t.quantity > maxQty;
-          const active = selectedQty === t.quantity;
-          return (
-            <button
-              key={t.quantity}
-              type="button"
-              disabled={outOfStock}
-              onClick={() => setSelectedQty(t.quantity)}
-              className={[
-                "relative rounded-xl border px-3 py-3 text-center transition-colors",
-                active ? "border-primary bg-primary/10" : "border-border hover:border-primary/50",
-                outOfStock ? "opacity-40 cursor-not-allowed" : "cursor-pointer",
-              ].join(" ")}
-            >
-              {isBest && (
-                <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[9px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5 whitespace-nowrap">
-                  Más elegida
-                </span>
-              )}
-              <p className="text-sm font-semibold">
-                Llevá {t.quantity}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {t.discount_percent > 0 ? `-${t.discount_percent}% OFF` : "Precio normal"}
-              </p>
-            </button>
-          );
-        })}
+      <div className="flex items-stretch gap-2">
+        <div className="grid gap-2 flex-1" style={{ gridTemplateColumns: `repeat(${tiers.length}, minmax(0, 1fr))` }}>
+          {tiers.map((t) => {
+            const isBestDiscount = t.quantity === bestTier.quantity && bestTier.discount_percent > 0;
+            const isMostChosen = !isBestDiscount && mostChosenTier != null && t.quantity === mostChosenTier.quantity;
+            const outOfStock = maxQty > 0 && t.quantity > maxQty;
+            const active = selectedQty === t.quantity;
+            return (
+              <button
+                key={t.quantity}
+                type="button"
+                disabled={outOfStock}
+                onClick={() => setSelectedQty(t.quantity)}
+                className={[
+                  "relative rounded-xl border px-3 py-3 text-center transition-colors",
+                  active ? "border-primary bg-primary/10" : "border-border hover:border-primary/50",
+                  outOfStock ? "opacity-40 cursor-not-allowed" : "cursor-pointer",
+                ].join(" ")}
+              >
+                {(isBestDiscount || isMostChosen) && (
+                  <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[9px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5 whitespace-nowrap">
+                    {isBestDiscount ? "Mayor descuento" : "Más elegida"}
+                  </span>
+                )}
+                <p className="text-sm font-semibold">
+                  Llevá {t.quantity}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t.discount_percent > 0 ? `-${t.discount_percent}% OFF` : "Precio normal"}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+        {quantityInquiry}
       </div>
 
       <div className="flex items-baseline justify-between">

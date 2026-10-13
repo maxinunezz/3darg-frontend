@@ -19,10 +19,16 @@ export async function generateMetadata({
 
 export default async function ContactoPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ brand: string }>;
+  // Permite pre-cargar asunto/mensaje (ej: botón "Consultar por cantidad"
+  // en el detalle de producto) sin acoplar el form a ningún flujo puntual —
+  // sigue siendo el mismo form genérico de siempre si no vienen params.
+  searchParams: Promise<{ title?: string; body?: string }>;
 }) {
   const { brand: slug } = await params;
+  const { title, body } = await searchParams;
   const brand = await getBrandBySlug(slug);
   if (!brand) notFound();
 
@@ -45,7 +51,7 @@ export default async function ContactoPage({
 
       <section className="py-16">
         <div className="max-w-xl mx-auto px-6">
-          <BrandContactForm brandSlug={brand.slug} />
+          <BrandContactForm brandSlug={brand.slug} defaultTitle={title} defaultBody={body} />
         </div>
       </section>
     </div>

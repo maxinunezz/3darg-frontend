@@ -18,7 +18,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-export function BrandContactForm({ brandSlug }: { brandSlug: string }) {
+interface BrandContactFormProps {
+  brandSlug: string;
+  /** Pre-carga de asunto/mensaje (ej: link "Consultar por cantidad" desde el
+   * detalle de producto). Opcionales — el form sigue funcionando igual sin ellos. */
+  defaultTitle?: string;
+  defaultBody?: string;
+}
+
+export function BrandContactForm({ brandSlug, defaultTitle, defaultBody }: BrandContactFormProps) {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +89,15 @@ export function BrandContactForm({ brandSlug }: { brandSlug: string }) {
         <input name="email" type="email" required className={inputCls} placeholder="tu@email.com" />
       </Field>
       <Field label="Asunto">
-        <input name="title" type="text" required maxLength={150} className={inputCls} placeholder="Contanos brevemente tu idea" />
+        <input
+          name="title"
+          type="text"
+          required
+          maxLength={150}
+          defaultValue={defaultTitle}
+          className={inputCls}
+          placeholder="Contanos brevemente tu idea"
+        />
       </Field>
       <Field label="Mensaje">
         <textarea
@@ -89,6 +105,7 @@ export function BrandContactForm({ brandSlug }: { brandSlug: string }) {
           required
           maxLength={2000}
           rows={6}
+          defaultValue={defaultBody}
           className="w-full bg-card text-sm outline-none border border-border rounded-xl px-4 py-3 resize-none transition-colors focus:border-primary"
           placeholder="Contanos con el mayor detalle posible qué tenés en mente..."
         />
