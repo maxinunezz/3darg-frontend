@@ -685,19 +685,98 @@ function CtaBand({ base, cfg }: { base: string; cfg?: LumyHomeConfig["cta_band"]
   );
 }
 
+// Fisher-Yates — shuffle sin sesgo (a diferencia de `.sort(() => Math.random() - 0.5)`).
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Sortea `count` categorías distintas (de las que tengan stock cargado en `pool`) y, dentro de
+// cada una, un producto al azar — full random, no "el primero" de cada categoría.
+function pickRandomShopProducts(pool: ProductType[], count: number): ProductType[] {
+  const byCategory = new Map<string, ProductType[]>();
+  for (const p of pool) {
+    if (!p.category) continue;
+    const key = p.category.slug;
+    if (!byCategory.has(key)) byCategory.set(key, []);
+    byCategory.get(key)!.push(p);
+  }
+  const picks: ProductType[] = [];
+  for (const key of shuffle([...byCategory.keys()])) {
+    if (picks.length >= count) break;
+    const group = byCategory.get(key)!;
+    picks.push(group[Math.floor(Math.random() * group.length)]);
+  }
+  return picks;
+}
+
 export function LumyHome({ brand, featured, allProducts, categories }: LumyHomeProps) {
   const base = `/${brand.slug}`;
   const cfg = brand.page_config?.lumy;
   const marqueeWords = cfg?.marquee_words?.length ? cfg.marquee_words : DEFAULT_MARQUEE_WORDS;
 
   const seen = new Set<number>();
-  const shopProducts: ProductType[] = [];
+  const pool: ProductType[] = [];
   for (const p of [...featured, ...allProducts]) {
-    if (shopProducts.length >= 4) break;
     if (seen.has(p.id)) continue;
     seen.add(p.id);
-    shopProducts.push(p);
+    pool.push(p);
   }
+  // Fallback determinístico (primeros 4 únicos) — es lo que se renderiza en el server y en el
+  // primer paint del cliente, para que no haya mismatch de hidratación. El sorteo real (abajo)
+  // pisa esto recién después de montar, vía effect.
+  const fallbackShopProducts = pool.slice(0, 4);
+
+  // 4 categorías + 1 producto al azar por cada una. Se resortea solo con F5 (reload real) —
+  // al navegar entre vistas y volver se reusa la misma selección guardada en sessionStorage
+  // para esta pestaña, así no "salta" cada vez que cambiás de página dentro del sitio.
+  const [randomShopProducts, setRandomShopProducts] = useState<ProductType[] | null>(null);
+  useEffect(() => {
+    const storageKey = `lumy_home_shop_pick__${brand.slug}`;
+    let isReload = false;
+    try {
+      const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+      isReload = nav?.type === "reload";
+    } catch {
+      isReload = false;
+    }
+
+    if (!isReload) {
+      try {
+        const saved = sessionStorage.getItem(storageKey);
+        if (saved) {
+          const ids: number[] = JSON.parse(saved);
+          const byId = new Map(pool.map((p) => [p.id, p]));
+          const resolved = ids.map((id) => byId.get(id)).filter((p): p is ProductType => !!p);
+          if (resolved.length === ids.length && resolved.length > 0) {
+            setRandomShopProducts(resolved);
+            return;
+          }
+        }
+      } catch {
+        // sessionStorage no disponible (navegación privada, etc.) — seguimos al sorteo nuevo.
+      }
+    }
+
+    const picks = pickRandomShopProducts(pool, 4);
+    if (picks.length > 0) {
+      setRandomShopProducts(picks);
+      try {
+        sessionStorage.setItem(storageKey, JSON.stringify(picks.map((p) => p.id)));
+      } catch {
+        // idem arriba — si falla el guardado no rompe nada, solo no persiste entre vistas.
+      }
+    }
+    // Se recalcula solo si cambia la marca (navegar de /lumy a otra marca) — allProducts/featured
+    // son el mismo fetch del server para este request, no hace falta re-correr por eso.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brand.slug]);
+
+  const shopProducts = randomShopProducts ?? fallbackShopProducts;
 
   const manifiestoImages = MANIFIESTO_IMAGES;
 
