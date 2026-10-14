@@ -18,6 +18,7 @@ const DEFAULT_LINKS = [
   { href: "", label: "Inicio" },
   { href: "/shop", label: "Tienda" },
   { href: "/about", label: "Sobre Lumy" },
+  { href: "/mayoristas", label: "Mayoristas" },
   { href: "/contacto", label: "Contanos tu idea" },
 ];
 
