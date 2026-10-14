@@ -51,13 +51,13 @@ export function RelatedByTheme({ product, brandSlug }: Props) {
 
   return (
     <div className="mt-10 pt-6 border-t border-border">
-      <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">Descubrí otras categorías</p>
-      <div className="flex gap-4 overflow-x-auto pb-1 -mx-1 px-1">
+      <p className="text-xs text-muted-foreground uppercase tracking-widest mb-6!">Descubrí otras categorías</p>
+      <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${related.length}, minmax(0, 1fr))` }}>
         {related.map((p) => {
-          const img = cloudinaryUrl(resolveMediaUrl(p.images?.[0]?.image), 200);
+          const img = cloudinaryUrl(resolveMediaUrl(p.images?.[0]?.image), 280);
           return (
-            <Link key={p.id} href={`/${brandSlug}/product/${p.slug}`} className="shrink-0 w-32 group">
-              <div className="aspect-square bg-muted rounded-lg overflow-hidden relative mb-1.5">
+            <Link key={p.id} href={`/${brandSlug}/product/${p.slug}`} className="group">
+              <div className="aspect-square w-full max-w-36 mx-auto bg-muted rounded-lg overflow-hidden relative mb-2">
                 {img ? (
                   <Image
                     src={img}
@@ -69,12 +69,12 @@ export function RelatedByTheme({ product, brandSlug }: Props) {
                 ) : null}
               </div>
               {p.category && (
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide truncate">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide truncate text-center">
                   {p.category.name}
                 </p>
               )}
-              <p className="text-xs font-medium truncate">{p.name}</p>
-              <p className="text-xs text-muted-foreground">{fmt(Number(p.final_price ?? p.price))}</p>
+              <p className="text-sm font-semibold truncate text-center">{p.name}</p>
+              <p className="text-sm text-muted-foreground text-center">{fmt(Number(p.final_price ?? p.price))}</p>
             </Link>
           );
         })}
