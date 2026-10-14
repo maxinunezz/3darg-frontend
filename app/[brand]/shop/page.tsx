@@ -6,6 +6,7 @@ import type { ProductType, CategoryType } from "@/types/product";
 import { SearchBar } from "@/components/search-bar";
 import { SortSelector } from "@/components/sort-selector";
 import { BrandShopGrid } from "@/components/brand-shop-grid";
+import { LumyShopPromoBanner } from "@/components/lumy/lumy-shop-promo-banner";
 import type { Metadata } from "next";
 
 const API = process.env.BACKEND_INTERNAL_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
@@ -141,7 +142,14 @@ export default async function ShopPage({
     });
 
   return (
-    <div className={`mx-auto px-4 py-12 ${isLumy ? "max-w-[96rem]" : "max-w-7xl"}`}>
+    <>
+      {isLumy && (
+        <LumyShopPromoBanner
+          tiers={brand.cart_discount_config}
+          freeShippingThreshold={brand.shipping_config?.free_shipping_threshold}
+        />
+      )}
+      <div className={`mx-auto px-4 pb-12 ${isLumy ? "max-w-[96rem] pt-6" : "max-w-7xl py-12"}`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
@@ -314,6 +322,7 @@ export default async function ShopPage({
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
