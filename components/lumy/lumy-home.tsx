@@ -196,6 +196,8 @@ const DEFAULT_INSPIRATION_ITEMS = [
     label: "[IMAGEN CUMPLEAÑOS]",
     tag: "Mayorista",
     title: "Ideal para cotillón o revendedores",
+    // Ancla a definir: todavía no existe la sección destino en la página.
+    tagHref: "#mayoristas",
     // Clip real subido a Cloudinary, reemplaza el placeholder solo en este item.
     media: { type: "video" as const, src: "https://res.cloudinary.com/aelxmwcx/video/upload/v1791909966/pedido_cotillon_2.mp4" },
   },
@@ -203,6 +205,7 @@ const DEFAULT_INSPIRATION_ITEMS = [
     label: "[IMAGEN EGRESADOS]",
     tag: "Personalizaciones",
     title: "Llaveros o lo que se te ocurra para animar tu evento!",
+    tagHref: "/contacto",
     // "top" para no tapar el texto "personalizados para eventos" que trae la foto incrustado arriba.
     media: { type: "image" as const, src: "https://res.cloudinary.com/aelxmwcx/image/upload/v1791897854/llaveros_batidora.jpg", objectPosition: "top" as const },
   },
@@ -609,7 +612,7 @@ function Inspiracion({ base, cfg }: { base: string; cfg?: LumyHomeConfig["inspir
   const eyebrow = cfg?.eyebrow || "Inspiración";
   const titlePrefix = cfg?.title_prefix || "Nuestros";
   const titleHighlight = cfg?.title_highlight || "trabajos";
-  const items: { label: string; tag: string; title: string; media?: { type: "video" | "image"; src: string; objectPosition?: "center" | "top" | "bottom" } }[] =
+  const items: { label: string; tag: string; title: string; tagHref?: string; media?: { type: "video" | "image"; src: string; objectPosition?: "center" | "top" | "bottom" } }[] =
     cfg?.items?.length ? cfg.items : DEFAULT_INSPIRATION_ITEMS;
   const ctaLabel = cfg?.cta_label || "Más ideas →";
 
@@ -641,7 +644,17 @@ function Inspiracion({ base, cfg }: { base: string; cfg?: LumyHomeConfig["inspir
                   <ImagePlaceholder label={it.label} ratio="4/5" radius="var(--radius-xl)" tone={layout.tone} />
                 )}
                 <div style={{ display: "flex", alignItems: "baseline", gap: "var(--space-3)", marginTop: "var(--space-4)" }}>
-                  <span className="lm-badge lm-badge--outline" style={{ fontSize: "0.95rem" }}>{it.tag}</span>
+                  {it.tagHref ? (
+                    <Link
+                      href={it.tagHref.startsWith("#") ? it.tagHref : `${base}${it.tagHref}`}
+                      className="lm-badge lm-badge--outline"
+                      style={{ fontSize: "0.95rem" }}
+                    >
+                      {it.tag}
+                    </Link>
+                  ) : (
+                    <span className="lm-badge lm-badge--outline" style={{ fontSize: "0.95rem" }}>{it.tag}</span>
+                  )}
                   <h3 style={{ fontSize: "1.65rem" }}>{it.title}</h3>
                 </div>
               </div>
@@ -676,7 +689,7 @@ function CtaBand({ base, cfg }: { base: string; cfg?: LumyHomeConfig["cta_band"]
           {subtitle}
         </p>
         <div style={{ display: "flex", justifyContent: "center", marginTop: "var(--space-8)" }}>
-          <Link href={`${base}/about`} className="lm-btn lm-btn--primary lm-btn--lg">{buttonLabel}</Link>
+          <Link href={`${base}/shop`} className="lm-btn lm-btn--primary lm-btn--lg">{buttonLabel}</Link>
         </div>
         <div style={{ display: "flex", justifyContent: "center", marginTop: "var(--space-12)" }}>
           <ShapeRow size={22} tones={["--rose-500", "--rose-300", "--cream-200", "--beige-400", "--rose-200", "--rose-700"]} />
