@@ -35,23 +35,23 @@ export default async function ContactoPage({
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-primary/10 to-primary/20">
       <section className="relative overflow-hidden py-24">
-        <div className="max-w-2xl mx-auto px-6 text-center">
-          <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">
-            Contanos tu idea
-          </p>
-          <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none mb-6">
-            Hacé tu consulta
-          </h1>
-          <p className="text-lg text-muted-foreground font-light max-w-xl mx-auto leading-relaxed">
-            Contanos qué tenés en mente y te respondemos en menos de 24 horas
-            hábiles con un presupuesto detallado.
-          </p>
-        </div>
-      </section>
+        <div className="max-w-5xl mx-auto px-6 grid gap-12 md:grid-cols-2 md:items-start">
+          <div className="text-center md:text-left">
+            <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3!">
+              Contanos tu idea
+            </p>
+            <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none mb-6!">
+              Hacé tu consulta
+            </h1>
+            <p className="text-lg text-muted-foreground font-light max-w-xl mx-auto md:mx-0 leading-loose">
+              Detallanos qué tenés en mente y te respondemos a la brevedad con
+              tu presupuesto detallado.
+            </p>
+          </div>
 
-      <section className="py-16">
-        <div className="max-w-xl mx-auto px-6">
-          <BrandContactForm brandSlug={brand.slug} defaultTitle={title} defaultBody={body} />
+          <div className="md:border-l md:border-border md:pl-12">
+            <BrandContactForm brandSlug={brand.slug} defaultTitle={title} defaultBody={body} />
+          </div>
         </div>
       </section>
     </div>
