@@ -57,6 +57,17 @@ export default async function AboutPage({
   const cfg = brand.page_config ?? {};
   const hasShop = brand.brand_type !== "services";
 
+  // Para Lumy, el cierre ("Lumy, la magia está en los detalles.") se separa
+  // del resto de la historia para mostrarlo en tipografía script, como el
+  // mismo cierre del footer — el último párrafo (separado por línea en blanco)
+  // se trata como ese cierre.
+  const descriptionParts = (() => {
+    if (!isLumy || !brand.description) return null;
+    const idx = brand.description.lastIndexOf("\n\n");
+    if (idx < 0) return null;
+    return { main: brand.description.slice(0, idx), closing: brand.description.slice(idx + 2) };
+  })();
+
   // Casos de uso: desde page_config o defaults del brand
   const cases: { emoji: string; problem: string; solution: string }[] =
     cfg.about_cases ?? [
@@ -69,73 +80,72 @@ export default async function AboutPage({
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-primary/15 to-background">
 
-      {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden py-28">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          {brand.logo && (
-            <Image
-              src={cloudinaryUrl(resolveMediaUrl(brand.logo), 200)!}
-              alt={brand.name}
-              width={180}
-              height={72}
-              className="mx-auto mb-8 object-contain h-16 w-auto"
-              unoptimized
-              priority
-            />
-          )}
-          <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">
-            Sobre nosotros
-          </p>
-          {!isLumy && (
-            <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter leading-none mb-6">
-              {brand.name}
-            </h1>
-          )}
-          {brand.slogan && (
-            <p className="text-xl text-muted-foreground font-light max-w-xl mx-auto leading-relaxed">
-              {brand.slogan}
-            </p>
-          )}
-        </div>
-      </section>
+      {/* ── HERO + PROBLEMAS QUE RESOLVEMOS (pantalla partida al medio) ──── */}
+      <section className="relative overflow-hidden py-20">
+        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-start">
 
-      {/* ── HISTORIA ─────────────────────────────────────────────────────── */}
-      {brand.description && (
-        <section className="py-20">
-          <div className="max-w-3xl mx-auto px-6">
-            <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4 text-center">
-              Nuestra historia
-            </p>
-            <p className="text-lg text-muted-foreground leading-relaxed text-center">
-              {brand.description}
-            </p>
+          {/* IZQUIERDA — Sobre nosotros */}
+          <div className="text-center">
+            <div className="mb-10!">
+              <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3!">
+                Quiénes somos
+              </p>
+              <h1 className="text-4xl font-black uppercase tracking-tight leading-none text-primary max-w-2xl mx-auto">
+                Sobre nosotros
+              </h1>
+            </div>
+            {!isLumy && (
+              <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4!">
+                {brand.name}
+              </p>
+            )}
+            {brand.slogan && !isLumy && (
+              <p className="text-xl text-muted-foreground font-light max-w-xl mx-auto leading-relaxed mb-6!">
+                {brand.slogan}
+              </p>
+            )}
+            {brand.description && (
+              descriptionParts ? (
+                <>
+                  <p className="text-lg text-muted-foreground leading-loose max-w-2xl mx-auto whitespace-pre-line">
+                    {descriptionParts.main}
+                  </p>
+                  <p className="lm-script mt-6! max-w-2xl mx-auto" style={{ fontSize: "2.25rem", lineHeight: 1.15 }}>
+                    {descriptionParts.closing}
+                  </p>
+                </>
+              ) : (
+                <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto whitespace-pre-line text-justify">
+                  {brand.description}
+                </p>
+              )
+            )}
           </div>
-        </section>
-      )}
 
-      {/* ── PROBLEMAS QUE RESOLVEMOS ─────────────────────────────────────── */}
-      <section className="py-20">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center mb-14">
-            <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">
-              Para qué nos eligen
-            </p>
-            <h2 className="text-4xl font-black uppercase tracking-tight">
-              Problemas que resolvemos
-            </h2>
+          {/* DERECHA — Problemas que resolvemos */}
+          <div className="lg:border-l lg:border-border lg:pl-16">
+            <div className="text-center mb-10">
+              <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3!">
+                Para qué nos eligen
+              </p>
+              <h2 className="text-4xl font-black uppercase tracking-tight">
+                Problemas que resolvemos
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {cases.map(({ emoji, problem, solution }) => (
+                <div
+                  key={problem}
+                  className="bg-card border border-border rounded-2xl p-7 hover:border-primary hover:shadow-lg transition-all duration-300"
+                >
+                  <span className="text-3xl block mb-4">{emoji}</span>
+                  <p className="font-semibold text-sm mb-2! leading-snug">{problem}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{solution}</p>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {cases.map(({ emoji, problem, solution }) => (
-              <div
-                key={problem}
-                className="bg-card border border-border rounded-2xl p-7 hover:border-primary hover:shadow-lg transition-all duration-300"
-              >
-                <span className="text-3xl block mb-4">{emoji}</span>
-                <p className="font-semibold text-sm mb-2 leading-snug">{problem}</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">{solution}</p>
-              </div>
-            ))}
-          </div>
+
         </div>
       </section>
 
@@ -145,7 +155,7 @@ export default async function AboutPage({
           <div className="max-w-6xl mx-auto px-6">
             <div className="flex items-end justify-between mb-12">
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">
+                <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3!">
                   Nuestro catálogo
                 </p>
                 <h2 className="text-4xl font-black uppercase tracking-tight">
