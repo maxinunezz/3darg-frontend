@@ -8,9 +8,11 @@ import type { ProductType } from "@/types/product";
 interface AddToCartButtonProps {
   product: ProductType;
   disabled?: boolean;
+  /** Elemento opcional a la derecha del botón de compra, en la misma fila (ej: link a Mayoristas). */
+  secondaryAction?: React.ReactNode;
 }
 
-export function AddToCartButton({ product, disabled }: AddToCartButtonProps) {
+export function AddToCartButton({ product, disabled, secondaryAction }: AddToCartButtonProps) {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
   const [qty, setQty] = useState(1);
@@ -44,23 +46,26 @@ export function AddToCartButton({ product, disabled }: AddToCartButtonProps) {
         </div>
       </div>
 
-      <button
-        onClick={handleAdd}
-        disabled={disabled || added}
-        className="flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-3 rounded-full font-semibold hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {added ? (
-          <>
-            <Check className="w-4 h-4" />
-            Agregado
-          </>
-        ) : (
-          <>
-            <ShoppingCart className="w-4 h-4" />
-            Agregar al carrito
-          </>
-        )}
-      </button>
+      <div className="grid grid-cols-10 gap-3">
+        <button
+          onClick={handleAdd}
+          disabled={disabled || added}
+          className={`flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-full font-semibold hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${secondaryAction ? "col-span-6" : "col-span-10"}`}
+        >
+          {added ? (
+            <>
+              <Check className="w-4 h-4" />
+              Agregado
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="w-4 h-4" />
+              Agregar al carrito
+            </>
+          )}
+        </button>
+        {secondaryAction && <div className="col-span-4">{secondaryAction}</div>}
+      </div>
     </div>
   );
 }

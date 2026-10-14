@@ -351,13 +351,13 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
             <FavoriteButton product={product} size="md" />
           </div>
 
-          {/* Stock indicator */}
-          <div className="flex items-center gap-2 text-sm">
-            <span className={`w-2 h-2 rounded-full ${inStock ? "bg-green-500" : "bg-red-400"}`} />
-            <span className={inStock ? "text-green-600 dark:text-green-400" : "text-red-500"}>
-              {inStock ? `${product.stock} en stock` : "Sin stock"}
-            </span>
-          </div>
+          {/* Stock indicator: solo se avisa cuando NO hay stock, no se muestra la cantidad exacta */}
+          {!inStock && (
+            <div className="flex items-center gap-2 text-sm">
+              <span className="w-2 h-2 rounded-full bg-red-400" />
+              <span className="text-red-500">Sin stock</span>
+            </div>
+          )}
 
           <div className="pt-2 flex flex-col gap-3">
             {/* El descuento por cantidad ya no se decide en la ficha de
@@ -365,12 +365,11 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
                 compra (ver `CartDiscountProgress`). Acá solo queda, a modo
                 informativo, el % por pagar por transferencia. */}
             <TransferDiscountBadge product={product} brand={brand} />
-            <div className="flex flex-col gap-2">
-              <AddToCartButton product={product} disabled={!inStock} />
-              <div className="flex justify-end">
-                <QuantityInquiryButton brandSlug={brand.slug} productName={product.name} />
-              </div>
-            </div>
+            <AddToCartButton
+              product={product}
+              disabled={!inStock}
+              secondaryAction={<MayoristasButton brandSlug={brand.slug} />}
+            />
           </div>
 
           {/* Trust signals */}
@@ -396,8 +395,8 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
               oscuro que --primary (rose-500). Solo aplica acá porque este bloque
               ya está gateado a brand.slug === "lumy". `!text-*` (importante) porque
               `.site-lumy h1,h2,h3,h4` fija su propio color con más especificidad
-              que una utilidad de Tailwind sola (mismo caso que !text-primary-foreground
-              más abajo, en QuantityInquiryButton). */}
+              que una utilidad de Tailwind sola (mismo caso que !text-primary
+              más abajo, en MayoristasButton). */}
           <h2 className="text-2xl md:text-3xl font-bold !text-[var(--rose-600)] pb-4">Preguntas frecuentes</h2>
           <div className="divide-y divide-border border-y border-border">
             {LUMY_FAQ.map((item) => (
@@ -419,30 +418,22 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
 }
 
 /**
- * Deriva al form de contacto genérico de la marca (`/[brand]/contacto`) con
- * el producto pre-cargado en asunto/mensaje, para pedidos grandes que no
- * entran en los tramos configurados. Mismo estilo pill rosa/texto blanco que
- * el botón "Ingresar" del navbar (`bg-primary` / `text-primary-foreground`,
- * ya theme-able por marca vía `Brand.theme` — no hardcodea color).
+ * Deriva a la página de Mayoristas de la marca (`/[brand]/mayoristas`), para
+ * compras grandes o recurrentes que no entran en los tramos de descuento
+ * automático del carrito. Estilo outline (no sólido) para no competir
+ * visualmente con el CTA principal de "Agregar al carrito".
  */
-function QuantityInquiryButton({ brandSlug, productName }: { brandSlug: string; productName: string }) {
-  const href = `/${brandSlug}/contacto?${new URLSearchParams({
-    title: `Consulta por cantidad - ${productName}`,
-    body: `Hola! Quería consultar por una cantidad grande de "${productName}". ¿Me pasan precio y disponibilidad?`,
-  }).toString()}`;
-
+function MayoristasButton({ brandSlug }: { brandSlug: string }) {
   return (
     <Link
-      href={href}
-      // `!text-primary-foreground`: algunos temas de marca (ej. site-lumy.css,
-      // regla `.site-lumy a { color: var(--text-brand) }`) definen un color
-      // global para <a> más específico que la utility de Tailwind — se fuerza
-      // acá para que el texto quede blanco igual que el resto de los botones
-      // "primary" (que son <button>, no afectados por esa regla de <a>).
-      className="shrink-0 flex flex-col items-center justify-center text-center bg-primary !text-primary-foreground text-xs font-bold leading-tight rounded-full px-4 py-3 hover:opacity-90 active:scale-95 transition-all"
+      href={`/${brandSlug}/mayoristas`}
+      // `!text-primary`: algunos temas de marca (ej. site-lumy.css, regla
+      // `.site-lumy a { color: var(--text-brand) }`) definen un color global
+      // para <a> más específico que la utility de Tailwind — se fuerza acá
+      // para que el borde y el texto compartan el mismo rosa del tema.
+      className="h-full flex items-center justify-center text-center border-2 border-primary !text-primary text-sm font-bold rounded-full px-4 py-3 hover:bg-primary hover:!text-primary-foreground active:scale-95 transition-all"
     >
-      <span className="block">¡Consultar por</span>
-      <span className="block">cantidad!</span>
+      Mayoristas
     </Link>
   );
 }
