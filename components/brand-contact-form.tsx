@@ -2,16 +2,27 @@
 
 import { useState } from "react";
 import { Check } from "lucide-react";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import { apiUrl } from "@/lib/api";
 
 const inputCls =
   "w-full h-[46px] bg-card text-sm outline-none border border-border rounded-xl px-4 transition-colors focus:border-primary";
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  required,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <label className="grid gap-2">
       <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
         {label}
+        {required && <span className="text-red-600"> *</span>}
       </span>
       {children}
     </label>
@@ -30,6 +41,7 @@ export function BrandContactForm({ brandSlug, defaultTitle, defaultBody }: Brand
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [phone, setPhone] = useState<string | undefined>();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -44,6 +56,7 @@ export function BrandContactForm({ brandSlug, defaultTitle, defaultBody }: Brand
         body: JSON.stringify({
           name: data.get("name"),
           email: data.get("email"),
+          phone: phone || "",
           title: data.get("title"),
           body: data.get("body"),
           brand: brandSlug,
@@ -71,7 +84,10 @@ export function BrandContactForm({ brandSlug, defaultTitle, defaultBody }: Brand
         </p>
         <button
           type="button"
-          onClick={() => setSent(false)}
+          onClick={() => {
+            setPhone(undefined);
+            setSent(false);
+          }}
           className="mt-6 text-xs font-semibold uppercase tracking-widest text-primary hover:opacity-70 transition-opacity"
         >
           Enviar otra consulta
@@ -82,24 +98,32 @@ export function BrandContactForm({ brandSlug, defaultTitle, defaultBody }: Brand
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-5">
-      <Field label="Nombre">
-        <input name="name" type="text" className={inputCls} placeholder="Tu nombre (opcional)" />
+      <Field label="Nombre" required>
+        <input name="name" type="text" required className={inputCls} placeholder="Tu nombre" />
       </Field>
-      <Field label="Email">
+      <Field label="Email" required>
         <input name="email" type="email" required className={inputCls} placeholder="tu@email.com" />
       </Field>
-      <Field label="Asunto">
+      <Field label="Teléfono (opcional)">
+        <PhoneInput
+          international
+          defaultCountry="AR"
+          value={phone}
+          onChange={setPhone}
+          placeholder="Tu número de teléfono"
+        />
+      </Field>
+      <Field label="Asunto (opcional)">
         <input
           name="title"
           type="text"
-          required
           maxLength={150}
           defaultValue={defaultTitle}
           className={inputCls}
           placeholder="Contanos brevemente tu idea"
         />
       </Field>
-      <Field label="Mensaje">
+      <Field label="Mensaje" required>
         <textarea
           name="body"
           required

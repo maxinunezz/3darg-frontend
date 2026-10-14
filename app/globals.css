@@ -133,3 +133,37 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* react-phone-number-input — alineado al estilo de los demás inputs del form
+   (ver `inputCls` en brand-contact-form.tsx). Usa las custom properties del
+   theme de marca para heredar color automáticamente en cada sub-marca. */
+.PhoneInput {
+  display: flex;
+  align-items: center;
+  height: 46px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 0 1rem;
+  transition: border-color 0.15s;
+}
+.PhoneInput:focus-within {
+  border-color: var(--primary);
+}
+.PhoneInputInput {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.875rem;
+  color: inherit;
+}
+.PhoneInputCountry {
+  margin-right: 0.5rem;
+}
+.PhoneInputCountryIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  box-shadow: none;
+}
