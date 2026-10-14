@@ -192,6 +192,23 @@ No es parte de los providers de arriba (no es analytics de producto, es observab
 ```
 `[brand]/layout.tsx` los inyecta como `style` inline en el wrapper. Todos los utilities de Tailwind dentro usan los valores sobreescritos automáticamente. No hardcodear colores en rutas de `[brand]/`.
 
+## ⚠️ Gotcha transversal: `mb-*`/`mt-*` de Tailwind no aplican dentro de `.site-lumy`
+
+`app/site-lumy.css` (el reset/sistema de diseño de Lumy, activo en cualquier componente renderizado dentro del wrapper `.site-lumy` que inyecta `[brand]/layout.tsx`) trae:
+
+```css
+.site-lumy h1, .site-lumy h2, .site-lumy h3, .site-lumy h4 { margin: 0; /* ... */ }
+.site-lumy p { margin: 0; }
+```
+
+Por especificidad CSS, `.site-lumy p` (clase + elemento, especificidad `0,1,1`) **le gana a una utility de Tailwind de una sola clase** como `.mb-6` o `.mt-4` (especificidad `0,1,0`), sin importar el orden de las reglas en el CSS final. Resultado: poner `className="mb-6"` (o cualquier `m*-*`) directo en un `<h1>`/`<h2>`/`<h3>`/`<h4>`/`<p>` **no hace nada** dentro de `.site-lumy` — el margen queda siempre en `0`, de forma silenciosa (no hay error, el elemento simplemente no se mueve). El `line-height`/`gap`/`padding` no se ven afectados por este reset, solo `margin`.
+
+Ya causó bugs reales de espaciado (invisibles hasta que se los compara con una captura) en `app/[brand]/about/page.tsx` y `components/related-by-theme.tsx`.
+
+**Fix**: usar el modificador `!important` de Tailwind v4 (sufijo `!`, ej. `mb-6!`, `mt-10!`) en cualquier `m*-*` que se aplique directo sobre un `h1`–`h4` o un `p` dentro de una ruta `[brand]` de Lumy (`isLumy`/`.site-lumy`). No hace falta en `div`/`span`/otros elementos no cubiertos por el reset. Alternativa equivalente: envolver el texto en un `<div>` con el margen, en vez de ponerlo en el `<h*>`/`<p>` directamente.
+
+Este reset es específico de `site-lumy.css` — no existe en el resto del sitio (3DARG raíz, Print&Gym, MiniSlam, CyberWeed no tienen un sistema de diseño propio equivalente hoy), así que el gotcha solo aplica a componentes que se renderizan en rutas de Lumy.
+
 ## Convenciones
 
 - **API calls autenticadas:** usar `apiFetch("/path/", { token })` de `lib/api.ts`.
