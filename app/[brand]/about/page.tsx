@@ -96,11 +96,11 @@ export default async function AboutPage({
   })();
 
   // Casos de uso: desde page_config o defaults del brand
-  const cases: { emoji: string; problem: string; solution: string }[] =
+  const cases: { emoji: string; problem: string; solution: string; linkLabel?: string; linkTo?: "contacto" | "shop" }[] =
     cfg.about_cases ?? [
-      { emoji: "🎂", problem: "¿Necesitás galletitas con formas únicas para un evento?",   solution: "Nuestros cortantes personalizados dan forma a tu idea en minutos." },
-      { emoji: "🎉", problem: "¿Buscás algo especial para una fiesta temática?",             solution: "Tenemos colecciones de temporada: Halloween, Navidad, Pascuas y más." },
-      { emoji: "🎁", problem: "¿Querés sorprender con un regalo distinto?",                  solution: "Pedidos personalizados con el diseño que vos elijas." },
+      { emoji: "💸", problem: "¿Te gustaría conseguir los mejores precios?",                 solution: "Tenemos en cuenta a nuestros clientes emprendedores y mayoristas.", linkLabel: "Contanos tu idea", linkTo: "contacto" },
+      { emoji: "🎉", problem: "¿Buscás algo especial para una fiesta temática?",             solution: "Tenemos colecciones de temporada: Halloween, Navidad, Pascuas y más.", linkLabel: "Ver tienda", linkTo: "shop" },
+      { emoji: "🎁", problem: "¿Querés sorprender con un regalo distinto?",                  solution: "Pedidos personalizados con el diseño que vos elijas.", linkLabel: "Contanos tu idea", linkTo: "contacto" },
       { emoji: "🏆", problem: "¿Necesitás cortantes resistentes para uso frecuente?",        solution: "Fabricados en PLA de alta calidad, duran miles de usos sin perder la forma." },
     ];
 
@@ -160,7 +160,7 @@ export default async function AboutPage({
               </h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {cases.map(({ emoji, problem, solution }) => (
+              {cases.map(({ emoji, problem, solution, linkLabel, linkTo }) => (
                 <div
                   key={problem}
                   className="bg-card border border-border rounded-2xl p-7 hover:border-primary hover:shadow-lg transition-all duration-300"
@@ -168,6 +168,14 @@ export default async function AboutPage({
                   <span className="text-3xl block mb-4">{emoji}</span>
                   <p className="font-semibold text-sm mb-2! leading-snug">{problem}</p>
                   <p className="text-sm text-muted-foreground leading-relaxed">{solution}</p>
+                  {linkLabel && (
+                    <Link
+                      href={`/${slug}/${linkTo === "shop" ? "shop" : "contacto"}`}
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all mt-4 group"
+                    >
+                      {linkLabel} <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                  )}
                 </div>
               ))}
             </div>
