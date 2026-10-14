@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { getBrandBySlug } from "@/lib/brands";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
+import { pickRandomByCategory } from "@/lib/pick-random-products";
 import type { ProductType } from "@/types/product";
 import type { Metadata } from "next";
 
@@ -34,7 +35,21 @@ async function getFeaturedProducts(brandSlug: string): Promise<ProductType[]> {
     );
     if (!res.ok) return [];
     const data = await res.json();
-    return (data.results ?? data).slice(0, 6);
+    return data.results ?? data;
+  } catch {
+    return [];
+  }
+}
+
+async function getAllProducts(brandSlug: string): Promise<ProductType[]> {
+  try {
+    const res = await fetch(
+      `${API}/products/?brand_slug=${brandSlug}&is_available=true`,
+      { cache: "no-store" }
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.results ?? data;
   } catch {
     return [];
   }
@@ -46,12 +61,24 @@ export default async function AboutPage({
   params: Promise<{ brand: string }>;
 }) {
   const { brand: slug } = await params;
-  const [brand, products] = await Promise.all([
+  const [brand, featured, allProducts] = await Promise.all([
     getBrandBySlug(slug),
     getFeaturedProducts(slug),
+    getAllProducts(slug),
   ]);
 
   if (!brand) notFound();
+
+  // Mismo sorteo que la sección "Tienda" del inicio (lib/pick-random-products.ts):
+  // hasta 6 categorías distintas, un producto al azar dentro de cada una.
+  const seenIds = new Set<number>();
+  const productPool: ProductType[] = [];
+  for (const p of [...featured, ...allProducts]) {
+    if (seenIds.has(p.id)) continue;
+    seenIds.add(p.id);
+    productPool.push(p);
+  }
+  const products = pickRandomByCategory(productPool, 6);
 
   const isLumy = slug === "lumy";
   const cfg = brand.page_config ?? {};
@@ -81,7 +108,7 @@ export default async function AboutPage({
     <div className="min-h-screen bg-gradient-to-b from-background via-primary/15 to-background">
 
       {/* ── HERO + PROBLEMAS QUE RESOLVEMOS (pantalla partida al medio) ──── */}
-      <section className="relative overflow-hidden py-20">
+      <section className="relative overflow-hidden pt-20">
         <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-start">
 
           {/* IZQUIERDA — Sobre nosotros */}
@@ -151,7 +178,7 @@ export default async function AboutPage({
 
       {/* ── PRODUCTOS QUE VENDIMOS ───────────────────────────────────────── */}
       {products.length > 0 && (
-        <section className="py-20">
+        <section className="pb-20">
           <div className="max-w-6xl mx-auto px-6">
             <div className="flex items-end justify-between mb-12">
               <div>
@@ -206,7 +233,11 @@ export default async function AboutPage({
               <div className="text-center mt-12">
                 <Link
                   href={`/${slug}/shop`}
-                  className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-full font-bold hover:opacity-90 transition-opacity group"
+                  className={
+                    isLumy
+                      ? "lm-btn lm-btn--primary lm-btn--lg group"
+                      : "inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-full font-bold hover:opacity-90 transition-opacity group"
+                  }
                 >
                   Ver tienda completa
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
