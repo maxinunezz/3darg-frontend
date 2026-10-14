@@ -11,8 +11,7 @@ import type { BrandType } from "@/types/brands";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { FavoriteButton } from "@/components/favorite-button";
 import { ProductPrice } from "@/components/product-price";
-import { ProductBundlePicker } from "@/components/product-bundle-picker";
-import { CategoryBundlePicker } from "@/components/category-bundle-picker";
+import { TransferDiscountBadge } from "@/components/transfer-discount-badge";
 import { RelatedByTheme } from "@/components/related-by-theme";
 
 interface Props {
@@ -360,35 +359,18 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
             </span>
           </div>
 
-          <div className="pt-2">
-            {/* Precedencia: combo de categoría (productos distintos de la misma
-                subcategoría exacta, config por marca/backend) > oferta por volumen
-                del propio producto > stepper simple. Ver Category.bundle_discounts
-                / Product.bundle_discounts en el backend. Cuando hay tramos, la
-                acción "consultar por cantidad" se ubica a la derecha de la fila
-                de tramos (ver prop `quantityInquiry`); sin tramos no hay fila
-                donde anclarla, así que queda suelta debajo del botón. */}
-            {product.category?.bundle_discounts?.length ? (
-              <CategoryBundlePicker
-                product={product}
-                brandSlug={brand.slug}
-                disabled={!inStock}
-                quantityInquiry={<QuantityInquiryButton brandSlug={brand.slug} productName={product.name} />}
-              />
-            ) : product.bundle_discounts?.length > 0 ? (
-              <ProductBundlePicker
-                product={product}
-                disabled={!inStock}
-                quantityInquiry={<QuantityInquiryButton brandSlug={brand.slug} productName={product.name} />}
-              />
-            ) : (
-              <div className="flex flex-col gap-2">
-                <AddToCartButton product={product} disabled={!inStock} />
-                <div className="flex justify-end">
-                  <QuantityInquiryButton brandSlug={brand.slug} productName={product.name} />
-                </div>
+          <div className="pt-2 flex flex-col gap-3">
+            {/* El descuento por cantidad ya no se decide en la ficha de
+                producto — ahora vive en el carrito, por MONTO TOTAL de la
+                compra (ver `CartDiscountProgress`). Acá solo queda, a modo
+                informativo, el % por pagar por transferencia. */}
+            <TransferDiscountBadge product={product} brand={brand} />
+            <div className="flex flex-col gap-2">
+              <AddToCartButton product={product} disabled={!inStock} />
+              <div className="flex justify-end">
+                <QuantityInquiryButton brandSlug={brand.slug} productName={product.name} />
               </div>
-            )}
+            </div>
           </div>
 
           {/* Trust signals */}

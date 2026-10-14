@@ -5,8 +5,30 @@ import { useAuth } from "./AuthContext";
 import { apiUrl, apiFetch } from "@/lib/api";
 import { useBrandNamespace } from "@/lib/brand-context";
 import type { ProductType } from "@/types/product";
+import type { CartDiscountTier } from "@/types/brands";
 
 export type CartItem = { id: number; product: ProductType; quantity: number };
+
+// Info del descuento por MONTO TOTAL del carrito (ver
+// `cart/services/cart_discount.py::cart_discount_progress()` en el backend) —
+// qué tramo ya se alcanzó y cuánto falta (en $) para el próximo.
+export type DiscountProgress = {
+  tiers: CartDiscountTier[];
+  current_discount_percent: number;
+  current_tier_min_amount: number | null;
+  next_tier_min_amount: number | null;
+  next_tier_discount_percent: number | null;
+  amount_to_next_tier: string | null;
+};
+
+const EMPTY_PROGRESS: DiscountProgress = {
+  tiers: [],
+  current_discount_percent: 0,
+  current_tier_min_amount: null,
+  next_tier_min_amount: null,
+  next_tier_discount_percent: null,
+  amount_to_next_tier: null,
+};
 
 interface CartContextType {
   items: CartItem[];
@@ -14,10 +36,14 @@ interface CartContextType {
   removeItem: (productId: number) => Promise<void>;
   updateQuantity: (productId: number, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
+  subtotal: number;
   total: number;
+  discountPercent: number;
+  discountAmount: number;
+  discountProgress: DiscountProgress;
   count: number;
-  // Precio unitario con descuento de combo ya aplicado (ver
-  // `products/services/combo_pricing.py` en el backend) — usar esto en vez
+  // Precio unitario con descuento por monto del carrito ya aplicado (ver
+  // `cart/services/cart_discount.py` en el backend) — usar esto en vez
   // de `product.final_price` para que lo mostrado coincida con lo que
   // cobra el checkout real.
   getUnitPrice: (item: CartItem) => number;
@@ -26,20 +52,45 @@ interface CartContextType {
 type CartResponse = {
   id: number;
   items: { id: number; product: ProductType; quantity: number; unit_price: string; subtotal: string }[];
+  subtotal: string;
+  discount_percent: number;
+  discount_amount: string;
   total: string;
+  discount_progress: DiscountProgress;
 };
 
 type CartQuoteResponse = {
   items: { product_id: number; quantity: number; unit_price: string; subtotal: string }[];
+  subtotal: string;
+  discount_percent: number;
+  discount_amount: string;
   total: string;
+  discount_progress: DiscountProgress;
 };
 
-// Precios con combo de categoría ya resueltos por el backend, keyed por
-// `CartItem.id` (coincide con `product.id` en modo invitado, ver `addItem`
-// más abajo, y con el pk del `CartItem` del servidor en modo logueado).
-type Pricing = { unitPriceById: Record<number, number>; total: number; loaded: boolean };
+// Precios con descuento por monto del carrito ya resueltos por el backend,
+// keyed por `CartItem.id` (coincide con `product.id` en modo invitado, ver
+// `addItem` más abajo, y con el pk del `CartItem` del servidor en modo
+// logueado).
+type Pricing = {
+  unitPriceById: Record<number, number>;
+  subtotal: number;
+  total: number;
+  discountPercent: number;
+  discountAmount: number;
+  discountProgress: DiscountProgress;
+  loaded: boolean;
+};
 
-const EMPTY_PRICING: Pricing = { unitPriceById: {}, total: 0, loaded: false };
+const EMPTY_PRICING: Pricing = {
+  unitPriceById: {},
+  subtotal: 0,
+  total: 0,
+  discountPercent: 0,
+  discountAmount: 0,
+  discountProgress: EMPTY_PROGRESS,
+  loaded: false,
+};
 
 const CartContext = createContext<CartContextType | null>(null);
 
@@ -105,7 +156,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems(data.items.map((i) => ({ id: i.id, product: i.product, quantity: i.quantity })));
     setPricing({
       unitPriceById: Object.fromEntries(data.items.map((i) => [i.id, Number(i.unit_price)])),
+      subtotal: Number(data.subtotal),
       total: Number(data.total),
+      discountPercent: data.discount_percent,
+      discountAmount: Number(data.discount_amount),
+      discountProgress: data.discount_progress,
       loaded: true,
     });
   };
@@ -169,7 +224,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (token) return; // logueado: el precio ya viene de `applyCart` (GET /api/cart/)
     if (items.length === 0) {
-      setPricing({ unitPriceById: {}, total: 0, loaded: true });
+      setPricing({ ...EMPTY_PRICING, loaded: true });
       return;
     }
     const timer = setTimeout(async () => {
@@ -183,7 +238,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         });
         setPricing({
           unitPriceById: Object.fromEntries(data.items.map((i) => [i.product_id, Number(i.unit_price)])),
+          subtotal: Number(data.subtotal),
           total: Number(data.total),
+          discountPercent: data.discount_percent,
+          discountAmount: Number(data.discount_amount),
+          discountProgress: data.discount_progress,
           loaded: true,
         });
       } catch {
@@ -280,6 +339,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     0,
   );
   const total = pricing.loaded ? pricing.total : naiveTotal;
+  const subtotal = pricing.loaded ? pricing.subtotal : naiveTotal;
   const count = items.reduce((s: number, i: CartItem) => s + i.quantity, 0);
 
   const getUnitPrice = useCallback(
@@ -289,7 +349,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ items, addItem, removeItem, updateQuantity, clearCart, total, count, getUnitPrice }}
+      value={{
+        items,
+        addItem,
+        removeItem,
+        updateQuantity,
+        clearCart,
+        subtotal,
+        total,
+        discountPercent: pricing.discountPercent,
+        discountAmount: pricing.discountAmount,
+        discountProgress: pricing.discountProgress,
+        count,
+        getUnitPrice,
+      }}
     >
       {children}
     </CartContext.Provider>

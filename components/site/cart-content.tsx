@@ -10,6 +10,8 @@ import { useBrandNamespace } from "@/lib/brand-context";
 import type { CartItem } from "@/contexts/CartContext";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { ShippingEstimator, type ShippingEstimate } from "@/components/shipping-estimator";
+import { CartDiscountProgress } from "@/components/cart-discount-progress";
+import { CartUpsellCarousel } from "@/components/cart-upsell-carousel";
 import { QuantityStepper } from "@/components/site/commerce";
 import { ImageSlot, SpecLabel, buttonClass } from "@/components/site/core";
 
@@ -48,7 +50,7 @@ async function createMpPreference(
 
 /** Carrito de la marca madre 3DARG — misma lógica de CartContext/checkout que el resto del sitio, capa visual del handoff. */
 export function SiteCartContent() {
-  const { items, total, clearCart, removeItem, updateQuantity, getUnitPrice } = useCart();
+  const { items, subtotal, total, discountPercent, discountAmount, clearCart, removeItem, updateQuantity, getUnitPrice } = useCart();
   const { user, token, isAuthenticated } = useAuth();
   const brandSlug = useBrandNamespace();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -152,6 +154,10 @@ export function SiteCartContent() {
         </div>
 
         <div className="p-4 border-t border-[var(--border-hairline)]">
+          <div className="mb-4">
+            <CartDiscountProgress />
+          </div>
+          <CartUpsellCarousel brandSlug={brandSlug} className="mb-4" />
           <ShippingEstimator items={items} subtotal={total} onEstimateChange={setShippingEstimate} />
         </div>
 
@@ -159,8 +165,14 @@ export function SiteCartContent() {
         <div className="bg-[var(--ink-900)] text-[var(--bone-050)] px-5 py-4">
           <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--ink-400)] mb-1">
             <span>Subtotal</span>
-            <span>{fmt(Number(total))}</span>
+            <span>{fmt(Number(subtotal))}</span>
           </div>
+          {discountAmount > 0 && (
+            <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-emerald-400 mb-1">
+              <span>Descuento ({discountPercent}%)</span>
+              <span>- {fmt(Number(discountAmount))}</span>
+            </div>
+          )}
           <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--ink-400)] mb-3">
             <span>Envío</span>
             <span>

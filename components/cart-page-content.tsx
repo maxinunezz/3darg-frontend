@@ -7,6 +7,8 @@ import { useBrandNamespace } from "@/lib/brand-context";
 import type { CartItem } from "@/contexts/CartContext";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { ShippingEstimator, type ShippingEstimate } from "@/components/shipping-estimator";
+import { CartDiscountProgress } from "@/components/cart-discount-progress";
+import { CartUpsellCarousel } from "@/components/cart-upsell-carousel";
 import Image from "next/image";
 import Link from "next/link";
 import { Trash2, Minus, Plus, ShoppingBag, Loader2 } from "lucide-react";
@@ -51,7 +53,7 @@ async function createMpPreference(
 // ver lib/brand-context.ts), así que no hace falta agrupar/mostrar por marca
 // como antes: se muestran directamente los items y un solo botón de pago.
 export function CartPageContent() {
-  const { items, total, clearCart, removeItem, updateQuantity, getUnitPrice } = useCart();
+  const { items, subtotal, total, discountPercent, discountAmount, clearCart, removeItem, updateQuantity, getUnitPrice } = useCart();
   const { user, token, isAuthenticated } = useAuth();
   const brandSlug = useBrandNamespace();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -199,6 +201,10 @@ export function CartPageContent() {
 
         <div className="px-4 py-4 border-t border-border bg-muted/20">
           <div className="mb-4">
+            <CartDiscountProgress />
+          </div>
+          <CartUpsellCarousel brandSlug={brandSlug} className="mb-4" />
+          <div className="mb-4">
             <ShippingEstimator items={items} subtotal={total} onEstimateChange={setShippingEstimate} />
           </div>
           {!isAuthenticated && (
@@ -220,8 +226,14 @@ export function CartPageContent() {
           )}
           <div className="flex justify-between items-center text-sm text-muted-foreground mb-1">
             <span>Subtotal</span>
-            <span>$ {Number(total).toLocaleString("es-AR")}</span>
+            <span>$ {Number(subtotal).toLocaleString("es-AR")}</span>
           </div>
+          {discountAmount > 0 && (
+            <div className="flex justify-between items-center text-sm text-emerald-600 mb-1">
+              <span>Descuento ({discountPercent}%)</span>
+              <span>- $ {Number(discountAmount).toLocaleString("es-AR")}</span>
+            </div>
+          )}
           <div className="flex justify-between items-center text-sm text-muted-foreground mb-3">
             <span>Envío</span>
             <span>

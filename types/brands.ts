@@ -111,6 +111,15 @@ export type BrandShippingConfig = {
   free_shipping_threshold?: number;
 };
 
+// Tramos de descuento por monto TOTAL del carrito (no por categoría ni
+// cantidad de artículos). El tramo aplicado es el de mayor `min_amount` que
+// el subtotal del carrito alcanza — ver `Brand.cart_discount_config` en el
+// backend y `cart/services/cart_discount.py`.
+export type CartDiscountTier = {
+  min_amount: number;
+  discount_percent: number;
+};
+
 export type BrandType = {
   id: number;
   name: string;
@@ -129,6 +138,10 @@ export type BrandType = {
   page_config: BrandPageConfig;
   meta_public_config: BrandMetaPublicConfig;
   shipping_config: BrandShippingConfig;
+  // Descuento informativo por pagar por transferencia (cartel con precio
+  // tachado en la ficha de producto). 0 = no se muestra el cartel.
+  transfer_discount_percent: number;
+  cart_discount_config: CartDiscountTier[];
   links: BrandLinkType[];
   children: BrandType[];
   created_at: string;

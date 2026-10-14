@@ -12,11 +12,6 @@ export type CategoryType = {
   parent_id: number | null;
   parent_name: string | null;
   parent_slug: string | null;
-  // Tramos "combo" entre productos DISTINTOS de esta misma subcategoría exacta
-  // (ej: Papá Noel + Muñeco de nieve dentro de Cortantes > Navidad). La cantidad
-  // de cada tramo es la suma de unidades entre todos los productos de esta
-  // categoría en el carrito. Vacío = sin combo para esta subcategoría.
-  bundle_discounts: { quantity: number; discount_percent: number }[];
 };
 
 export type ProductType = {
@@ -30,7 +25,6 @@ export type ProductType = {
   members_only: boolean;            // solo visible/comprable con cuenta
   member_discount_percent: number;  // % de descuento para socios (0 = sin descuento)
   has_member_discount: boolean;
-  bundle_discounts: { quantity: number; discount_percent: number }[]; // tramos "llevá N, -X%". Vacío = sin oferta por cantidad
   stock: number;
   is_available: boolean;
   is_featured: boolean;
