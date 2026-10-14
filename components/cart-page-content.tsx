@@ -21,7 +21,8 @@ async function createMpPreference(
   items: CartItem[],
   customerEmail?: string,
   token?: string,
-  postalCode?: string
+  postalCode?: string,
+  shippingMethodId?: string
 ) {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -32,6 +33,7 @@ async function createMpPreference(
       brand_slug: brandSlug,
       customer_email: customerEmail ?? "",
       postal_code: postalCode ?? "",
+      shipping_method_id: shippingMethodId ?? "",
       items: items.map(({ product, quantity }) => ({
         product_id: product.id,
         quantity,
@@ -77,7 +79,8 @@ export function CartPageContent() {
         items,
         user?.email ?? guestEmail,
         token ?? undefined,
-        shippingEstimate?.postalCode
+        shippingEstimate?.postalCode,
+        shippingEstimate?.methodId
       );
       const url = USE_SANDBOX ? data.sandbox_init_point : data.init_point;
       window.location.href = url;
