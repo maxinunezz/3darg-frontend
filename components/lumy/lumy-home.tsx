@@ -641,8 +641,8 @@ function Inspiracion({ base, cfg }: { base: string; cfg?: LumyHomeConfig["inspir
                   <ImagePlaceholder label={it.label} ratio="4/5" radius="var(--radius-xl)" tone={layout.tone} />
                 )}
                 <div style={{ display: "flex", alignItems: "baseline", gap: "var(--space-3)", marginTop: "var(--space-4)" }}>
-                  <span className="lm-badge lm-badge--outline">{it.tag}</span>
-                  <h3 style={{ fontSize: "1.35rem" }}>{it.title}</h3>
+                  <span className="lm-badge lm-badge--outline" style={{ fontSize: "0.95rem" }}>{it.tag}</span>
+                  <h3 style={{ fontSize: "1.65rem" }}>{it.title}</h3>
                 </div>
               </div>
             );
