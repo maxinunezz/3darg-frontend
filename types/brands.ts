@@ -62,6 +62,9 @@ export type LumyHomeConfig = {
     subtitle?: string;
     button_label?: string;
   };
+  member_cta?: {
+    phrases?: string[];
+  };
 };
 
 export type BrandPageConfig = {

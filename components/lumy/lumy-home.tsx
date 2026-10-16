@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { pickRandomByCategory } from "@/lib/pick-random-products";
+import { useAuth } from "@/contexts/AuthContext";
 import type { ProductType, CategoryType } from "@/types/product";
 import type { BrandType, LumyHomeConfig } from "@/types/brands";
 
@@ -411,8 +412,105 @@ function Marquee({ words }: { words: string[] }) {
   );
   return (
     <div style={{ background: "var(--ink-900)", padding: "var(--space-6) 0", overflow: "hidden" }}>
-      <div className="lm-marquee">{run("a")}{run("b")}</div>
+      {/* id estable: lo lee MemberCtaBanner (vía getElementById) para medir el ancho
+          real de una vuelta de este marquee y calcular su propia velocidad en px/seg. */}
+      <div id="lm-marquee-categories" className="lm-marquee">{run("a")}{run("b")}</div>
     </div>
+  );
+}
+
+// Banda de invitación a crear cuenta, entre "Por qué Lumy" (Manifiesto) y
+// "Nuestros trabajos" (Inspiracion) — mismo mecanismo de scroll infinito,
+// misma tipografía/tamaño y mismo estilo de separador en punto que el
+// Marquee de categorías (dos copias del contenido + `.lm-marquee`), para que
+// se lea como una variación del mismo elemento, no como un componente nuevo.
+// El banner entero es un único <Link> a "crear cuenta" (no hay botón adentro:
+// "Crear mi cuenta" es una de las 3 frases de la secuencia, destacada en
+// rosa/cursiva) — toda la franja es clickeable. No se muestra con sesión
+// activa en este espacio de marca (useAuth ya está namespaceado por marca,
+// ver AuthContext) — no tiene sentido invitar a alguien que ya está
+// logueado en /lumy.
+//
+// `.lm-marquee` (site-lumy.css) trae `animation: lm-marquee 34s linear infinite`
+// fija — misma duración para cualquier contenido. Como acá el contenido es
+// distinto al del Marquee de categorías (3 frases repetidas x4 para asegurar
+// el loop infinito en pantallas anchas, ver abajo), usar esos mismos 34s a
+// secas daría una velocidad (px/seg) distinta a la del banner de arriba.
+// BASE_MARQUEE_DURATION_S es la duración de referencia de ESE marquee — acá
+// abajo medimos el ancho real renderizado de una vuelta de los dos marquees
+// (`useLayoutEffect` + `getBoundingClientRect`, no un proxy por cantidad de
+// caracteres: con fuente/trackeado variable eso daba hasta ~20% de error) y
+// reescalamos la duración propia en proporción, para que la velocidad real
+// quede igual a la del Marquee en vez de solo el tiempo de vuelta completa.
+const BASE_MARQUEE_DURATION_S = 34;
+
+function MemberCtaBanner({
+  base,
+  cfg,
+}: {
+  base: string;
+  cfg?: LumyHomeConfig["member_cta"];
+}) {
+  const { isAuthenticated } = useAuth();
+  const runRef = useRef<HTMLDivElement>(null);
+  const [durationS, setDurationS] = useState(BASE_MARQUEE_DURATION_S);
+
+  // Mide el ancho real (px) de una vuelta de este marquee y del de categorías
+  // (vía su `id` estable) y reescala la duración para igualar la velocidad
+  // (px/seg) entre los dos. Todos los hooks van antes del early-return de
+  // abajo (regla de hooks de React: no se pueden saltear entre renders).
+  useLayoutEffect(() => {
+    const ownRun = runRef.current;
+    const referenceRun = document.getElementById("lm-marquee-categories")?.firstElementChild as HTMLElement | null;
+    if (!ownRun || !referenceRun) return;
+    const ownWidth = ownRun.getBoundingClientRect().width;
+    const referenceWidth = referenceRun.getBoundingClientRect().width;
+    if (!ownWidth || !referenceWidth) return;
+    const speedPxPerS = referenceWidth / BASE_MARQUEE_DURATION_S;
+    setDurationS(ownWidth / speedPxPerS);
+  }, []);
+
+  if (isAuthenticated) return null;
+
+  const ctaText = "Crear mi cuenta";
+  const phrases = cfg?.phrases?.length ? cfg.phrases : [ctaText, "Sumate a Lumy", "Accedé a promociones exclusivas"];
+
+  // Repetimos la secuencia varias veces dentro de cada mitad — mismo ajuste que
+  // LumyShopPromoBanner: con solo 3 frases cortas, una sola vuelta por mitad
+  // puede no alcanzar a cubrir el ancho en pantallas anchas, y el loop se ve
+  // como un salto (se corta antes de que la copia "b" entre completa) en vez
+  // de scroll continuo.
+  const sequence = [...phrases, ...phrases, ...phrases, ...phrases];
+
+  const run = (k: string, ref?: typeof runRef) => (
+    <div key={k} ref={ref} style={{ display: "flex", alignItems: "center", gap: "var(--space-8)", paddingRight: "var(--space-8)" }}>
+      {sequence.map((w, i) => (
+        <span key={i} style={{ display: "flex", alignItems: "center", gap: "var(--space-8)" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(1.75rem,3.2vw,3rem)",
+              color: w === ctaText ? "var(--rose-300)" : "var(--cream-100)",
+              fontStyle: w === ctaText ? "italic" : "normal",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {w}
+          </span>
+          <span style={{ width: 14, height: 14, flex: "0 0 auto", borderRadius: SHAPES[i % SHAPES.length], background: "var(--rose-500)" }} />
+        </span>
+      ))}
+    </div>
+  );
+
+  return (
+    <Link
+      href={`${base}/auth/register`}
+      style={{ display: "block", background: "var(--ink-900)", padding: "var(--space-6) 0", overflow: "hidden", textDecoration: "none" }}
+      aria-label={`${phrases.join(". ")}.`}
+    >
+      <div className="lm-marquee" style={{ animationDuration: `${durationS}s` }}>{run("a", runRef)}{run("b")}</div>
+    </Link>
   );
 }
 
@@ -777,6 +875,7 @@ export function LumyHome({ brand, featured, allProducts, categories }: LumyHomeP
       <Marquee words={marqueeWords} />
       <Proceso base={base} cfg={cfg?.proceso} />
       <Manifiesto brand={brand} base={base} images={manifiestoImages} cfg={cfg?.manifiesto} />
+      <MemberCtaBanner base={base} cfg={cfg?.member_cta} />
       <Inspiracion base={base} cfg={cfg?.inspiracion} />
       <Tienda base={base} products={shopProducts} categories={categories} cfg={cfg?.tienda} />
       <CtaBand base={base} cfg={cfg?.cta_band} />
