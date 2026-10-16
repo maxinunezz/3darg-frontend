@@ -7,6 +7,7 @@ import { PrintGymNavbar } from "@/components/printgym/printgym-navbar";
 import { PrintGymFooter } from "@/components/printgym/printgym-footer";
 import { LumyNavbar } from "@/components/lumy/lumy-navbar";
 import { LumyFooter } from "@/components/lumy/lumy-footer";
+import { WhatsappCommunityWidget } from "@/components/whatsapp-community-widget";
 import { getBrandBySlug } from "@/lib/brands";
 
 // Fuentes del Print&Gym Design System — self-hosted (display) + Google (body/mono).
@@ -76,6 +77,7 @@ export default async function BrandLayout({
         <PrintGymNavbar brand={brand} />
         <main className="flex-grow">{children}</main>
         <PrintGymFooter brand={brand} />
+        <WhatsappCommunityWidget brand={brand} />
       </div>
     );
   }
@@ -91,6 +93,7 @@ export default async function BrandLayout({
         <LumyNavbar brand={brand} />
         <main className="flex-grow">{children}</main>
         <LumyFooter brand={brand} />
+        <WhatsappCommunityWidget brand={brand} />
       </div>
     );
   }
@@ -131,6 +134,7 @@ export default async function BrandLayout({
           </a>
         </p>
       </footer>
+      <WhatsappCommunityWidget brand={brand} />
     </div>
   );
 }

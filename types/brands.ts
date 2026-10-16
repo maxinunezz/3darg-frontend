@@ -96,6 +96,22 @@ export type BrandPageConfig = {
   community_bg_image?: string;
   community_cta_register?: string;
   community_cta_login?: string;
+  // Comunidad de WhatsApp — popup de suscripción (con delay, para no generar
+  // rechazo) + globo flotante estilo mensaje de chat, directo al canal. Un
+  // solo `channel_url` activa (o desactiva, si está vacío/sin cargar) los
+  // dos a la vez para esta marca. `segments` es la lista de checkboxes del
+  // popup (hoy solo se usa un segmento, "Pastelería", pero queda listo para
+  // sumar más sin tocar código). Ver `components/whatsapp-community-widget.tsx`.
+  whatsapp_channel?: {
+    channel_url?: string;
+    popup_title?: string;
+    popup_subtitle?: string;
+    segments?: Array<{ value: string; label: string }>;
+    // Ms de espera antes de mostrar el popup de suscripción (default 9000).
+    popup_delay_ms?: number;
+    // Texto del globo de chat que aparece junto al ícono flotante.
+    bubble_message?: string;
+  };
 };
 
 export type BrandMetaPublicConfig = {
