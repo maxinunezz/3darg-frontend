@@ -95,13 +95,13 @@ export function CartPageContent() {
     return (
       <div className="max-w-2xl mx-auto px-4 py-24 text-center">
         <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground/40 mb-6" />
-        <h1 className="text-3xl font-bold mb-3">Tu carrito está vacío</h1>
-        <p className="text-muted-foreground mb-8">
+        <h1 className="text-3xl font-bold mb-4!">Tu carrito está vacío</h1>
+        <p className="text-muted-foreground mb-10! leading-relaxed">
           Explorá nuestros productos y encontrá algo que te guste.
         </p>
         <Link
           href="/"
-          className="inline-block bg-primary text-primary-foreground px-8 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity"
+          className="inline-block bg-primary !text-primary-foreground px-8 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity"
         >
           Ir a la tienda
         </Link>

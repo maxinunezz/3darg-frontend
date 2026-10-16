@@ -495,6 +495,8 @@
 .site-lumy .lm-nav__link { background: none; border: 0; padding: 0; cursor: pointer; font-family: var(--font-sans); font-size: var(--text-body-l); font-weight: var(--weight-medium); color: var(--ink-700); transition: color var(--duration-base) var(--ease-standard); }
 .site-lumy .lm-nav__link:hover { color: var(--rose-600); }
 .site-lumy .lm-nav__link--active { color: var(--rose-600); font-weight: var(--weight-semibold); }
+/* Mayoristas se diferencia del resto del menú: siempre en rosa, no solo en hover/activo. */
+.site-lumy .lm-nav__link--accent { color: var(--rose-600); }
 .site-lumy .lm-nav__actions { display: flex; align-items: center; gap: var(--space-2); }
 .site-lumy .lm-nav__actions .lm-btn--lg { height: 2.75rem; padding: 0 var(--space-8); }
 @media (max-width: 860px) {
@@ -520,6 +522,8 @@
   padding: var(--space-4) 0;
   border-bottom: 1px solid var(--beige-300);
 }
+/* Mayoristas se diferencia del resto del menú: siempre en rosa, no solo en hover/activo. */
+.site-lumy .lm-mobilenav a.lm-mobilenav__link--accent { color: var(--rose-600); }
 @media (min-width: 861px) {
   .site-lumy .lm-mobilenav,
   .site-lumy .lm-navtoggle {
