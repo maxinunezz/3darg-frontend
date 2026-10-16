@@ -118,7 +118,7 @@ export default async function AboutPage({
                 Quiénes somos
               </p>
               <h1 className="text-4xl font-black uppercase tracking-tight leading-none text-primary max-w-2xl mx-auto">
-                Sobre nosotros
+                Nosotros
               </h1>
             </div>
             {!isLumy && (
