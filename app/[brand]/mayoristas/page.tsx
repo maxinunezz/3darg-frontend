@@ -66,7 +66,7 @@ export default async function MayoristasPage({
           <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-tight leading-none mb-6!">
             Crecé con {brand.name}
           </h1>
-          <p className="text-lg text-muted-foreground font-light leading-relaxed max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground font-light leading-relaxed max-w-2xl mx-auto text-justify [text-align-last:justify]">
             Dos formas de vender nuestros productos: comprá directo con descuento automático
             por volumen, o sumate como mayorista con precios y atención especiales.
           </p>
@@ -85,23 +85,21 @@ export default async function MayoristasPage({
           }`}
         >
           <div className="grid gap-6">
-            <div className="bg-primary text-primary-foreground rounded-2xl p-8 shadow-lg shadow-primary/20">
-              <p className="text-sm font-bold uppercase tracking-widest text-primary-foreground/75 mb-3!">
+            <div className="bg-primary/15 border border-primary/20 rounded-2xl p-8 shadow-lg shadow-primary/10">
+              <p className="text-sm font-bold uppercase tracking-widest text-accent-foreground mb-3!">
                 Mayorista
               </p>
-              <h2 className="text-3xl font-black uppercase tracking-tight mb-4!">Alta previa</h2>
-              <ul className="text-base text-primary-foreground/90 leading-relaxed space-y-2 mb-6">
+              <h2 className="text-3xl font-black uppercase tracking-tight text-primary mb-4!">Alta previa</h2>
+              <ul className="text-base text-foreground/80 leading-relaxed space-y-2 mb-6">
                 <li>• Precios especiales de mayorista</li>
                 <li>• Catálogo ampliado</li>
                 <li>• Atención prioritaria</li>
               </ul>
-              {/* !text-primary-foreground (importante): `.site-lumy a { color: var(--text-brand) }`
-                  (clase+elemento, especificidad 0,1,1) le gana a `text-primary-foreground` solo
-                  (0,1,0) y dejaba el link en rosa oscuro sobre fondo rosa — casi invisible. Mismo
-                  caso que el gotcha de h1-h4/p documentado en CLAUDE.md, pero para <a>. */}
+              {/* !text-primary (importante): mismo caso que el link de Emprendedor — sin esto
+                  queda en --text-brand (rosa-600) de `.site-lumy a`, ver gotcha en CLAUDE.md. */}
               <a
                 href="#alta-mayorista"
-                className="inline-flex items-center gap-1.5 text-base font-semibold !text-primary-foreground hover:gap-2.5 transition-all group"
+                className="inline-flex items-center gap-1.5 text-base font-semibold !text-primary hover:gap-2.5 transition-all group"
               >
                 Solicitar alta <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </a>

@@ -43,8 +43,10 @@ export function WholesaleTierJourney({ tiers }: Props) {
     // apiladas a la izquierda) — y flex-col+flex-1 en el timeline de abajo hace
     // que la línea/animación se estire para ocupar ese alto entero, en vez de
     // quedar con un tramo fijo chico y el resto de la tarjeta vacío.
-    // max-w-sm: más angosta que el 100% de su columna del grid.
-    <div className="h-full flex flex-col max-w-sm bg-card border border-border rounded-2xl p-6">
+    // Sin max-w: antes quedaba más angosta que el 100% de su columna del grid
+    // (max-w-sm, 384px) dejando un hueco vacío a la derecha — desalineada
+    // contra la tarjeta Mayorista/Emprendedor de al lado, que sí ocupa el 100%.
+    <div className="h-full flex flex-col items-center text-center bg-card border border-border rounded-2xl p-6">
       <style>{`@keyframes wholesale-package-travel { ${stops.join(" ")} }`}</style>
       <p className="text-xs font-bold uppercase tracking-widest text-primary mb-1!">
         Descuento automático
@@ -55,8 +57,12 @@ export function WholesaleTierJourney({ tiers }: Props) {
 
       {/* flex-1: crece para llenar el alto disponible cuando el padre estira
           (desktop, grid con sm:items-stretch); minHeight (no height fijo) deja
-          un piso razonable cuando no hay estiramiento (mobile, columna única). */}
-      <div className="relative flex gap-5 flex-1" style={{ minHeight: `${n * 72}px` }}>
+          un piso razonable cuando no hay estiramiento (mobile, columna única).
+          w-fit + items-center (del padre): ahora que la tarjeta ocupa el 100%
+          de su columna del grid, este bloque (línea + checkpoints) se achica a
+          su contenido y queda centrado, en vez de estirarse pegado a la izquierda
+          con el texto de los checkpoints flotando en un espacio vacío enorme. */}
+      <div className="relative flex gap-5 flex-1 w-fit" style={{ minHeight: `${n * 72}px` }}>
         {/* Línea vertical + paquete viajando */}
         <div className="relative w-8 shrink-0">
           <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-0.5 bg-border" />
@@ -79,8 +85,15 @@ export function WholesaleTierJourney({ tiers }: Props) {
           </div>
         </div>
 
-        {/* Checkpoints: % y monto, a la derecha de la línea */}
-        <div className="relative flex-1">
+        {/* Checkpoints: % y monto, a la derecha de la línea.
+            w-44 fijo (no flex-1): sus únicos hijos son absolute (left-0 right-0),
+            que no aportan tamaño intrínseco — dentro de la fila w-fit, un flex-1
+            con basis 0% se achica a ~0px de ancho (los absolute no cuentan para
+            el max-content), forzando el texto de cada checkpoint a wrappear
+            palabra por palabra y desbordar hacia arriba sobre el heading. Un
+            ancho fijo le da un tamaño intrínseco real para que la fila w-fit lo
+            calcule bien, y es de sobra para "desde $70.000" en una sola línea. */}
+        <div className="relative w-44">
           {sorted.map((tier, i) => (
             <div
               key={tier.min_amount}
