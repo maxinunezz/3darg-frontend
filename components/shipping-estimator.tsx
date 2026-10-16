@@ -512,7 +512,7 @@ export function ShippingEstimator({
                       </select>
                     ) : (
                       <span className="text-[11px] text-muted-foreground self-center">
-                        Todavía no hay sucursales disponibles online — te contactamos para coordinar.
+                        Todavía no hay sucursales disponibles online — te contactaremos por mail para coordinar.
                       </span>
                     )}
                   </label>
