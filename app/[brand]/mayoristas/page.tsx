@@ -73,55 +73,66 @@ export default async function MayoristasPage({
         </div>
       </section>
 
-      {/* ── DOS CAMINOS ──────────────────────────────────────────────── */}
+      {/* ── DOS CAMINOS + TRAMOS DE DESCUENTO ───────────────────────────
+          Mayorista/Emprendedor apilados en la columna izquierda, tramos de
+          descuento como una sola tarjeta alta a la derecha (abarca el alto
+          de las dos de la izquierda) — grid de 2 columnas con la izquierda
+          como sub-grid de 2 filas, en vez de 3 tarjetas sueltas en fila. */}
       <section className="pb-16">
-        <div className="max-w-5xl mx-auto px-6 grid sm:grid-cols-2 gap-6">
-          <div className="bg-primary text-primary-foreground rounded-2xl p-8 shadow-lg shadow-primary/20">
-            <p className="text-xs font-bold uppercase tracking-widest text-primary-foreground/75 mb-3!">
-              Mayorista
-            </p>
-            <h2 className="text-2xl font-black uppercase tracking-tight mb-4!">Alta previa</h2>
-            <ul className="text-sm text-primary-foreground/90 leading-relaxed space-y-2 mb-6">
-              <li>• Precios especiales de mayorista</li>
-              <li>• Catálogo ampliado</li>
-              <li>• Atención prioritaria</li>
-            </ul>
-            <a
-              href="#alta-mayorista"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-foreground hover:gap-2.5 transition-all group"
-            >
-              Solicitar alta <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </a>
+        <div
+          className={`max-w-5xl mx-auto px-6 grid gap-6 sm:grid-cols-2 ${
+            brand.cart_discount_config.length > 0 ? "sm:items-stretch" : ""
+          }`}
+        >
+          <div className="grid gap-6">
+            <div className="bg-primary text-primary-foreground rounded-2xl p-8 shadow-lg shadow-primary/20">
+              <p className="text-sm font-bold uppercase tracking-widest text-primary-foreground/75 mb-3!">
+                Mayorista
+              </p>
+              <h2 className="text-3xl font-black uppercase tracking-tight mb-4!">Alta previa</h2>
+              <ul className="text-base text-primary-foreground/90 leading-relaxed space-y-2 mb-6">
+                <li>• Precios especiales de mayorista</li>
+                <li>• Catálogo ampliado</li>
+                <li>• Atención prioritaria</li>
+              </ul>
+              {/* !text-primary-foreground (importante): `.site-lumy a { color: var(--text-brand) }`
+                  (clase+elemento, especificidad 0,1,1) le gana a `text-primary-foreground` solo
+                  (0,1,0) y dejaba el link en rosa oscuro sobre fondo rosa — casi invisible. Mismo
+                  caso que el gotcha de h1-h4/p documentado en CLAUDE.md, pero para <a>. */}
+              <a
+                href="#alta-mayorista"
+                className="inline-flex items-center gap-1.5 text-base font-semibold !text-primary-foreground hover:gap-2.5 transition-all group"
+              >
+                Solicitar alta <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </a>
+            </div>
+
+            <div className="bg-accent border border-primary/15 rounded-2xl p-8">
+              <p className="text-sm font-bold uppercase tracking-widest text-accent-foreground mb-3!">
+                Emprendedor
+              </p>
+              <h2 className="text-3xl font-black uppercase tracking-tight mb-4!">Compra directa</h2>
+              <ul className="text-base text-muted-foreground leading-relaxed space-y-2 mb-6">
+                <li>• Sin aprobación previa</li>
+                <li>• Descuento automático según el monto</li>
+                <li>• Comprás cuando quieras, en la tienda de siempre</li>
+              </ul>
+              {/* !text-primary (importante): mismo caso que arriba — sin esto el link
+                  queda en --text-brand (rosa-600) en vez del primary del tema. */}
+              <Link
+                href={`/${slug}/shop`}
+                className="inline-flex items-center gap-1.5 text-base font-semibold !text-primary hover:gap-2.5 transition-all group"
+              >
+                Ver tienda <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
           </div>
 
-          <div className="bg-accent border border-primary/15 rounded-2xl p-8">
-            <p className="text-xs font-bold uppercase tracking-widest text-accent-foreground mb-3!">
-              Emprendedor
-            </p>
-            <h2 className="text-2xl font-black uppercase tracking-tight mb-4!">Compra directa</h2>
-            <ul className="text-sm text-muted-foreground leading-relaxed space-y-2 mb-6">
-              <li>• Sin aprobación previa</li>
-              <li>• Descuento automático según el monto</li>
-              <li>• Comprás cuando quieras, en la tienda de siempre</li>
-            </ul>
-            <Link
-              href={`/${slug}/shop`}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all group"
-            >
-              Ver tienda <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
+          {brand.cart_discount_config.length > 0 && (
+            <WholesaleTierJourney tiers={brand.cart_discount_config} />
+          )}
         </div>
       </section>
-
-      {/* ── TRAMOS DE DESCUENTO ANIMADOS ────────────────────────────── */}
-      {brand.cart_discount_config.length > 0 && (
-        <section className="pb-16">
-          <div className="max-w-sm mx-auto px-6">
-            <WholesaleTierJourney tiers={brand.cart_discount_config} />
-          </div>
-        </section>
-      )}
 
       {/* ── FAQ + FORMULARIO ────────────────────────────────────────── */}
       <section id="alta-mayorista" className="pb-24">

@@ -37,7 +37,14 @@ export function WholesaleTierJourney({ tiers }: Props) {
   });
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-6">
+    // h-full + flex flex-col: no-op cuando el padre no estira (ej. usos sueltos
+    // con alto "auto"), pero en /mayoristas permite que esta tarjeta ocupe todo
+    // el alto de su columna del grid (misma altura que Mayorista+Emprendedor
+    // apiladas a la izquierda) — y flex-col+flex-1 en el timeline de abajo hace
+    // que la línea/animación se estire para ocupar ese alto entero, en vez de
+    // quedar con un tramo fijo chico y el resto de la tarjeta vacío.
+    // max-w-sm: más angosta que el 100% de su columna del grid.
+    <div className="h-full flex flex-col max-w-sm bg-card border border-border rounded-2xl p-6">
       <style>{`@keyframes wholesale-package-travel { ${stops.join(" ")} }`}</style>
       <p className="text-xs font-bold uppercase tracking-widest text-primary mb-1!">
         Descuento automático
@@ -46,7 +53,10 @@ export function WholesaleTierJourney({ tiers }: Props) {
         Tu pedido sube de tramo solo
       </h3>
 
-      <div className="relative flex gap-5" style={{ height: `${n * 72}px` }}>
+      {/* flex-1: crece para llenar el alto disponible cuando el padre estira
+          (desktop, grid con sm:items-stretch); minHeight (no height fijo) deja
+          un piso razonable cuando no hay estiramiento (mobile, columna única). */}
+      <div className="relative flex gap-5 flex-1" style={{ minHeight: `${n * 72}px` }}>
         {/* Línea vertical + paquete viajando */}
         <div className="relative w-8 shrink-0">
           <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-0.5 bg-border" />
@@ -77,8 +87,8 @@ export function WholesaleTierJourney({ tiers }: Props) {
               className="absolute left-0 right-0 flex flex-col justify-center"
               style={{ bottom: `${positions[i]}%`, transform: "translateY(50%)" }}
             >
-              <span className="text-sm font-bold text-primary leading-tight">{tier.discount_percent}% OFF</span>
-              <span className="text-xs text-muted-foreground leading-tight">desde {fmt(tier.min_amount)}</span>
+              <span className="text-lg font-bold text-primary leading-tight">{tier.discount_percent}% OFF</span>
+              <span className="text-sm text-muted-foreground leading-tight">desde {fmt(tier.min_amount)}</span>
             </div>
           ))}
         </div>
