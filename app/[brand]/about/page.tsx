@@ -96,9 +96,9 @@ export default async function AboutPage({
   })();
 
   // Casos de uso: desde page_config o defaults del brand
-  const cases: { emoji: string; problem: string; solution: string; linkLabel?: string; linkTo?: "contacto" | "shop" }[] =
+  const cases: { emoji: string; problem: string; solution: string; linkLabel?: string; linkTo?: "contacto" | "shop" | "mayoristas" }[] =
     cfg.about_cases ?? [
-      { emoji: "💸", problem: "¿Te gustaría conseguir los mejores precios?",                 solution: "Tenemos en cuenta a nuestros clientes emprendedores y mayoristas.", linkLabel: "Contanos tu idea", linkTo: "contacto" },
+      { emoji: "💸", problem: "¿Te gustaría conseguir los mejores precios?",                 solution: "Tenemos en cuenta a nuestros clientes emprendedores y mayoristas.", linkLabel: "Mayoristas", linkTo: "mayoristas" },
       { emoji: "🎉", problem: "¿Buscás algo especial para una fiesta temática?",             solution: "Tenemos colecciones de temporada: Halloween, Navidad, Pascuas y más.", linkLabel: "Ver tienda", linkTo: "shop" },
       { emoji: "🎁", problem: "¿Querés sorprender con un regalo distinto?",                  solution: "Pedidos personalizados con el diseño que vos elijas.", linkLabel: "Contanos tu idea", linkTo: "contacto" },
       { emoji: "🏆", problem: "¿Necesitás cortantes resistentes para uso frecuente?",        solution: "Fabricados en PLA de alta calidad, duran miles de usos sin perder la forma." },
@@ -170,7 +170,7 @@ export default async function AboutPage({
                   <p className="text-sm text-muted-foreground leading-relaxed">{solution}</p>
                   {linkLabel && (
                     <Link
-                      href={`/${slug}/${linkTo === "shop" ? "shop" : "contacto"}`}
+                      href={`/${slug}/${linkTo === "shop" ? "shop" : linkTo === "mayoristas" ? "mayoristas" : "contacto"}`}
                       className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all mt-4 group"
                     >
                       {linkLabel} <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
