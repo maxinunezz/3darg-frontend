@@ -7,6 +7,7 @@ import { useBrandNamespace } from "@/lib/brand-context";
 import type { CartItem } from "@/contexts/CartContext";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { ShippingEstimator, type ShippingEstimate } from "@/components/shipping-estimator";
+import { type ShippingAddress, isShippingAddressComplete } from "@/types/shipping";
 import { CartDiscountProgress } from "@/components/cart-discount-progress";
 import { CartUpsellCarousel } from "@/components/cart-upsell-carousel";
 import Image from "next/image";
@@ -16,13 +17,25 @@ import { Trash2, Minus, Plus, ShoppingBag, Loader2 } from "lucide-react";
 const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
 const USE_SANDBOX = process.env.NEXT_PUBLIC_MP_SANDBOX === "true";
 
+const EMPTY_ADDRESS: ShippingAddress = {
+  fullName: "",
+  phone: "",
+  street: "",
+  streetNumber: "",
+  floor: "",
+  department: "",
+  city: "",
+  province: "",
+  postalCode: "",
+};
+
 async function createMpPreference(
   brandSlug: string,
   items: CartItem[],
-  customerEmail?: string,
-  token?: string,
-  postalCode?: string,
-  shippingMethodId?: string
+  customerEmail: string | undefined,
+  token: string | undefined,
+  address: ShippingAddress,
+  shippingEstimate: ShippingEstimate
 ) {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -32,8 +45,17 @@ async function createMpPreference(
     body: JSON.stringify({
       brand_slug: brandSlug,
       customer_email: customerEmail ?? "",
-      postal_code: postalCode ?? "",
-      shipping_method_id: shippingMethodId ?? "",
+      postal_code: shippingEstimate?.postalCode || address.postalCode || "",
+      province: address.province ?? "",
+      shipping_method_id: shippingEstimate?.methodId ?? "",
+      full_name: address.fullName ?? "",
+      phone: address.phone ?? "",
+      street: address.street ?? "",
+      street_number: address.streetNumber ?? "",
+      floor: address.floor ?? "",
+      department: address.department ?? "",
+      city: address.city ?? "",
+      agency_id: shippingEstimate?.agencyId || address.agencyId || "",
       items: items.map(({ product, quantity }) => ({
         product_id: product.id,
         quantity,
@@ -62,13 +84,24 @@ export function CartPageContent() {
   const [checkoutError, setCheckoutError] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
   const [shippingEstimate, setShippingEstimate] = useState<ShippingEstimate>(null);
+  const [address, setAddress] = useState<ShippingAddress>(EMPTY_ADDRESS);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail);
-  const canCheckout = isAuthenticated || emailValid;
+  const requiresAgency = !!shippingEstimate?.methodId?.endsWith("_sucursal");
+  const addressComplete = isShippingAddressComplete(address, requiresAgency ? "sucursal" : "domicilio");
+  const canCheckout = (isAuthenticated || emailValid) && addressComplete;
 
   async function handleCheckout() {
-    if (!canCheckout) {
+    if (!(isAuthenticated || emailValid)) {
       setCheckoutError("Ingresá un email válido para continuar con la compra.");
+      return;
+    }
+    if (!addressComplete) {
+      setCheckoutError(
+        requiresAgency
+          ? "Completá tu dirección y elegí una sucursal para retirar tu pedido."
+          : "Completá tu dirección de envío para continuar con la compra."
+      );
       return;
     }
     setCheckoutLoading(true);
@@ -79,8 +112,8 @@ export function CartPageContent() {
         items,
         user?.email ?? guestEmail,
         token ?? undefined,
-        shippingEstimate?.postalCode,
-        shippingEstimate?.methodId
+        address,
+        shippingEstimate
       );
       const url = USE_SANDBOX ? data.sandbox_init_point : data.init_point;
       window.location.href = url;
@@ -208,7 +241,15 @@ export function CartPageContent() {
           </div>
           <CartUpsellCarousel brandSlug={brandSlug} className="mb-4" />
           <div className="mb-4">
-            <ShippingEstimator items={items} subtotal={total} onEstimateChange={setShippingEstimate} />
+            <label className="block text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
+              Envío
+            </label>
+            <ShippingEstimator
+              items={items}
+              subtotal={total}
+              onEstimateChange={setShippingEstimate}
+              onAddressChange={setAddress}
+            />
           </div>
           {!isAuthenticated && (
             <div className="mb-4">
