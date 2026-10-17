@@ -62,14 +62,14 @@ export function WholesaleTierJourney({ tiers, className, compact = false }: Prop
       <style>{`@keyframes wholesale-package-travel { ${stops.join(" ")} }`}</style>
       <p
         className={`font-bold uppercase text-primary ${
-          compact ? "text-[10px] tracking-wide mb-1! leading-tight" : "text-xs tracking-widest mb-1!"
+          compact ? "text-xs tracking-wide mb-1.5! leading-tight" : "text-xs tracking-widest mb-1!"
         }`}
       >
         Descuento automático
       </p>
       <h3
         className={`font-black uppercase tracking-tight ${
-          compact ? "text-sm leading-tight mb-4!" : "text-xl mb-6!"
+          compact ? "text-lg leading-tight mb-4!" : "text-xl mb-6!"
         }`}
       >
         Tu pedido sube de tramo solo
