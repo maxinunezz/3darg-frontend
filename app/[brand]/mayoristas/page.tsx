@@ -144,7 +144,9 @@ export default async function MayoristasPage({
                     {item.q}
                     <ArrowRight className="w-4 h-4 shrink-0 transition-transform group-open:rotate-90" />
                   </summary>
-                  <p className="text-sm text-muted-foreground leading-relaxed mt-3!">{item.a}</p>
+                  {/* text-primary (no muted-foreground): mismo dorado que el resto
+                      de la página (eyebrows, headings, links) — ver línea 63/92/102. */}
+                  <p className="text-sm text-primary leading-relaxed mt-3!">{item.a}</p>
                 </details>
               ))}
             </div>

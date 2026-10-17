@@ -111,7 +111,7 @@ export function WholesaleForm({ brandSlug }: WholesaleFormProps) {
           type="text"
           required
           className={inputCls}
-          placeholder="Ej: La Plata, Buenos Aires"
+          placeholder="Ej: Córdoba, Argentina"
         />
       </Field>
       {error && <p className="text-sm text-red-600">{error}</p>}
