@@ -302,7 +302,7 @@ export function CartPageContent() {
               <span>{fmt(subtotal)}</span>
             </div>
             {discountAmount > 0 && (
-              <div className="flex justify-between items-center text-base text-emerald-600 mb-1 font-semibold">
+              <div className="flex justify-between items-center text-base text-red-600 mb-1 font-semibold">
                 <span>Descuento ({discountPercent}%)</span>
                 <span>- {fmt(discountAmount)}</span>
               </div>

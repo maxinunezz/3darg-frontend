@@ -247,7 +247,7 @@ export function SiteCartContent() {
               <span>{fmt(Number(subtotal))}</span>
             </div>
             {discountAmount > 0 && (
-              <div className="flex items-center justify-between font-mono text-xs uppercase tracking-[var(--tracking-label)] text-emerald-400 mb-1.5 font-bold">
+              <div className="flex items-center justify-between font-mono text-xs uppercase tracking-[var(--tracking-label)] text-red-400 mb-1.5 font-bold">
                 <span>Descuento ({discountPercent}%)</span>
                 <span>- {fmt(Number(discountAmount))}</span>
               </div>
