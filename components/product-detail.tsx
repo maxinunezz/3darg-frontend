@@ -477,7 +477,7 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
                   {item.q}
                   <ChevronDown className="w-4 h-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
                 </summary>
-                <p className="pt-2 text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                <p className="pt-2 text-base text-primary leading-relaxed">{item.a}</p>
               </details>
             ))}
           </div>
