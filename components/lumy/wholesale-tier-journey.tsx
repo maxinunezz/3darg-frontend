@@ -93,10 +93,23 @@ export function WholesaleTierJourney({ tiers, className, compact = false }: Prop
           {positions.map((pos) => (
             <span
               key={pos}
-              className={`absolute left-1/2 -translate-x-1/2 rounded-full bg-primary border-2 border-card ${
+              // Dorado (bg-amber-400), igual criterio que los checkpoints de
+              // envío/descuento del carrito (`checkpoint-bar.tsx`,
+              // `cart-discount-progress.tsx`) — antes usaba el color
+              // `primary` del tema, sin relación visual con esos otros.
+              //
+              // Solo Y en el `style` inline a propósito: el centrado
+              // horizontal ya lo hace la clase `-translate-x-1/2` (Tailwind
+              // v4 la resuelve con la propiedad CSS `translate`, no
+              // `transform`). Si acá también se pone `translate(-50%, ...)`
+              // en `transform`, las dos corridas de -50% se SUMAN (son
+              // propiedades CSS distintas que componen) y el punto queda
+              // corrido un diámetro entero a la izquierda de la línea en vez
+              // de centrado sobre ella.
+              className={`absolute left-1/2 -translate-x-1/2 rounded-full bg-amber-400 border-2 border-card ${
                 compact ? "w-2.5 h-2.5" : "w-3 h-3"
               }`}
-              style={{ bottom: `${pos}%`, transform: "translate(-50%, 50%)" }}
+              style={{ bottom: `${pos}%`, transform: "translateY(50%)" }}
             />
           ))}
 
