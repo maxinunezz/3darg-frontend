@@ -7,7 +7,7 @@ import { Lock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiUrl, cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import type { ProductType, ProductVariantType } from "@/types/product";
-import { variantLabel } from "@/lib/product-variant";
+import { variantLabel, variantSizeParts } from "@/lib/product-variant";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { FavoriteButton } from "@/components/favorite-button";
 import { ProductPrice } from "@/components/product-price";
@@ -222,6 +222,7 @@ function SiteTalleSelector({
         {variants.map((variant) => {
           const isSelected = variant.id === selectedId;
           const outOfStock = variant.stock <= 0;
+          const { name, measure } = variantSizeParts(variant);
           return (
             <button
               key={variant.id}
@@ -229,17 +230,22 @@ function SiteTalleSelector({
               disabled={outOfStock}
               onClick={() => onSelect(variant.id)}
               aria-pressed={isSelected}
-              className={`flex flex-col items-center gap-0.5 rounded-[var(--radius-lg)] border px-4 py-2 font-mono text-[13px] font-bold transition-colors ${
+              aria-label={variantLabel(variant)}
+              className={`flex flex-col items-center gap-0.5 rounded-[var(--radius-lg)] border px-5 py-2.5 font-mono transition-colors ${
                 isSelected
                   ? "border-[var(--ink-900)] bg-[var(--ink-900)] text-[var(--bone-050)]"
                   : "border-[var(--border-hairline)] hover:border-[var(--ink-900)]"
-              } ${outOfStock ? "opacity-40 line-through cursor-not-allowed" : ""}`}
+              } ${outOfStock ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              <span>{variantLabel(variant)}</span>
-              {!outOfStock && (
-                <span className={`text-[11px] font-normal ${isSelected ? "text-[var(--bone-050)]/80" : "text-[var(--text-faint)]"}`}>
-                  $ {Number(variant.final_price ?? variant.price).toLocaleString("es-AR")}
-                </span>
+              <span className="text-[16px] font-bold leading-tight">{name}</span>
+              {outOfStock ? (
+                <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--signal-error)]">Agotado</span>
+              ) : (
+                measure && (
+                  <span className={`text-[11px] font-normal ${isSelected ? "text-[var(--bone-050)]/80" : "text-[var(--text-faint)]"}`}>
+                    {measure}
+                  </span>
+                )
               )}
             </button>
           );

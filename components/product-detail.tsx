@@ -7,7 +7,7 @@ import { Package, Lock, ChevronLeft, ChevronRight, ChevronDown } from "lucide-re
 import { useAuth } from "@/contexts/AuthContext";
 import { apiUrl, cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import type { ProductType, ProductVariantType } from "@/types/product";
-import { variantLabel } from "@/lib/product-variant";
+import { variantLabel, variantSizeParts } from "@/lib/product-variant";
 import type { BrandType } from "@/types/brands";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { FavoriteButton } from "@/components/favorite-button";
@@ -489,13 +489,12 @@ function MayoristasButton({ brandSlug }: { brandSlug: string }) {
 
 /**
  * Selector de talle (`ProductVariant`, ej. Chico/Mediano/Grande) — pill
- * buttons, uno por variante, ordenados por `order`. Cada talle puede tener
- * precio y stock propios (`ProductPrice`/`AddToCartButton` ya leen la
- * variante elegida, ver `ProductDetail` más arriba), así que se muestra el
- * precio de cada opción dentro de la pill para que el cambio de precio al
- * cambiar de talle no sea una sorpresa. Un talle sin stock se muestra
- * tachado/deshabilitado, no se oculta (igual criterio que "Sin stock" en el
- * resto de la ficha).
+ * buttons, uno por variante, ordenados por `order`. Muestra el nombre del
+ * talle grande (título) y la medida debajo (subtítulo) — sin precio: el
+ * precio de la variante elegida ya se refleja arriba en `ProductPrice`,
+ * repetirlo acá era ruido. Un talle sin stock se muestra atenuado + con un
+ * cartel "Agotado" en vez de la medida (no tachado), no se oculta (igual
+ * criterio que "Sin stock" en el resto de la ficha).
  */
 function TalleSelector({
   variants,
@@ -513,6 +512,7 @@ function TalleSelector({
         {variants.map((variant) => {
           const isSelected = variant.id === selectedId;
           const outOfStock = variant.stock <= 0;
+          const { name, measure } = variantSizeParts(variant);
           return (
             <button
               key={variant.id}
@@ -520,17 +520,22 @@ function TalleSelector({
               disabled={outOfStock}
               onClick={() => onSelect(variant.id)}
               aria-pressed={isSelected}
-              className={`flex flex-col items-center gap-0.5 rounded-xl border-2 px-4 py-2 text-sm font-semibold transition-colors ${
+              aria-label={variantLabel(variant)}
+              className={`flex flex-col items-center gap-0.5 rounded-xl border-2 px-5 py-2.5 transition-colors ${
                 isSelected
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border hover:border-primary/50"
-              } ${outOfStock ? "opacity-40 line-through cursor-not-allowed" : ""}`}
+              } ${outOfStock ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              <span>{variantLabel(variant)}</span>
-              {!outOfStock && (
-                <span className={`text-xs font-normal ${isSelected ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                  $ {Number(variant.final_price ?? variant.price).toLocaleString("es-AR")}
-                </span>
+              <span className="text-base font-bold leading-tight">{name}</span>
+              {outOfStock ? (
+                <span className="text-[10px] font-bold uppercase tracking-wide text-red-500">Agotado</span>
+              ) : (
+                measure && (
+                  <span className={`text-xs font-normal ${isSelected ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                    {measure}
+                  </span>
+                )
               )}
             </button>
           );
