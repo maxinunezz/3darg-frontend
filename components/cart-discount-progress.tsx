@@ -44,11 +44,20 @@ export function CartDiscountProgress({ className }: Props) {
         )}
       </div>
 
-      <div className="relative h-3 rounded-full bg-muted overflow-hidden">
-        <div
-          className="h-full bg-primary rounded-full transition-all duration-300"
-          style={{ width: `${barPercent}%` }}
-        />
+      <div className="relative h-3">
+        <div className="absolute inset-0 rounded-full bg-muted overflow-hidden">
+          <div
+            className="h-full bg-primary rounded-full transition-all duration-300"
+            style={{ width: `${barPercent}%` }}
+          />
+        </div>
+        {tiers.map((tier) => (
+          <span
+            key={tier.min_quantity}
+            className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-amber-400 border-2 border-card z-10"
+            style={{ left: `${Math.min(100, (tier.min_quantity / maxQuantity) * 100)}%` }}
+          />
+        ))}
       </div>
 
       <div className="relative h-9 mt-1.5">
