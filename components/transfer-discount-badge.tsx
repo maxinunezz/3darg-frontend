@@ -25,12 +25,9 @@ export function TransferDiscountBadge({ product, brand }: Props) {
   const transferPrice = Math.round((listPrice * (100 - percent)) / 100);
 
   return (
-    <div className="flex items-center gap-3 flex-wrap rounded-xl border border-dashed border-primary/40 bg-primary/5 px-4 py-3">
-      <div className="flex items-baseline gap-2">
-        <span className="text-muted-foreground line-through text-sm">{fmt(listPrice)}</span>
-        <span className="font-black text-primary text-xl">{fmt(transferPrice)}</span>
-      </div>
-      <span className="text-[10px] font-bold uppercase tracking-wide bg-primary text-primary-foreground rounded-full px-2 py-1">
+    <div className="inline-flex items-center gap-2 w-fit rounded-xl border border-dashed border-primary/40 bg-primary/5 px-2.5 py-1.5">
+      <span className="font-black text-primary text-lg whitespace-nowrap">{fmt(transferPrice)}</span>
+      <span className="text-[10px] font-bold uppercase tracking-wide bg-primary text-primary-foreground rounded-full px-2 py-1 whitespace-nowrap">
         {percent}% OFF por transferencia
       </span>
     </div>

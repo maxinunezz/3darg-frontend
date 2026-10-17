@@ -381,7 +381,11 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
             <FavoriteButton product={product} size="md" variant="bare" />
           </div>
 
-          <ProductPrice product={product} size="lg" variant={effectiveVariant} />
+          <div className="flex items-center gap-3 flex-wrap">
+            <ProductPrice product={product} size="lg" variant={effectiveVariant} />
+            {/* % por pagar por transferencia, pegado al precio de lista. */}
+            <TransferDiscountBadge product={product} brand={brand} />
+          </div>
 
           {/* "¡Llevá más, pagá menos!" — debajo del precio, justo arriba del
               selector de Talle (ver `ProductDiscountTease`, usa el monto real
@@ -408,11 +412,6 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
           )}
 
           <div className="pt-2 flex flex-col gap-3">
-            {/* El descuento por cantidad ya no se decide en la ficha de
-                producto — ahora vive en el carrito, por MONTO TOTAL de la
-                compra (ver `CartDiscountProgress`). Acá solo queda, a modo
-                informativo, el % por pagar por transferencia. */}
-            <TransferDiscountBadge product={product} brand={brand} />
             <AddToCartButton
               product={product}
               disabled={!inStock}
