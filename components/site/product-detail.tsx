@@ -143,12 +143,14 @@ export function SiteProductDetail({ slug, initialProduct, related }: Props) {
             </Badge>
           )}
           <SpecLabel>{["3DARG", product.category?.name].filter(Boolean).join(" · ")}</SpecLabel>
-          <h1 className="font-display uppercase" style={{ fontSize: "clamp(34px,4vw,52px)", lineHeight: "var(--leading-display)" }}>
-            {product.name}
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="font-display uppercase" style={{ fontSize: "clamp(34px,4vw,52px)", lineHeight: "var(--leading-display)" }}>
+              {product.name}
+            </h1>
+            <FavoriteButton product={product} size="md" variant="bare" />
+          </div>
           <div className="flex items-center gap-3 flex-wrap font-mono">
             <ProductPrice product={product} size="lg" variant={effectiveVariant} />
-            <FavoriteButton product={product} size="md" />
           </div>
 
           <div className="flex flex-wrap gap-2">
