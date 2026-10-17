@@ -99,12 +99,34 @@ function parseDescriptionBlocks(raw: string): DescriptionBlock[] {
   return blocks;
 }
 
+// Frase de cierre del copete ("lead") que algunas descripciones usan como CTA
+// final — si aparece, se resalta en el coral de marca (`--primary`, el mismo
+// tono que el precio y los carteles de descuento en toda la ficha) en vez de
+// quedar del mismo color que el resto del párrafo.
+const LEAD_HIGHLIGHT_PHRASE = "¡Estamos para ayudarte!";
+
+function LeadText({ text }: { text: string }) {
+  const idx = text.indexOf(LEAD_HIGHLIGHT_PHRASE);
+  if (idx === -1) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <span className="text-primary">{LEAD_HIGHLIGHT_PHRASE}</span>
+      {text.slice(idx + LEAD_HIGHLIGHT_PHRASE.length)}
+    </>
+  );
+}
+
 function DescriptionRichText({ description, brandSlug }: { description: string; brandSlug: string }) {
   const blocks = parseDescriptionBlocks(description);
   if (!blocks.some((b) => b.type === "heading")) {
     // Sin secciones: formato simple de siempre (pt-16, no mt-16, ver comentario
     // de más abajo sobre la especificidad de `.site-lumy p`).
-    return <p className="text-muted-foreground leading-relaxed pt-16 max-w-3xl">{description}</p>;
+    return (
+      <p className="text-muted-foreground leading-relaxed pt-16 max-w-3xl">
+        <LeadText text={description} />
+      </p>
+    );
   }
 
   // `!text-[var(--rose-600)]` solo existe como variable en el tema de Lumy — para
@@ -117,7 +139,7 @@ function DescriptionRichText({ description, brandSlug }: { description: string; 
         if (block.type === "lead") {
           return (
             <p key={i} className="text-lg md:text-xl font-bold leading-relaxed">
-              {block.text}
+              <LeadText text={block.text} />
             </p>
           );
         }
