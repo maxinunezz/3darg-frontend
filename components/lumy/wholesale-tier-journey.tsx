@@ -7,6 +7,13 @@ interface Props {
    * para que usos sueltos (ej. al lado del carrito) puedan fijar un ancho
    * propio sin tocar el resto del componente. */
   className?: string;
+  /** El diseño original (`/mayoristas`, ~450px de columna) usa tipografía
+   * grande para el título y los checkpoints. En usos angostos (ej. al lado
+   * del carrito, ~224px) esos mismos tamaños fuerzan "TU PEDIDO SUBE DE
+   * TRAMO SOLO" a 3 líneas y "DESCUENTO AUTOMÁTICO" a 2 — se ve apretado y
+   * sucio. `compact` reduce tipografía/paddings para que entre prolijo en
+   * una columna angosta, sin tocar el diseño default de `/mayoristas`. */
+  compact?: boolean;
 }
 
 /**
@@ -19,7 +26,7 @@ interface Props {
  * animación nunca pasa por encima de ningún texto.
  * `animation-direction: alternate` hace que vuelva sola al principio.
  */
-export function WholesaleTierJourney({ tiers, className }: Props) {
+export function WholesaleTierJourney({ tiers, className, compact = false }: Props) {
   if (tiers.length === 0) return null;
 
   const sorted = [...tiers].sort((a, b) => a.min_quantity - b.min_quantity);
@@ -47,12 +54,24 @@ export function WholesaleTierJourney({ tiers, className }: Props) {
     // Sin max-w: antes quedaba más angosta que el 100% de su columna del grid
     // (max-w-sm, 384px) dejando un hueco vacío a la derecha — desalineada
     // contra la tarjeta Mayorista/Emprendedor de al lado, que sí ocupa el 100%.
-    <div className={`h-full flex flex-col items-center text-center bg-card border border-border rounded-2xl p-6 ${className ?? ""}`}>
+    <div
+      className={`h-full flex flex-col items-center text-center bg-card border border-border rounded-2xl ${
+        compact ? "p-4" : "p-6"
+      } ${className ?? ""}`}
+    >
       <style>{`@keyframes wholesale-package-travel { ${stops.join(" ")} }`}</style>
-      <p className="text-xs font-bold uppercase tracking-widest text-primary mb-1!">
+      <p
+        className={`font-bold uppercase text-primary ${
+          compact ? "text-[10px] tracking-wide mb-1! leading-tight" : "text-xs tracking-widest mb-1!"
+        }`}
+      >
         Descuento automático
       </p>
-      <h3 className="text-xl font-black uppercase tracking-tight mb-6!">
+      <h3
+        className={`font-black uppercase tracking-tight ${
+          compact ? "text-sm leading-tight mb-4!" : "text-xl mb-6!"
+        }`}
+      >
         Tu pedido sube de tramo solo
       </h3>
 
@@ -63,15 +82,20 @@ export function WholesaleTierJourney({ tiers, className }: Props) {
           de su columna del grid, este bloque (línea + checkpoints) se achica a
           su contenido y queda centrado, en vez de estirarse pegado a la izquierda
           con el texto de los checkpoints flotando en un espacio vacío enorme. */}
-      <div className="relative flex gap-5 flex-1 w-fit" style={{ minHeight: `${n * 72}px` }}>
+      <div
+        className={`relative flex flex-1 w-fit ${compact ? "gap-3" : "gap-5"}`}
+        style={{ minHeight: `${n * (compact ? 56 : 72)}px` }}
+      >
         {/* Línea vertical + paquete viajando */}
-        <div className="relative w-8 shrink-0">
+        <div className={`relative shrink-0 ${compact ? "w-6" : "w-8"}`}>
           <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-0.5 bg-border" />
 
           {positions.map((pos) => (
             <span
               key={pos}
-              className="absolute left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-primary border-2 border-card"
+              className={`absolute left-1/2 -translate-x-1/2 rounded-full bg-primary border-2 border-card ${
+                compact ? "w-2.5 h-2.5" : "w-3 h-3"
+              }`}
               style={{ bottom: `${pos}%`, transform: "translate(-50%, 50%)" }}
             />
           ))}
@@ -80,29 +104,37 @@ export function WholesaleTierJourney({ tiers, className }: Props) {
             className="absolute left-1/2 -translate-x-1/2"
             style={{ bottom: 0, animation: "wholesale-package-travel 9s ease-in-out infinite alternate" }}
           >
-            <div className="w-8 h-8 translate-y-1/2 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
-              <Package className="w-4 h-4" />
+            <div
+              className={`translate-y-1/2 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg ${
+                compact ? "w-6 h-6" : "w-8 h-8"
+              }`}
+            >
+              <Package className={compact ? "w-3 h-3" : "w-4 h-4"} />
             </div>
           </div>
         </div>
 
         {/* Checkpoints: % y monto, a la derecha de la línea.
-            w-44 fijo (no flex-1): sus únicos hijos son absolute (left-0 right-0),
+            Ancho fijo (no flex-1): sus únicos hijos son absolute (left-0 right-0),
             que no aportan tamaño intrínseco — dentro de la fila w-fit, un flex-1
             con basis 0% se achica a ~0px de ancho (los absolute no cuentan para
             el max-content), forzando el texto de cada checkpoint a wrappear
             palabra por palabra y desbordar hacia arriba sobre el heading. Un
             ancho fijo le da un tamaño intrínseco real para que la fila w-fit lo
-            calcule bien, y es de sobra para "desde $70.000" en una sola línea. */}
-        <div className="relative w-44">
+            calcule bien. En compacto se reduce (112px) junto con la tipografía
+            para que "desde 20 unidades" siga entrando en la columna angosta
+            del costado del carrito sin desbordar el borde de la tarjeta. */}
+        <div className={`relative ${compact ? "w-28" : "w-44"}`}>
           {sorted.map((tier, i) => (
             <div
               key={tier.min_quantity}
               className="absolute left-0 right-0 flex flex-col justify-center"
               style={{ bottom: `${positions[i]}%`, transform: "translateY(50%)" }}
             >
-              <span className="text-lg font-bold text-primary leading-tight">{tier.discount_percent}% OFF</span>
-              <span className="text-sm text-muted-foreground leading-tight">
+              <span className={`font-bold text-primary leading-tight ${compact ? "text-sm" : "text-lg"}`}>
+                {tier.discount_percent}% OFF
+              </span>
+              <span className={`text-muted-foreground leading-tight ${compact ? "text-xs" : "text-sm"}`}>
                 desde {tier.min_quantity} {tier.min_quantity === 1 ? "unidad" : "unidades"}
               </span>
             </div>

@@ -176,6 +176,7 @@ export function CartPageContent() {
         {discountProgress.tiers.length > 0 && (
           <WholesaleTierJourney
             tiers={discountProgress.tiers}
+            compact
             className="w-full lg:w-56 shrink-0"
           />
         )}
