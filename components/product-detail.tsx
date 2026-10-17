@@ -15,6 +15,7 @@ import { ProductPrice } from "@/components/product-price";
 import { TransferDiscountBadge } from "@/components/transfer-discount-badge";
 import { RelatedByTheme } from "@/components/related-by-theme";
 import { ProductDiscountTease } from "@/components/product-discount-tease";
+import { ProductPromoCarousel } from "@/components/product-promo-carousel";
 
 interface Props {
   brand: BrandType;
@@ -329,6 +330,7 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
                 </button>
               </>
             )}
+            <ProductPromoCarousel brand={brand} product={product} qty={qty} variant={effectiveVariant} />
           </div>
           {images.length > 1 && (
             <div className="grid grid-cols-4 gap-2">
@@ -365,11 +367,6 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
             </span>
           )}
 
-          {/* "¡Llevá más, pagá menos!" — arriba del nombre de categoría, ver
-              `ProductDiscountTease` (usa el monto real del carrito, no un
-              mecanismo por cantidad de unidades). */}
-          <ProductDiscountTease brand={brand} product={product} qty={qty} />
-
           {product.category && (
             <Link
               href={`/${brand.slug}/shop?category=${product.category.slug}`}
@@ -385,6 +382,11 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
             <ProductPrice product={product} size="lg" variant={effectiveVariant} />
             <FavoriteButton product={product} size="md" />
           </div>
+
+          {/* "¡Llevá más, pagá menos!" — debajo del precio, justo arriba del
+              selector de Talle (ver `ProductDiscountTease`, usa el monto real
+              del carrito, no un mecanismo por cantidad de unidades). */}
+          <ProductDiscountTease brand={brand} product={product} qty={qty} />
 
           {hasTalleSelector && (
             <TalleSelector
