@@ -11,6 +11,7 @@ import { ShippingEstimator, type ShippingEstimate } from "@/components/shipping-
 import { type ShippingAddress, isShippingAddressComplete } from "@/types/shipping";
 import { CartDiscountProgress } from "@/components/cart-discount-progress";
 import { CartUpsellCarousel } from "@/components/cart-upsell-carousel";
+import { WholesaleTierJourney } from "@/components/lumy/wholesale-tier-journey";
 import Image from "next/image";
 import Link from "next/link";
 import { Trash2, Minus, Plus, ShoppingBag, Loader2 } from "lucide-react";
@@ -79,7 +80,7 @@ async function createMpPreference(
 // ver lib/brand-context.ts), así que no hace falta agrupar/mostrar por marca
 // como antes: se muestran directamente los items y un solo botón de pago.
 export function CartPageContent() {
-  const { items, subtotal, total, discountPercent, discountAmount, clearCart, removeItem, updateQuantity, getUnitPrice } = useCart();
+  const { items, subtotal, total, discountPercent, discountAmount, discountProgress, clearCart, removeItem, updateQuantity, getUnitPrice } = useCart();
   const { user, token, isAuthenticated } = useAuth();
   const brandSlug = useBrandNamespace();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -145,7 +146,7 @@ export function CartPageContent() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
+    <div className="max-w-6xl mx-auto px-4 py-12">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">
           Carrito{" "}
@@ -167,154 +168,175 @@ export function CartPageContent() {
         </div>
       )}
 
-      <div className="border border-border rounded-2xl overflow-hidden bg-card mb-8">
-        <div className="divide-y divide-border">
-          {items.map((item) => {
-            const { product, variant, quantity } = item;
-            const unit = getUnitPrice(item);
-            const listPrice = Number(variant?.price ?? product.price);
-            return (
-              <div key={`${product.id}:${variant?.id ?? ""}`} className="flex gap-4 p-4">
-                <div className="w-16 h-16 bg-muted rounded-xl overflow-hidden shrink-0 relative">
-                  {product.images?.[0]?.image ? (
-                    <Image
-                      src={cloudinaryUrl(resolveMediaUrl(product.images[0].image), 150)!}
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-xl">📦</div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm truncate">{product.name}</p>
-                  {product.category && (
-                    <p className="text-xs text-muted-foreground">{product.category.name}</p>
-                  )}
-                  {variant && (
-                    <p className="text-xs text-muted-foreground">Talle: {variantLabel(variant)}</p>
-                  )}
-                  <p className="text-primary font-bold text-sm mt-0.5 flex items-baseline gap-1.5">
-                    $ {unit.toLocaleString("es-AR")}
-                    {unit < listPrice && (
-                      <span className="text-[11px] font-normal text-muted-foreground line-through">
-                        $ {listPrice.toLocaleString("es-AR")}
-                      </span>
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        {/* Mapa de tramos de descuento (todos los escalones, no solo el
+            próximo como `CartDiscountProgress`) — mismo ancho que la columna
+            de sugerencias de la derecha, a la izquierda del rectángulo del
+            carrito. */}
+        {discountProgress.tiers.length > 0 && (
+          <WholesaleTierJourney
+            tiers={discountProgress.tiers}
+            className="w-full lg:w-56 shrink-0"
+          />
+        )}
+
+        <div className="border border-border rounded-2xl overflow-hidden bg-card mb-8 flex-1 min-w-0">
+          <div className="divide-y divide-border">
+            {items.map((item) => {
+              const { product, variant, quantity } = item;
+              const unit = getUnitPrice(item);
+              const listPrice = Number(variant?.price ?? product.price);
+              return (
+                <div key={`${product.id}:${variant?.id ?? ""}`} className="flex gap-4 p-4">
+                  <div className="w-16 h-16 bg-muted rounded-xl overflow-hidden shrink-0 relative">
+                    {product.images?.[0]?.image ? (
+                      <Image
+                        src={cloudinaryUrl(resolveMediaUrl(product.images[0].image), 150)!}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center text-xl">📦</div>
                     )}
-                  </p>
-                </div>
-                <div className="flex flex-col items-end gap-2 shrink-0">
-                  <button
-                    onClick={() => removeItem(product.id, variant?.id ?? null)}
-                    className="text-muted-foreground hover:text-destructive transition-colors"
-                    aria-label="Eliminar"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                  <div className="flex items-center border border-border rounded-lg overflow-hidden text-sm">
-                    <button
-                      onClick={() => updateQuantity(product.id, quantity - 1, variant?.id ?? null)}
-                      className="px-2 py-1 hover:bg-muted transition-colors"
-                      aria-label="Restar"
-                    >
-                      <Minus className="w-3 h-3" />
-                    </button>
-                    <span className="px-2.5 py-1 font-medium min-w-[2rem] text-center text-sm">
-                      {quantity}
-                    </span>
-                    <button
-                      onClick={() => updateQuantity(product.id, quantity + 1, variant?.id ?? null)}
-                      className="px-2 py-1 hover:bg-muted transition-colors"
-                      aria-label="Sumar"
-                    >
-                      <Plus className="w-3 h-3" />
-                    </button>
                   </div>
-                  <p className="text-xs font-semibold">
-                    $ {Number(unit * quantity).toLocaleString("es-AR")}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-base truncate">{product.name}</p>
+                    {product.category && (
+                      <p className="text-sm text-muted-foreground">{product.category.name}</p>
+                    )}
+                    {variant && (
+                      <p className="text-sm text-muted-foreground">Talle: {variantLabel(variant)}</p>
+                    )}
+                    <p className="text-primary font-bold text-base mt-0.5 flex items-baseline gap-1.5">
+                      $ {unit.toLocaleString("es-AR")}
+                      {unit < listPrice && (
+                        <span className="text-xs font-normal text-muted-foreground line-through">
+                          $ {listPrice.toLocaleString("es-AR")}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    <button
+                      onClick={() => removeItem(product.id, variant?.id ?? null)}
+                      className="text-muted-foreground hover:text-destructive transition-colors"
+                      aria-label="Eliminar"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <div className="flex items-center border border-border rounded-lg overflow-hidden text-base">
+                      <button
+                        onClick={() => updateQuantity(product.id, quantity - 1, variant?.id ?? null)}
+                        className="px-2 py-1 hover:bg-muted transition-colors"
+                        aria-label="Restar"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="px-2.5 py-1 font-medium min-w-[2rem] text-center text-base">
+                        {quantity}
+                      </span>
+                      <button
+                        onClick={() => updateQuantity(product.id, quantity + 1, variant?.id ?? null)}
+                        className="px-2 py-1 hover:bg-muted transition-colors"
+                        aria-label="Sumar"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <p className="text-sm font-semibold">
+                      $ {Number(unit * quantity).toLocaleString("es-AR")}
+                    </p>
+                  </div>
                 </div>
+              );
+            })}
+          </div>
+
+          <div className="px-4 py-4 border-t border-border bg-muted/20">
+            <div className="mb-4">
+              <CartDiscountProgress />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                Envío
+              </label>
+              <ShippingEstimator
+                items={items}
+                subtotal={total}
+                onEstimateChange={setShippingEstimate}
+                onAddressChange={setAddress}
+              />
+            </div>
+            {!isAuthenticated && (
+              <div className="mb-4">
+                <label className="block text-sm font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                  Email para tu compra
+                </label>
+                <input
+                  type="email"
+                  value={guestEmail}
+                  onChange={(e) => setGuestEmail(e.target.value)}
+                  placeholder="tu@email.com"
+                  className="w-full h-11 bg-card text-base outline-none border border-border rounded-xl px-4 focus:border-primary transition-colors"
+                />
+                <p className="text-sm text-muted-foreground mt-1.5">
+                  No hace falta crear una cuenta — te mandamos la confirmación de compra a este email.
+                </p>
               </div>
-            );
-          })}
+            )}
+            <div className="flex justify-between items-center text-base text-muted-foreground mb-1">
+              <span>Subtotal</span>
+              <span>$ {Number(subtotal).toLocaleString("es-AR")}</span>
+            </div>
+            {discountAmount > 0 && (
+              <div className="flex justify-between items-center text-base text-emerald-600 mb-1 font-semibold">
+                <span>Descuento ({discountPercent}%)</span>
+                <span>- $ {Number(discountAmount).toLocaleString("es-AR")}</span>
+              </div>
+            )}
+            <div className="flex justify-between items-center text-base text-muted-foreground mb-3">
+              <span>Envío</span>
+              <span>
+                {shippingEstimate
+                  ? shippingEstimate.cost > 0
+                    ? `$ ${shippingEstimate.cost.toLocaleString("es-AR")}`
+                    : "Gratis"
+                  : "A calcular"}
+              </span>
+            </div>
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-base font-semibold text-muted-foreground">Total</span>
+              <span className="font-bold text-xl">
+                $ {Number(total + (shippingEstimate?.cost ?? 0)).toLocaleString("es-AR")}
+              </span>
+            </div>
+            <button
+              onClick={handleCheckout}
+              disabled={checkoutLoading || !canCheckout}
+              className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3 rounded-full font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {checkoutLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Redirigiendo...
+                </>
+              ) : (
+                <>Pagar con MercadoPago</>
+              )}
+            </button>
+          </div>
         </div>
 
-        <div className="px-4 py-4 border-t border-border bg-muted/20">
-          <div className="mb-4">
-            <CartDiscountProgress />
-          </div>
-          <CartUpsellCarousel brandSlug={brandSlug} className="mb-4" />
-          <div className="mb-4">
-            <label className="block text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
-              Envío
-            </label>
-            <ShippingEstimator
-              items={items}
-              subtotal={total}
-              onEstimateChange={setShippingEstimate}
-              onAddressChange={setAddress}
-            />
-          </div>
-          {!isAuthenticated && (
-            <div className="mb-4">
-              <label className="block text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
-                Email para tu compra
-              </label>
-              <input
-                type="email"
-                value={guestEmail}
-                onChange={(e) => setGuestEmail(e.target.value)}
-                placeholder="tu@email.com"
-                className="w-full h-11 bg-card text-sm outline-none border border-border rounded-xl px-4 focus:border-primary transition-colors"
-              />
-              <p className="text-[11px] text-muted-foreground mt-1.5">
-                No hace falta crear una cuenta — te mandamos la confirmación de compra a este email.
-              </p>
-            </div>
-          )}
-          <div className="flex justify-between items-center text-sm text-muted-foreground mb-1">
-            <span>Subtotal</span>
-            <span>$ {Number(subtotal).toLocaleString("es-AR")}</span>
-          </div>
-          {discountAmount > 0 && (
-            <div className="flex justify-between items-center text-sm text-emerald-600 mb-1">
-              <span>Descuento ({discountPercent}%)</span>
-              <span>- $ {Number(discountAmount).toLocaleString("es-AR")}</span>
-            </div>
-          )}
-          <div className="flex justify-between items-center text-sm text-muted-foreground mb-3">
-            <span>Envío</span>
-            <span>
-              {shippingEstimate
-                ? shippingEstimate.cost > 0
-                  ? `$ ${shippingEstimate.cost.toLocaleString("es-AR")}`
-                  : "Gratis"
-                : "A calcular"}
-            </span>
-          </div>
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-sm text-muted-foreground">Total</span>
-            <span className="font-bold">
-              $ {Number(total + (shippingEstimate?.cost ?? 0)).toLocaleString("es-AR")}
-            </span>
-          </div>
-          <button
-            onClick={handleCheckout}
-            disabled={checkoutLoading || !canCheckout}
-            className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3 rounded-full font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {checkoutLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Redirigiendo...
-              </>
-            ) : (
-              <>Pagar con MercadoPago</>
-            )}
-          </button>
-        </div>
+        {/* Afuera del rectángulo de checkout a propósito — es una sugerencia
+            adicional, no parte del resumen de compra (ver feedback: quedaba
+            mal metida dentro del mismo footer que envío/pago). */}
+        <CartUpsellCarousel
+          brandSlug={brandSlug}
+          orientation="vertical"
+          className="w-full lg:w-56 shrink-0 border border-border rounded-2xl bg-card p-4"
+        />
       </div>
 
       <p className="text-center text-xs text-muted-foreground mt-6">

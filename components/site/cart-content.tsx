@@ -14,6 +14,7 @@ import { ShippingEstimator, type ShippingEstimate } from "@/components/shipping-
 import { type ShippingAddress, isShippingAddressComplete } from "@/types/shipping";
 import { CartDiscountProgress } from "@/components/cart-discount-progress";
 import { CartUpsellCarousel } from "@/components/cart-upsell-carousel";
+import { WholesaleTierJourney } from "@/components/lumy/wholesale-tier-journey";
 import { QuantityStepper } from "@/components/site/commerce";
 import { ImageSlot, SpecLabel, buttonClass } from "@/components/site/core";
 
@@ -35,9 +36,9 @@ const EMPTY_ADDRESS: ShippingAddress = {
 // Clases "ink" (sistema de diseño propio de 3DARG) para que el form de
 // dirección se vea igual que el resto del carrito, en vez del estilo
 // genérico shadcn que trae por default (ver ShippingAddressForm).
-const INK_LABEL_CLS = "font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--text-faint)]";
+const INK_LABEL_CLS = "font-mono text-xs uppercase tracking-[var(--tracking-label)] text-[var(--text-faint)]";
 const INK_INPUT_CLS =
-  "w-full h-10 bg-[var(--surface-card)] text-sm outline-none border border-[var(--border-input)] rounded-[var(--radius-lg)] px-3 focus:border-[var(--ink-900)] transition-colors";
+  "w-full h-10 bg-[var(--surface-card)] text-base outline-none border border-[var(--border-input)] rounded-[var(--radius-lg)] px-3 focus:border-[var(--ink-900)] transition-colors";
 
 function fmt(n: number) {
   return "$ " + Number(n).toLocaleString("es-AR");
@@ -86,7 +87,7 @@ async function createMpPreference(
 
 /** Carrito de la marca madre 3DARG — misma lógica de CartContext/checkout que el resto del sitio, capa visual del handoff. */
 export function SiteCartContent() {
-  const { items, subtotal, total, discountPercent, discountAmount, clearCart, removeItem, updateQuantity, getUnitPrice } = useCart();
+  const { items, subtotal, total, discountPercent, discountAmount, discountProgress, clearCart, removeItem, updateQuantity, getUnitPrice } = useCart();
   const { user, token, isAuthenticated } = useAuth();
   const brandSlug = useBrandNamespace();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -148,7 +149,7 @@ export function SiteCartContent() {
   }
 
   return (
-    <div className="max-w-[920px] mx-auto px-[var(--gutter)] py-[var(--section-y)]">
+    <div className="max-w-[1180px] mx-auto px-[var(--gutter)] py-[var(--section-y)]">
       <div className="flex items-center justify-between mb-2">
         <SpecLabel index={1}>Carrito</SpecLabel>
         <button onClick={clearCart} className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--text-muted)] hover:text-[var(--signal-error)] transition-colors">
@@ -165,120 +166,129 @@ export function SiteCartContent() {
         <div className="mb-6 p-4 rounded-[var(--radius-lg)] bg-[var(--signal-error-soft)] text-[var(--signal-error)] text-sm">{checkoutError}</div>
       )}
 
-      <div className="border border-[var(--border-hairline)] rounded-[var(--radius-2xl)] overflow-hidden">
-        <div className="px-5 py-3 bg-[var(--surface-inset)] border-b border-[var(--border-hairline)] flex items-center justify-between">
-          <span className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)]">{brandSlug}</span>
-          <span className="font-mono text-[11px] text-[var(--text-muted)]">{itemCount} ítem{itemCount !== 1 ? "s" : ""}</span>
-        </div>
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className="border border-[var(--border-hairline)] rounded-[var(--radius-2xl)] overflow-hidden flex-1 min-w-0">
+          <div className="px-5 py-3 bg-[var(--surface-inset)] border-b border-[var(--border-hairline)] flex items-center justify-between">
+            <span className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)]">{brandSlug}</span>
+            <span className="font-mono text-[11px] text-[var(--text-muted)]">{itemCount} ítem{itemCount !== 1 ? "s" : ""}</span>
+          </div>
 
-        <div className="divide-y divide-[var(--border-hairline)]">
-          {items.map((item) => {
-            const { product, variant, quantity } = item;
-            const unit = getUnitPrice(item);
-            const img = cloudinaryUrl(resolveMediaUrl(product.images?.[0]?.image), 150);
-            return (
-              <div key={`${product.id}:${variant?.id ?? ""}`} className="flex gap-4 p-4 items-center">
-                <div className="relative w-16 h-16 shrink-0 rounded-[var(--radius-lg)] overflow-hidden bg-[var(--surface-inset)]">
-                  {img ? (
-                    <Image src={img} alt={product.name} fill unoptimized className="object-contain p-1.5" />
-                  ) : (
-                    <ImageSlot className="absolute inset-0" />
-                  )}
+          <div className="divide-y divide-[var(--border-hairline)]">
+            {items.map((item) => {
+              const { product, variant, quantity } = item;
+              const unit = getUnitPrice(item);
+              const img = cloudinaryUrl(resolveMediaUrl(product.images?.[0]?.image), 150);
+              return (
+                <div key={`${product.id}:${variant?.id ?? ""}`} className="flex gap-4 p-4 items-center">
+                  <div className="relative w-16 h-16 shrink-0 rounded-[var(--radius-lg)] overflow-hidden bg-[var(--surface-inset)]">
+                    {img ? (
+                      <Image src={img} alt={product.name} fill unoptimized className="object-contain p-1.5" />
+                    ) : (
+                      <ImageSlot className="absolute inset-0" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-base truncate text-[var(--text-strong)]">{product.name}</p>
+                    <p className="font-mono text-xs text-[var(--text-faint)] uppercase tracking-[var(--tracking-mono)]">
+                      {[brandSlug, product.category?.name, variant ? variantLabel(variant) : null].filter(Boolean).join(" · ")}
+                    </p>
+                  </div>
+                  <QuantityStepper size="sm" value={quantity} onChange={(n) => updateQuantity(product.id, n, variant?.id ?? null)} />
+                  <span className="font-mono text-base font-bold tabular-nums w-24 text-right shrink-0">{fmt(unit * quantity)}</span>
+                  <button onClick={() => removeItem(product.id, variant?.id ?? null)} aria-label="Eliminar" className="text-[var(--text-faint)] hover:text-[var(--signal-error)] transition-colors shrink-0">
+                    <Trash2 size={16} strokeWidth={1.5} />
+                  </button>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-sm truncate text-[var(--text-strong)]">{product.name}</p>
-                  <p className="font-mono text-[11px] text-[var(--text-faint)] uppercase tracking-[var(--tracking-mono)]">
-                    {[brandSlug, product.category?.name, variant ? variantLabel(variant) : null].filter(Boolean).join(" · ")}
-                  </p>
-                </div>
-                <QuantityStepper size="sm" value={quantity} onChange={(n) => updateQuantity(product.id, n, variant?.id ?? null)} />
-                <span className="font-mono text-sm font-bold tabular-nums w-24 text-right shrink-0">{fmt(unit * quantity)}</span>
-                <button onClick={() => removeItem(product.id, variant?.id ?? null)} aria-label="Eliminar" className="text-[var(--text-faint)] hover:text-[var(--signal-error)] transition-colors shrink-0">
-                  <Trash2 size={16} strokeWidth={1.5} />
-                </button>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
 
-        <div className="p-4 border-t border-[var(--border-hairline)]">
-          <div className="mb-4">
-            <CartDiscountProgress />
-          </div>
-          <CartUpsellCarousel brandSlug={brandSlug} className="mb-4" />
-          <div className="mb-4">
-            <span className={`${INK_LABEL_CLS} block mb-2`}>Envío</span>
-            <ShippingEstimator
-              items={items}
-              subtotal={total}
-              onEstimateChange={setShippingEstimate}
-              onAddressChange={setAddress}
-              labelClassName={INK_LABEL_CLS}
-              inputClassName={INK_INPUT_CLS}
-            />
-          </div>
-        </div>
-
-        {/* Total en panel ink */}
-        <div className="bg-[var(--ink-900)] text-[var(--bone-050)] px-5 py-4">
-          <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--ink-400)] mb-1">
-            <span>Subtotal</span>
-            <span>{fmt(Number(subtotal))}</span>
-          </div>
-          {discountAmount > 0 && (
-            <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-emerald-400 mb-1">
-              <span>Descuento ({discountPercent}%)</span>
-              <span>- {fmt(Number(discountAmount))}</span>
-            </div>
-          )}
-          <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--ink-400)] mb-3">
-            <span>Envío</span>
-            <span>
-              {shippingEstimate ? (shippingEstimate.cost > 0 ? fmt(shippingEstimate.cost) : "Gratis") : "A calcular"}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--ink-400)]">Total</span>
-            <span className="font-display" style={{ fontSize: "clamp(30px,3.4vw,42px)", lineHeight: 1 }}>
-              {fmt(total + (shippingEstimate?.cost ?? 0))}
-            </span>
-          </div>
-        </div>
-
-        <div className="p-4">
-          {!isAuthenticated && (
+          <div className="p-4 border-t border-[var(--border-hairline)]">
             <div className="mb-4">
-              <label className="block font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--text-faint)] mb-2">
-                Email para tu compra
-              </label>
-              <input
-                type="email"
-                value={guestEmail}
-                onChange={(e) => setGuestEmail(e.target.value)}
-                placeholder="tu@email.com"
-                className="w-full h-11 bg-[var(--surface-card)] text-sm outline-none border border-[var(--border-input)] rounded-[var(--radius-lg)] px-4 focus:border-[var(--ink-900)] transition-colors"
-              />
-              <p className="text-[11px] text-[var(--text-faint)] mt-1.5">
-                No hace falta crear una cuenta — te mandamos la confirmación de compra a este email.
-              </p>
+              <CartDiscountProgress />
             </div>
-          )}
-          <button
-            onClick={handleCheckout}
-            disabled={checkoutLoading || !canCheckout}
-            className={buttonClass("ember", "lg", true)}
-          >
-            {checkoutLoading ? (
-              <>
-                <Loader2 size={16} className="animate-spin" /> Redirigiendo...
-              </>
-            ) : (
-              <>
-                <CreditCard size={16} strokeWidth={1.5} /> Finalizar compra
-              </>
+            <div className="mb-4">
+              <span className={`${INK_LABEL_CLS} block mb-2`}>Envío</span>
+              <ShippingEstimator
+                items={items}
+                subtotal={total}
+                onEstimateChange={setShippingEstimate}
+                onAddressChange={setAddress}
+                labelClassName={INK_LABEL_CLS}
+                inputClassName={INK_INPUT_CLS}
+              />
+            </div>
+          </div>
+
+          {/* Total en panel ink */}
+          <div className="bg-[var(--ink-900)] text-[var(--bone-050)] px-5 py-4">
+            <div className="flex items-center justify-between font-mono text-xs uppercase tracking-[var(--tracking-label)] text-[var(--ink-400)] mb-1.5">
+              <span>Subtotal</span>
+              <span>{fmt(Number(subtotal))}</span>
+            </div>
+            {discountAmount > 0 && (
+              <div className="flex items-center justify-between font-mono text-xs uppercase tracking-[var(--tracking-label)] text-emerald-400 mb-1.5 font-bold">
+                <span>Descuento ({discountPercent}%)</span>
+                <span>- {fmt(Number(discountAmount))}</span>
+              </div>
             )}
-          </button>
+            <div className="flex items-center justify-between font-mono text-xs uppercase tracking-[var(--tracking-label)] text-[var(--ink-400)] mb-3">
+              <span>Envío</span>
+              <span>
+                {shippingEstimate ? (shippingEstimate.cost > 0 ? fmt(shippingEstimate.cost) : "Gratis") : "A calcular"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-xs uppercase tracking-[var(--tracking-label)] text-[var(--ink-400)]">Total</span>
+              <span className="font-display" style={{ fontSize: "clamp(30px,3.4vw,42px)", lineHeight: 1 }}>
+                {fmt(total + (shippingEstimate?.cost ?? 0))}
+              </span>
+            </div>
+          </div>
+
+          <div className="p-4">
+            {!isAuthenticated && (
+              <div className="mb-4">
+                <label className="block font-mono text-xs uppercase tracking-[var(--tracking-label)] text-[var(--text-faint)] mb-2">
+                  Email para tu compra
+                </label>
+                <input
+                  type="email"
+                  value={guestEmail}
+                  onChange={(e) => setGuestEmail(e.target.value)}
+                  placeholder="tu@email.com"
+                  className="w-full h-11 bg-[var(--surface-card)] text-base outline-none border border-[var(--border-input)] rounded-[var(--radius-lg)] px-4 focus:border-[var(--ink-900)] transition-colors"
+                />
+                <p className="text-xs text-[var(--text-faint)] mt-1.5">
+                  No hace falta crear una cuenta — te mandamos la confirmación de compra a este email.
+                </p>
+              </div>
+            )}
+            <button
+              onClick={handleCheckout}
+              disabled={checkoutLoading || !canCheckout}
+              className={buttonClass("ember", "lg", true)}
+            >
+              {checkoutLoading ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" /> Redirigiendo...
+                </>
+              ) : (
+                <>
+                  <CreditCard size={16} strokeWidth={1.5} /> Finalizar compra
+                </>
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* Afuera de la tarjeta de checkout a propósito — es una sugerencia
+            adicional, no parte del resumen de compra. */}
+        <CartUpsellCarousel
+          brandSlug={brandSlug}
+          orientation="vertical"
+          className="w-full lg:w-56 shrink-0 border border-[var(--border-hairline)] rounded-[var(--radius-2xl)] p-4"
+        />
       </div>
     </div>
   );

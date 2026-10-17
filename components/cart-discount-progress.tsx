@@ -27,38 +27,38 @@ export function CartDiscountProgress({ className }: Props) {
 
   return (
     <div className={className}>
-      <div className="flex items-center justify-between gap-2 text-xs mb-2">
+      <div className="flex items-center justify-between gap-2 text-sm mb-3">
         {current_discount_percent > 0 ? (
-          <span className="inline-flex items-center gap-1.5 text-emerald-600 font-semibold">
-            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+          <span className="inline-flex items-center gap-1.5 text-emerald-600 font-bold">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
             Tenés {current_discount_percent}% OFF aplicado
           </span>
         ) : (
-          <span className="text-muted-foreground">Descuento por cantidad de productos</span>
+          <span className="text-muted-foreground font-semibold">Descuento por cantidad de productos</span>
         )}
         {next_tier_discount_percent != null && quantity_to_next_tier != null && (
-          <span className="text-muted-foreground text-right shrink-0">
-            Faltan <strong className="text-foreground">{quantity_to_next_tier}</strong>{" "}
-            {quantity_to_next_tier === 1 ? "unidad" : "unidades"} para {next_tier_discount_percent}%
+          <span className="text-muted-foreground text-right shrink-0 font-semibold">
+            Faltan <strong className="text-foreground font-bold">{quantity_to_next_tier}</strong>{" "}
+            {quantity_to_next_tier === 1 ? "unidad" : "unidades"} para <strong className="text-foreground font-bold">{next_tier_discount_percent}%</strong>
           </span>
         )}
       </div>
 
-      <div className="relative h-2 rounded-full bg-muted overflow-hidden">
+      <div className="relative h-3 rounded-full bg-muted overflow-hidden">
         <div
           className="h-full bg-primary rounded-full transition-all duration-300"
           style={{ width: `${barPercent}%` }}
         />
       </div>
 
-      <div className="relative h-4 mt-1">
+      <div className="relative h-5 mt-1.5">
         {tiers.map((tier) => {
           const pos = Math.min(100, (tier.min_quantity / maxQuantity) * 100);
           const reached = count >= tier.min_quantity;
           return (
             <span
               key={tier.min_quantity}
-              className={`absolute -translate-x-1/2 text-[10px] font-semibold whitespace-nowrap ${
+              className={`absolute -translate-x-1/2 text-sm font-bold whitespace-nowrap ${
                 reached ? "text-primary" : "text-muted-foreground"
               }`}
               style={{ left: `${pos}%` }}
