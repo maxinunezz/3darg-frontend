@@ -1,5 +1,7 @@
 "use client";
 
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import { AR_PROVINCES, type ShippingAddress } from "@/types/shipping";
 
 const CORREO_ARGENTINO_CP_URL = "https://www.correoargentino.com.ar/formularios/cpa";
@@ -57,12 +59,12 @@ export function ShippingAddressForm({
 
       <label className="grid gap-1.5 col-span-2">
         <span className={labelClassName}>Teléfono</span>
-        <input
-          type="tel"
-          value={value.phone}
-          onChange={(e) => set("phone", e.target.value)}
-          placeholder="Tu teléfono de contacto"
-          className={inputClassName}
+        <PhoneInput
+          international
+          defaultCountry="AR"
+          value={value.phone || undefined}
+          onChange={(v) => set("phone", v ?? "")}
+          placeholder="Tu número de teléfono"
         />
       </label>
 

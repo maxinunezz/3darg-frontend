@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Loader2, CheckCircle2 } from "lucide-react";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import { apiUrl } from "@/lib/api";
 import { useBrandNamespace } from "@/lib/brand-context";
 import { tierBarPercent, CheckpointBar } from "@/components/checkpoint-bar";
@@ -552,12 +554,12 @@ export function ShippingEstimator({
                   </label>
                   <label className="grid gap-1.5 col-span-2">
                     <span className={labelClassName}>Teléfono</span>
-                    <input
-                      type="tel"
-                      value={sucursalPhone}
-                      onChange={(e) => setSucursalPhone(e.target.value)}
-                      placeholder="Tu teléfono de contacto"
-                      className={inputClassName}
+                    <PhoneInput
+                      international
+                      defaultCountry="AR"
+                      value={sucursalPhone || undefined}
+                      onChange={(v) => setSucursalPhone(v ?? "")}
+                      placeholder="Tu número de teléfono"
                     />
                   </label>
                   <label className="grid gap-1.5">
