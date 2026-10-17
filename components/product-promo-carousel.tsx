@@ -119,6 +119,13 @@ export function ProductPromoCarousel({ brand, product, qty, variant }: Props) {
           )}
         </p>
         {shippingCheckpoints.length > 1 ? (
+          // Labels cortos ("Sucursal"/"Domicilio", no "Gratis a sucursal"/
+          // "Gratis a domicilio" — el "gratis" ya está dicho arriba) a
+          // propósito: con 2 checkpoints los labels caen uno centrado al 50%
+          // y el otro pegado al borde derecho (ver `checkpoint-bar.tsx`), y
+          // como son `whitespace-nowrap`, con el texto largo se superponían
+          // entre sí dentro del ancho angosto de esta tarjeta — ver feedback
+          // de captura ("Gratis a sucursal" mezclado con "...is a domicilio").
           <CheckpointBar
             sortedValues={amounts}
             previewValue={previewSubtotal}
@@ -127,7 +134,7 @@ export function ProductPromoCarousel({ brand, product, qty, variant }: Props) {
               return (
                 <>
                   <span className={`text-[11px] font-bold whitespace-nowrap ${reached ? "text-primary" : "text-muted-foreground"}`}>
-                    Gratis a {checkpoint.modalidad}
+                    {checkpoint.modalidad === "sucursal" ? "Sucursal" : "Domicilio"}
                   </span>
                   <span className="text-[10px] font-bold text-muted-foreground whitespace-nowrap">{fmt(value)}</span>
                 </>
@@ -181,14 +188,17 @@ export function ProductPromoCarousel({ brand, product, qty, variant }: Props) {
 
   return (
     <div className="fixed inset-x-3 bottom-3 z-50 flex justify-center pointer-events-none">
-      {/* Sin max-w fijo en mobile (`sm:max-w-[280px]` recién entra desde
-          tablet/desktop): con un ancho chico fijo en pantallas angostas
-          quedaban ~35-70px de hueco a cada lado del contenedor `inset-x-3`,
+      {/* Sin max-w fijo hasta desktop (`lg:max-w-[320px]` recién entra a
+          partir de pantallas grandes): con un ancho chico fijo en mobile Y
+          tablet quedaba un hueco a cada lado del contenedor `inset-x-3`,
           dejando ver detrás contenido suelto (botón "Agregar al carrito",
           texto de envíos) que se mezclaba feo con el borde de la tarjeta —
-          ver feedback de captura. Full-width en mobile tapa esa franja
-          prolijamente, como una barra inferior de verdad. */}
-      <div className="w-full sm:max-w-[280px] bg-card text-foreground border border-border rounded-2xl shadow-2xl px-6 pt-4 pb-3 pointer-events-auto animate-in slide-in-from-bottom-full fade-in duration-700 ease-out">
+          ver feedback de captura, se seguía viendo incluso con el corte
+          original en `sm:` (640px). Full-width hasta `lg` tapa esa franja
+          prolijamente, como una barra inferior de verdad; en desktop grande
+          sí hay espacio de sobra alrededor y vuelve a verse como tarjeta
+          flotante compacta. */}
+      <div className="w-full lg:max-w-[320px] bg-card text-foreground border border-border rounded-2xl shadow-2xl px-6 pt-4 pb-3 pointer-events-auto animate-in slide-in-from-bottom-full fade-in duration-700 ease-out">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">{slides[safeIndex]}</div>
           <button

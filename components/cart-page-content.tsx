@@ -182,7 +182,11 @@ export function CartPageContent() {
         )}
 
         <div className="border border-border rounded-2xl overflow-hidden bg-card mb-8 flex-1 min-w-0">
-          <div className="divide-y divide-border">
+          {/* Más de ~4 productos no debe seguir agrandando el alto de la
+              tarjeta — a partir de ahí se vuelve scrolleable (mouse/touch/
+              scrollbar) dentro de una altura fija en vez de empujar el resto
+              del carrito hacia abajo. */}
+          <div className="divide-y divide-border max-h-[25rem] overflow-y-auto">
             {items.map((item) => {
               const { product, variant, quantity } = item;
               const unit = getUnitPrice(item);

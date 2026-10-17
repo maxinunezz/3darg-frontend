@@ -185,7 +185,11 @@ export function SiteCartContent() {
             <span className="font-mono text-[11px] text-[var(--text-muted)]">{itemCount} ítem{itemCount !== 1 ? "s" : ""}</span>
           </div>
 
-          <div className="divide-y divide-[var(--border-hairline)]">
+          {/* Más de ~4 productos no debe seguir agrandando el alto de la
+              tarjeta — a partir de ahí se vuelve scrolleable (mouse/touch/
+              scrollbar) dentro de una altura fija en vez de empujar el resto
+              del carrito hacia abajo. */}
+          <div className="divide-y divide-[var(--border-hairline)] max-h-[25rem] overflow-y-auto">
             {items.map((item) => {
               const { product, variant, quantity } = item;
               const unit = getUnitPrice(item);
