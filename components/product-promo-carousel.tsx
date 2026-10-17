@@ -181,7 +181,14 @@ export function ProductPromoCarousel({ brand, product, qty, variant }: Props) {
 
   return (
     <div className="fixed inset-x-3 bottom-3 z-50 flex justify-center pointer-events-none">
-      <div className="w-full max-w-[280px] bg-card text-foreground border border-border rounded-2xl shadow-2xl px-6 pt-4 pb-3 pointer-events-auto animate-in slide-in-from-bottom-full fade-in duration-700 ease-out">
+      {/* Sin max-w fijo en mobile (`sm:max-w-[280px]` recién entra desde
+          tablet/desktop): con un ancho chico fijo en pantallas angostas
+          quedaban ~35-70px de hueco a cada lado del contenedor `inset-x-3`,
+          dejando ver detrás contenido suelto (botón "Agregar al carrito",
+          texto de envíos) que se mezclaba feo con el borde de la tarjeta —
+          ver feedback de captura. Full-width en mobile tapa esa franja
+          prolijamente, como una barra inferior de verdad. */}
+      <div className="w-full sm:max-w-[280px] bg-card text-foreground border border-border rounded-2xl shadow-2xl px-6 pt-4 pb-3 pointer-events-auto animate-in slide-in-from-bottom-full fade-in duration-700 ease-out">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">{slides[safeIndex]}</div>
           <button

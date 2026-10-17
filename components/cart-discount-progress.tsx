@@ -51,20 +51,26 @@ export function CartDiscountProgress({ className }: Props) {
         />
       </div>
 
-      <div className="relative h-5 mt-1.5">
+      <div className="relative h-9 mt-1.5">
         {tiers.map((tier) => {
           const pos = Math.min(100, (tier.min_quantity / maxQuantity) * 100);
           const reached = count >= tier.min_quantity;
+          const isLast = tier.min_quantity === maxQuantity;
           return (
-            <span
+            <div
               key={tier.min_quantity}
-              className={`absolute -translate-x-1/2 text-sm font-bold whitespace-nowrap ${
-                reached ? "text-primary" : "text-muted-foreground"
-              }`}
-              style={{ left: `${pos}%` }}
+              className={`absolute flex flex-col ${isLast ? "right-0 items-end text-right" : "-translate-x-1/2 items-center"}`}
+              style={isLast ? undefined : { left: `${pos}%` }}
             >
-              {tier.discount_percent}%
-            </span>
+              <span
+                className={`text-sm font-bold whitespace-nowrap ${reached ? "text-primary" : "text-muted-foreground"}`}
+              >
+                {tier.discount_percent}% OFF
+              </span>
+              <span className="text-xs font-bold text-muted-foreground whitespace-nowrap">
+                {tier.min_quantity} un.
+              </span>
+            </div>
           );
         })}
       </div>
