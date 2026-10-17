@@ -6,7 +6,8 @@ import Link from "next/link";
 import { Package, Lock, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiUrl, cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
-import type { ProductType } from "@/types/product";
+import type { ProductType, ProductVariantType } from "@/types/product";
+import { variantLabel } from "@/lib/product-variant";
 import type { BrandType } from "@/types/brands";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { FavoriteButton } from "@/components/favorite-button";
@@ -161,6 +162,12 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
   // AddToCartButton) — se levanta acá para que ProductDiscountTease pueda
   // recalcular en vivo qué descuento correspondería al confirmar la compra.
   const [qty, setQty] = useState(1);
+  // Talle elegido en el selector de abajo (ver `TalleSelector`) — `null` hasta
+  // que el usuario elige o hasta resolver el default (primer talle por
+  // `order`). Se guarda solo el id: el objeto completo se deriva siempre del
+  // `product` vigente (ver `effectiveVariant` más abajo) para no quedar con
+  // datos de precio/stock stale cuando el producto se re-fetchea con token.
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
   // Si cambia el slug (producto nuevo), reseteamos a la primera imagen.
   // Ajuste de estado durante el render (patrón recomendado por React para
   // "resetear estado cuando cambia una prop") en vez de un useEffect, que
@@ -170,6 +177,7 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
     setPrevSlug(slug);
     setActiveImage(0);
     setQty(1);
+    setSelectedVariantId(null);
   }
 
   useEffect(() => {
@@ -230,7 +238,23 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
     );
   }
 
-  const inStock = product.is_available && product.stock > 0;
+  // Talles reales (ver `ProductVariant` en el backend) — [] o 1 solo talle =
+  // comportamiento histórico, sin selector (Fase 1: ese único talle ya
+  // espeja el precio/stock del `product`, así que mostrar el selector no
+  // aportaría nada). Con 2+ se ofrece elegir. Default: el primero CON STOCK
+  // (no literal el primero por `order`) — así un talle placeholder "Chico"/
+  // "Grande" sin stock real nunca queda preseleccionado dejando la ficha en
+  // "Sin stock" cuando el talle que sí se vende (ej. "Mediano") tiene stock.
+  // Si ninguno tiene stock, cae al primero por `order` nomás.
+  const variants = product.variants ?? [];
+  const hasTalleSelector = variants.length > 1;
+  const sortedVariants = hasTalleSelector ? [...variants].sort((a, b) => a.order - b.order) : variants;
+  const defaultVariant = sortedVariants.find((v) => v.stock > 0) ?? sortedVariants[0];
+  const effectiveVariant: ProductVariantType | null = hasTalleSelector
+    ? sortedVariants.find((v) => v.id === selectedVariantId) ?? defaultVariant
+    : variants[0] ?? null;
+
+  const inStock = product.is_available && (effectiveVariant ? effectiveVariant.stock > 0 : product.stock > 0);
   const images = product.images ?? [];
   const safeActiveImage = images.length > 0 ? Math.min(activeImage, images.length - 1) : 0;
   const mainImage = cloudinaryUrl(resolveMediaUrl(images[safeActiveImage]?.image), 800);
@@ -358,9 +382,20 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
           <h1 className="text-3xl md:text-4xl font-bold leading-tight">{product.name}</h1>
 
           <div className="flex items-center gap-3">
-            <ProductPrice product={product} size="lg" />
+            <ProductPrice product={product} size="lg" variant={effectiveVariant} />
             <FavoriteButton product={product} size="md" />
           </div>
+
+          {hasTalleSelector && (
+            <TalleSelector
+              variants={sortedVariants}
+              selectedId={effectiveVariant?.id ?? null}
+              onSelect={(id) => {
+                setSelectedVariantId(id);
+                setQty(1); // el stock tope cambia por talle, evita arrastrar una cantidad inválida
+              }}
+            />
+          )}
 
           {/* Stock indicator: solo se avisa cuando NO hay stock, no se muestra la cantidad exacta */}
           {!inStock && (
@@ -382,6 +417,7 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
               secondaryAction={<MayoristasButton brandSlug={brand.slug} />}
               qty={qty}
               onQtyChange={setQty}
+              variant={effectiveVariant}
             />
           </div>
 
@@ -448,5 +484,58 @@ function MayoristasButton({ brandSlug }: { brandSlug: string }) {
     >
       Mayoristas
     </Link>
+  );
+}
+
+/**
+ * Selector de talle (`ProductVariant`, ej. Chico/Mediano/Grande) — pill
+ * buttons, uno por variante, ordenados por `order`. Cada talle puede tener
+ * precio y stock propios (`ProductPrice`/`AddToCartButton` ya leen la
+ * variante elegida, ver `ProductDetail` más arriba), así que se muestra el
+ * precio de cada opción dentro de la pill para que el cambio de precio al
+ * cambiar de talle no sea una sorpresa. Un talle sin stock se muestra
+ * tachado/deshabilitado, no se oculta (igual criterio que "Sin stock" en el
+ * resto de la ficha).
+ */
+function TalleSelector({
+  variants,
+  selectedId,
+  onSelect,
+}: {
+  variants: ProductVariantType[];
+  selectedId: number | null;
+  onSelect: (id: number) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-sm font-medium">Talle</span>
+      <div className="flex flex-wrap gap-2">
+        {variants.map((variant) => {
+          const isSelected = variant.id === selectedId;
+          const outOfStock = variant.stock <= 0;
+          return (
+            <button
+              key={variant.id}
+              type="button"
+              disabled={outOfStock}
+              onClick={() => onSelect(variant.id)}
+              aria-pressed={isSelected}
+              className={`flex flex-col items-center gap-0.5 rounded-xl border-2 px-4 py-2 text-sm font-semibold transition-colors ${
+                isSelected
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border hover:border-primary/50"
+              } ${outOfStock ? "opacity-40 line-through cursor-not-allowed" : ""}`}
+            >
+              <span>{variantLabel(variant)}</span>
+              {!outOfStock && (
+                <span className={`text-xs font-normal ${isSelected ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                  $ {Number(variant.final_price ?? variant.price).toLocaleString("es-AR")}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }

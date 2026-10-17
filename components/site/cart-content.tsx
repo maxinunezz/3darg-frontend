@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useBrandNamespace } from "@/lib/brand-context";
 import type { CartItem } from "@/contexts/CartContext";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
+import { variantLabel } from "@/lib/product-variant";
 import { ShippingEstimator, type ShippingEstimate } from "@/components/shipping-estimator";
 import { type ShippingAddress, isShippingAddressComplete } from "@/types/shipping";
 import { CartDiscountProgress } from "@/components/cart-discount-progress";
@@ -69,7 +70,11 @@ async function createMpPreference(
       department: address.department ?? "",
       city: address.city ?? "",
       agency_id: shippingEstimate?.agencyId || address.agencyId || "",
-      items: items.map(({ product, quantity }) => ({ product_id: product.id, quantity })),
+      items: items.map(({ product, variant, quantity }) => ({
+        product_id: product.id,
+        variant_id: variant?.id ?? null,
+        quantity,
+      })),
     }),
   });
   if (!res.ok) {
@@ -168,11 +173,11 @@ export function SiteCartContent() {
 
         <div className="divide-y divide-[var(--border-hairline)]">
           {items.map((item) => {
-            const { product, quantity } = item;
+            const { product, variant, quantity } = item;
             const unit = getUnitPrice(item);
             const img = cloudinaryUrl(resolveMediaUrl(product.images?.[0]?.image), 150);
             return (
-              <div key={product.id} className="flex gap-4 p-4 items-center">
+              <div key={`${product.id}:${variant?.id ?? ""}`} className="flex gap-4 p-4 items-center">
                 <div className="relative w-16 h-16 shrink-0 rounded-[var(--radius-lg)] overflow-hidden bg-[var(--surface-inset)]">
                   {img ? (
                     <Image src={img} alt={product.name} fill unoptimized className="object-contain p-1.5" />
@@ -183,12 +188,12 @@ export function SiteCartContent() {
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-sm truncate text-[var(--text-strong)]">{product.name}</p>
                   <p className="font-mono text-[11px] text-[var(--text-faint)] uppercase tracking-[var(--tracking-mono)]">
-                    {[brandSlug, product.category?.name].filter(Boolean).join(" · ")}
+                    {[brandSlug, product.category?.name, variant ? variantLabel(variant) : null].filter(Boolean).join(" · ")}
                   </p>
                 </div>
-                <QuantityStepper size="sm" value={quantity} onChange={(n) => updateQuantity(product.id, n)} />
+                <QuantityStepper size="sm" value={quantity} onChange={(n) => updateQuantity(product.id, n, variant?.id ?? null)} />
                 <span className="font-mono text-sm font-bold tabular-nums w-24 text-right shrink-0">{fmt(unit * quantity)}</span>
-                <button onClick={() => removeItem(product.id)} aria-label="Eliminar" className="text-[var(--text-faint)] hover:text-[var(--signal-error)] transition-colors shrink-0">
+                <button onClick={() => removeItem(product.id, variant?.id ?? null)} aria-label="Eliminar" className="text-[var(--text-faint)] hover:text-[var(--signal-error)] transition-colors shrink-0">
                   <Trash2 size={16} strokeWidth={1.5} />
                 </button>
               </div>

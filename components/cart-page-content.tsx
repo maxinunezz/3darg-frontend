@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useBrandNamespace } from "@/lib/brand-context";
 import type { CartItem } from "@/contexts/CartContext";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
+import { variantLabel } from "@/lib/product-variant";
 import { ShippingEstimator, type ShippingEstimate } from "@/components/shipping-estimator";
 import { type ShippingAddress, isShippingAddressComplete } from "@/types/shipping";
 import { CartDiscountProgress } from "@/components/cart-discount-progress";
@@ -56,8 +57,9 @@ async function createMpPreference(
       department: address.department ?? "",
       city: address.city ?? "",
       agency_id: shippingEstimate?.agencyId || address.agencyId || "",
-      items: items.map(({ product, quantity }) => ({
+      items: items.map(({ product, variant, quantity }) => ({
         product_id: product.id,
+        variant_id: variant?.id ?? null,
         quantity,
       })),
     }),
@@ -168,10 +170,11 @@ export function CartPageContent() {
       <div className="border border-border rounded-2xl overflow-hidden bg-card mb-8">
         <div className="divide-y divide-border">
           {items.map((item) => {
-            const { product, quantity } = item;
+            const { product, variant, quantity } = item;
             const unit = getUnitPrice(item);
+            const listPrice = Number(variant?.price ?? product.price);
             return (
-              <div key={product.id} className="flex gap-4 p-4">
+              <div key={`${product.id}:${variant?.id ?? ""}`} className="flex gap-4 p-4">
                 <div className="w-16 h-16 bg-muted rounded-xl overflow-hidden shrink-0 relative">
                   {product.images?.[0]?.image ? (
                     <Image
@@ -190,18 +193,21 @@ export function CartPageContent() {
                   {product.category && (
                     <p className="text-xs text-muted-foreground">{product.category.name}</p>
                   )}
+                  {variant && (
+                    <p className="text-xs text-muted-foreground">Talle: {variantLabel(variant)}</p>
+                  )}
                   <p className="text-primary font-bold text-sm mt-0.5 flex items-baseline gap-1.5">
                     $ {unit.toLocaleString("es-AR")}
-                    {unit < Number(product.price) && (
+                    {unit < listPrice && (
                       <span className="text-[11px] font-normal text-muted-foreground line-through">
-                        $ {Number(product.price).toLocaleString("es-AR")}
+                        $ {listPrice.toLocaleString("es-AR")}
                       </span>
                     )}
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-2 shrink-0">
                   <button
-                    onClick={() => removeItem(product.id)}
+                    onClick={() => removeItem(product.id, variant?.id ?? null)}
                     className="text-muted-foreground hover:text-destructive transition-colors"
                     aria-label="Eliminar"
                   >
@@ -209,7 +215,7 @@ export function CartPageContent() {
                   </button>
                   <div className="flex items-center border border-border rounded-lg overflow-hidden text-sm">
                     <button
-                      onClick={() => updateQuantity(product.id, quantity - 1)}
+                      onClick={() => updateQuantity(product.id, quantity - 1, variant?.id ?? null)}
                       className="px-2 py-1 hover:bg-muted transition-colors"
                       aria-label="Restar"
                     >
@@ -219,7 +225,7 @@ export function CartPageContent() {
                       {quantity}
                     </span>
                     <button
-                      onClick={() => updateQuantity(product.id, quantity + 1)}
+                      onClick={() => updateQuantity(product.id, quantity + 1, variant?.id ?? null)}
                       className="px-2 py-1 hover:bg-muted transition-colors"
                       aria-label="Sumar"
                     >

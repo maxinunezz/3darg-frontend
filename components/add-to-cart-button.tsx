@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ShoppingCart, Check } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
-import type { ProductType } from "@/types/product";
+import type { ProductType, ProductVariantType } from "@/types/product";
 
 interface AddToCartButtonProps {
   product: ProductType;
@@ -16,6 +16,10 @@ interface AddToCartButtonProps {
    * estado interno (uso suelto, ej. cards de listado). */
   qty?: number;
   onQtyChange?: (qty: number) => void;
+  /** Talle elegido (ver selector en `product-detail.tsx`). `null`/ausente =
+   * producto sin variantes reales — comportamiento histórico. El stock tope
+   * de la cantidad pasa a ser el de la variante, no el del producto. */
+  variant?: ProductVariantType | null;
 }
 
 export function AddToCartButton({
@@ -24,12 +28,13 @@ export function AddToCartButton({
   secondaryAction,
   qty: qtyProp,
   onQtyChange,
+  variant,
 }: AddToCartButtonProps) {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
   const [qtyState, setQtyState] = useState(1);
   const qty = qtyProp ?? qtyState;
-  const stockCap = product.stock || 99;
+  const stockCap = (variant ? variant.stock : product.stock) || 99;
   const setQty = (updater: (q: number) => number) => {
     const next = updater(qty);
     onQtyChange?.(next);
@@ -37,7 +42,7 @@ export function AddToCartButton({
   };
 
   function handleAdd() {
-    addItem(product, qty);
+    addItem(product, qty, variant ?? null);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   }

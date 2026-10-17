@@ -4,10 +4,27 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef, Re
 import { useAuth } from "./AuthContext";
 import { apiUrl, apiFetch } from "@/lib/api";
 import { useBrandNamespace } from "@/lib/brand-context";
-import type { ProductType } from "@/types/product";
+import type { ProductType, ProductVariantType } from "@/types/product";
 import type { CartDiscountTier } from "@/types/brands";
 
-export type CartItem = { id: number; product: ProductType; quantity: number };
+export type CartItem = {
+  id: number;
+  product: ProductType;
+  // Talle elegido (ver `ProductVariant` en el backend) — `null` = producto
+  // sin variantes, comportamiento histórico.
+  variant: ProductVariantType | null;
+  quantity: number;
+};
+
+// Clave de línea de carrito: `(product.id, variant.id)`. Dos talles del
+// mismo producto son líneas distintas (mismo criterio que la constraint
+// `cart_item_unico_por_variante`/`cart_item_unico_sin_variante` del backend).
+// Se usa para matchear items tanto en el carrito de invitado (localStorage)
+// como para keyear los precios por línea que devuelve el backend
+// (`CartSerializer`/`CartQuoteSerializer`), que son consistentes entre sí.
+function lineKey(productId: number, variantId?: number | null): string {
+  return `${productId}:${variantId ?? ""}`;
+}
 
 // Info del descuento por CANTIDAD TOTAL de unidades del carrito (ver
 // `cart/services/cart_discount.py::cart_discount_progress()` en el backend) —
@@ -32,9 +49,9 @@ const EMPTY_PROGRESS: DiscountProgress = {
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (product: ProductType, quantity?: number) => Promise<void>;
-  removeItem: (productId: number) => Promise<void>;
-  updateQuantity: (productId: number, quantity: number) => Promise<void>;
+  addItem: (product: ProductType, quantity?: number, variant?: ProductVariantType | null) => Promise<void>;
+  removeItem: (productId: number, variantId?: number | null) => Promise<void>;
+  updateQuantity: (productId: number, quantity: number, variantId?: number | null) => Promise<void>;
   clearCart: () => Promise<void>;
   subtotal: number;
   total: number;
@@ -51,7 +68,14 @@ interface CartContextType {
 
 type CartResponse = {
   id: number;
-  items: { id: number; product: ProductType; quantity: number; unit_price: string; subtotal: string }[];
+  items: {
+    id: number;
+    product: ProductType;
+    variant: ProductVariantType | null;
+    quantity: number;
+    unit_price: string;
+    subtotal: string;
+  }[];
   subtotal: string;
   discount_percent: number;
   discount_amount: string;
@@ -60,7 +84,13 @@ type CartResponse = {
 };
 
 type CartQuoteResponse = {
-  items: { product_id: number; quantity: number; unit_price: string; subtotal: string }[];
+  items: {
+    product_id: number;
+    variant_id: number | null;
+    quantity: number;
+    unit_price: string;
+    subtotal: string;
+  }[];
   subtotal: string;
   discount_percent: number;
   discount_amount: string;
@@ -68,12 +98,13 @@ type CartQuoteResponse = {
   discount_progress: DiscountProgress;
 };
 
-// Precios con descuento por monto del carrito ya resueltos por el backend,
-// keyed por `CartItem.id` (coincide con `product.id` en modo invitado, ver
-// `addItem` más abajo, y con el pk del `CartItem` del servidor en modo
-// logueado).
+// Precios con descuento por cantidad del carrito ya resueltos por el backend,
+// keyed por `lineKey(productId, variantId)` — consistente entre el carrito
+// server-side (`CartSerializer`) y el de invitado (`CartQuoteSerializer`),
+// y único por línea gracias a la constraint `cart_item_unico_por_variante`/
+// `cart_item_unico_sin_variante` del backend.
 type Pricing = {
-  unitPriceById: Record<number, number>;
+  unitPriceById: Record<string, number>;
   subtotal: number;
   total: number;
   discountPercent: number;
@@ -153,9 +184,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const applyCart = (data: CartResponse | null) => {
     if (!data) return;
-    setItems(data.items.map((i) => ({ id: i.id, product: i.product, quantity: i.quantity })));
+    setItems(
+      data.items.map((i) => ({ id: i.id, product: i.product, variant: i.variant, quantity: i.quantity }))
+    );
     setPricing({
-      unitPriceById: Object.fromEntries(data.items.map((i) => [i.id, Number(i.unit_price)])),
+      unitPriceById: Object.fromEntries(
+        data.items.map((i) => [lineKey(i.product.id, i.variant?.id ?? null), Number(i.unit_price)])
+      ),
       subtotal: Number(data.subtotal),
       total: Number(data.total),
       discountPercent: data.discount_percent,
@@ -198,7 +233,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
             try {
               await cartFetch("/cart/items/", token!, {
                 method: "POST",
-                body: JSON.stringify({ product_id: gi.product.id, quantity: gi.quantity, brand_slug: brandSlug }),
+                body: JSON.stringify({
+                  product_id: gi.product.id,
+                  variant_id: gi.variant?.id ?? null,
+                  quantity: gi.quantity,
+                  brand_slug: brandSlug,
+                }),
               });
             } catch {
               // si un item falla (p.ej. quedó sin stock) seguimos con el resto
@@ -233,11 +273,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
           method: "POST",
           body: JSON.stringify({
             brand_slug: brandSlug,
-            items: items.map((i) => ({ product_id: i.product.id, quantity: i.quantity })),
+            items: items.map((i) => ({
+              product_id: i.product.id,
+              variant_id: i.variant?.id ?? null,
+              quantity: i.quantity,
+            })),
           }),
         });
         setPricing({
-          unitPriceById: Object.fromEntries(data.items.map((i) => [i.product_id, Number(i.unit_price)])),
+          unitPriceById: Object.fromEntries(
+            data.items.map((i) => [lineKey(i.product_id, i.variant_id), Number(i.unit_price)])
+          ),
           subtotal: Number(data.subtotal),
           total: Number(data.total),
           discountPercent: data.discount_percent,
@@ -254,18 +300,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [token, items, brandSlug]);
 
   const addItem = useCallback(
-    async (product: ProductType, quantity = 1) => {
+    async (product: ProductType, quantity = 1, variant: ProductVariantType | null = null) => {
       if (!token) {
         setItems((prev) => {
-          const existing = prev.find((i) => i.product.id === product.id);
-          const cap = product.stock || 99;
+          const key = lineKey(product.id, variant?.id ?? null);
+          const existing = prev.find((i) => lineKey(i.product.id, i.variant?.id ?? null) === key);
+          const cap = variant ? variant.stock || 99 : product.stock || 99;
           const next = existing
             ? prev.map((i) =>
-                i.product.id === product.id
+                lineKey(i.product.id, i.variant?.id ?? null) === key
                   ? { ...i, quantity: Math.min(cap, i.quantity + quantity) }
                   : i
               )
-            : [...prev, { id: product.id, product, quantity: Math.min(cap, quantity) }];
+            : [...prev, { id: product.id, product, variant, quantity: Math.min(cap, quantity) }];
           saveGuestCart(brandSlug, next);
           return next;
         });
@@ -273,7 +320,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       const data = (await cartFetch("/cart/items/", token, {
         method: "POST",
-        body: JSON.stringify({ product_id: product.id, quantity, brand_slug: brandSlug }),
+        body: JSON.stringify({
+          product_id: product.id,
+          variant_id: variant?.id ?? null,
+          quantity,
+          brand_slug: brandSlug,
+        }),
       })) as CartResponse;
       applyCart(data);
     },
@@ -281,16 +333,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 
   const removeItem = useCallback(
-    async (productId: number) => {
+    async (productId: number, variantId: number | null = null) => {
+      const key = lineKey(productId, variantId);
       if (!token) {
         setItems((prev) => {
-          const next = prev.filter((i) => i.product.id !== productId);
+          const next = prev.filter((i) => lineKey(i.product.id, i.variant?.id ?? null) !== key);
           saveGuestCart(brandSlug, next);
           return next;
         });
         return;
       }
-      const item = items.find((i: CartItem) => i.product.id === productId);
+      const item = items.find((i: CartItem) => lineKey(i.product.id, i.variant?.id ?? null) === key);
       if (!item) return;
       await cartFetch(`/cart/items/${item.id}/`, token, { method: "DELETE" });
       await fetchCart();
@@ -299,13 +352,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 
   const updateQuantity = useCallback(
-    async (productId: number, quantity: number) => {
+    async (productId: number, quantity: number, variantId: number | null = null) => {
       if (quantity < 1) return;
+      const key = lineKey(productId, variantId);
       if (!token) {
         setItems((prev) => {
           const next = prev.map((i) =>
-            i.product.id === productId
-              ? { ...i, quantity: Math.min(i.product.stock || 99, quantity) }
+            lineKey(i.product.id, i.variant?.id ?? null) === key
+              ? { ...i, quantity: Math.min((i.variant ? i.variant.stock : i.product.stock) || 99, quantity) }
               : i
           );
           saveGuestCart(brandSlug, next);
@@ -313,7 +367,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         });
         return;
       }
-      const item = items.find((i: CartItem) => i.product.id === productId);
+      const item = items.find((i: CartItem) => lineKey(i.product.id, i.variant?.id ?? null) === key);
       if (!item) return;
       const data = (await cartFetch(`/cart/items/${item.id}/`, token, {
         method: "PATCH",
@@ -335,7 +389,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [token, brandSlug]);
 
   const naiveTotal = items.reduce(
-    (s: number, i: CartItem) => s + Number(i.product.final_price ?? i.product.price) * i.quantity,
+    (s: number, i: CartItem) =>
+      s + Number(i.variant?.final_price ?? i.variant?.price ?? i.product.final_price ?? i.product.price) * i.quantity,
     0,
   );
   const total = pricing.loaded ? pricing.total : naiveTotal;
@@ -343,7 +398,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const count = items.reduce((s: number, i: CartItem) => s + i.quantity, 0);
 
   const getUnitPrice = useCallback(
-    (item: CartItem) => pricing.unitPriceById[item.id] ?? Number(item.product.final_price ?? item.product.price),
+    (item: CartItem) =>
+      pricing.unitPriceById[lineKey(item.product.id, item.variant?.id ?? null)] ??
+      Number(item.variant?.final_price ?? item.variant?.price ?? item.product.final_price ?? item.product.price),
     [pricing]
   );
 

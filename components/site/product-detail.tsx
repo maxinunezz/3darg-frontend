@@ -6,7 +6,8 @@ import Image from "next/image";
 import { Lock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiUrl, cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
-import type { ProductType } from "@/types/product";
+import type { ProductType, ProductVariantType } from "@/types/product";
+import { variantLabel } from "@/lib/product-variant";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { FavoriteButton } from "@/components/favorite-button";
 import { ProductPrice } from "@/components/product-price";
@@ -30,6 +31,7 @@ export function SiteProductDetail({ slug, initialProduct, related }: Props) {
   const [product, setProduct] = useState<ProductType | null>(initialProduct);
   const [fetching, setFetching] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
 
   useEffect(() => {
     if (authLoading || !token) return;
@@ -75,15 +77,29 @@ export function SiteProductDetail({ slug, initialProduct, related }: Props) {
     );
   }
 
-  const inStock = product.is_available && product.stock > 0;
+  const variants = product.variants ?? [];
+  const hasTalleSelector = variants.length > 1;
+  const sortedVariants = hasTalleSelector ? [...variants].sort((a, b) => a.order - b.order) : variants;
+  // Default: el primero CON STOCK (no literal el primero por `order`) —
+  // así un talle placeholder "Chico"/"Grande" sin stock real nunca queda
+  // preseleccionado dejando la ficha en "Sin stock" cuando el talle que sí
+  // se vende (ej. "Mediano") tiene stock. Si ninguno tiene stock, cae al
+  // primero por `order` nomás.
+  const defaultVariant = sortedVariants.find((v) => v.stock > 0) ?? sortedVariants[0];
+  const effectiveVariant: ProductVariantType | null = hasTalleSelector
+    ? sortedVariants.find((v) => v.id === selectedVariantId) ?? defaultVariant
+    : variants[0] ?? null;
+
+  const inStock = product.is_available && (effectiveVariant ? effectiveVariant.stock > 0 : product.stock > 0);
   const images = product.images ?? [];
   const mainImage = cloudinaryUrl(resolveMediaUrl(images[activeImage]?.image ?? images[0]?.image), 800);
+  const stockQty = effectiveVariant ? effectiveVariant.stock : product.stock;
   const specs = [
     { k: "Material", v: "PLA / PETG técnico" },
     { k: "Tolerancia", v: "0.15 mm" },
     { k: "Envío", v: "24–72 hs" },
     { k: "Terminación", v: "Lijado a mano" },
-    { k: "Stock", v: inStock ? `${product.stock} unidades` : "Sin stock" },
+    { k: "Stock", v: inStock ? `${stockQty} unidades` : "Sin stock" },
   ];
 
   return (
@@ -131,7 +147,7 @@ export function SiteProductDetail({ slug, initialProduct, related }: Props) {
             {product.name}
           </h1>
           <div className="flex items-center gap-3 flex-wrap font-mono">
-            <ProductPrice product={product} size="lg" />
+            <ProductPrice product={product} size="lg" variant={effectiveVariant} />
             <FavoriteButton product={product} size="md" />
           </div>
 
@@ -143,6 +159,14 @@ export function SiteProductDetail({ slug, initialProduct, related }: Props) {
 
           {product.description && <p className="text-[var(--text-muted)] leading-[var(--leading-body)]">{product.description}</p>}
 
+          {hasTalleSelector && (
+            <SiteTalleSelector
+              variants={sortedVariants}
+              selectedId={effectiveVariant?.id ?? null}
+              onSelect={setSelectedVariantId}
+            />
+          )}
+
           {/* Tabla de specs */}
           <dl className="rounded-[var(--radius-2xl)] border border-[var(--border-hairline)] overflow-hidden">
             {specs.map((s, i) => (
@@ -153,7 +177,7 @@ export function SiteProductDetail({ slug, initialProduct, related }: Props) {
             ))}
           </dl>
 
-          <AddToCartButton product={product} disabled={!inStock} />
+          <AddToCartButton product={product} disabled={!inStock} variant={effectiveVariant} />
 
           <p className="font-mono text-[11px] text-[var(--text-faint)] leading-relaxed">
             Personalización de medidas o color sin costo de molde — consultanos por WhatsApp o el formulario de contacto.
@@ -178,6 +202,49 @@ export function SiteProductDetail({ slug, initialProduct, related }: Props) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function SiteTalleSelector({
+  variants,
+  selectedId,
+  onSelect,
+}: {
+  variants: ProductVariantType[];
+  selectedId: number | null;
+  onSelect: (id: number) => void;
+}) {
+  return (
+    <div className="grid gap-2">
+      <span className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--text-faint)]">Talle</span>
+      <div className="flex flex-wrap gap-2">
+        {variants.map((variant) => {
+          const isSelected = variant.id === selectedId;
+          const outOfStock = variant.stock <= 0;
+          return (
+            <button
+              key={variant.id}
+              type="button"
+              disabled={outOfStock}
+              onClick={() => onSelect(variant.id)}
+              aria-pressed={isSelected}
+              className={`flex flex-col items-center gap-0.5 rounded-[var(--radius-lg)] border px-4 py-2 font-mono text-[13px] font-bold transition-colors ${
+                isSelected
+                  ? "border-[var(--ink-900)] bg-[var(--ink-900)] text-[var(--bone-050)]"
+                  : "border-[var(--border-hairline)] hover:border-[var(--ink-900)]"
+              } ${outOfStock ? "opacity-40 line-through cursor-not-allowed" : ""}`}
+            >
+              <span>{variantLabel(variant)}</span>
+              {!outOfStock && (
+                <span className={`text-[11px] font-normal ${isSelected ? "text-[var(--bone-050)]/80" : "text-[var(--text-faint)]"}`}>
+                  $ {Number(variant.final_price ?? variant.price).toLocaleString("es-AR")}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
