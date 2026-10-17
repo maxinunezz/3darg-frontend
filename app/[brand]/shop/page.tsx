@@ -146,7 +146,8 @@ export default async function ShopPage({
       {isLumy && (
         <LumyShopPromoBanner
           tiers={brand.cart_discount_config}
-          freeShippingThreshold={brand.shipping_config?.free_shipping_threshold}
+          freeShippingThresholdSucursal={brand.shipping_config?.free_shipping_threshold_sucursal}
+          freeShippingThresholdDomicilio={brand.shipping_config?.free_shipping_threshold_domicilio}
         />
       )}
       <div className={`mx-auto px-4 pb-12 ${isLumy ? "max-w-[96rem] pt-6" : "max-w-7xl py-12"}`}>

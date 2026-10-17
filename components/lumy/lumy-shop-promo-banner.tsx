@@ -3,7 +3,10 @@ import type { CartDiscountTier } from "@/types/brands";
 
 interface Props {
   tiers: CartDiscountTier[];
-  freeShippingThreshold?: number;
+  /** Umbral de envío gratis a sucursal — ver `Brand.shipping_config.free_shipping_threshold_sucursal`. */
+  freeShippingThresholdSucursal?: number;
+  /** Umbral de envío gratis a domicilio — ver `Brand.shipping_config.free_shipping_threshold_domicilio`. */
+  freeShippingThresholdDomicilio?: number;
 }
 
 function fmt(n: number) {
@@ -12,17 +15,18 @@ function fmt(n: number) {
 
 /**
  * Marquee chico y full-width con los tramos de `Brand.cart_discount_config`
- * (por CANTIDAD TOTAL de unidades del carrito) y el umbral de envío gratis
- * (`Brand.shipping_config.free_shipping_threshold`, que sigue siendo por
- * monto) — mismo mecanismo de scroll infinito que el `Marquee` de la home
- * (`.lm-marquee`: dos copias del contenido + `translateX(-50%)` vía CSS).
- * El `marginTop` compensa el logo grande "asomando" de `LumyNavbar`
+ * (por CANTIDAD TOTAL de unidades del carrito) y los umbrales de envío
+ * gratis por modalidad (`Brand.shipping_config.free_shipping_threshold_sucursal`/
+ * `_domicilio` — separados porque cada uno tiene un costo real distinto de
+ * Correo Argentino) — mismo mecanismo de scroll infinito que el `Marquee` de
+ * la home (`.lm-marquee`: dos copias del contenido + `translateX(-50%)` vía
+ * CSS). El `marginTop` compensa el logo grande "asomando" de `LumyNavbar`
  * (8.5rem de alto sin scrollear vs. `--nav-height` de 5rem) para que no
  * se superponga con el logo al tope de la página.
  */
-export function LumyShopPromoBanner({ tiers, freeShippingThreshold }: Props) {
+export function LumyShopPromoBanner({ tiers, freeShippingThresholdSucursal, freeShippingThresholdDomicilio }: Props) {
   const sortedTiers = [...tiers].sort((a, b) => a.min_quantity - b.min_quantity);
-  if (sortedTiers.length === 0 && !freeShippingThreshold) return null;
+  if (sortedTiers.length === 0 && !freeShippingThresholdSucursal && !freeShippingThresholdDomicilio) return null;
 
   const items = [
     ...sortedTiers.map((t) => ({
@@ -30,8 +34,11 @@ export function LumyShopPromoBanner({ tiers, freeShippingThreshold }: Props) {
       icon: <Percent size={13} strokeWidth={2.2} />,
       label: `${t.discount_percent}% OFF desde ${t.min_quantity} ${t.min_quantity === 1 ? "unidad" : "unidades"}`,
     })),
-    ...(freeShippingThreshold
-      ? [{ key: "shipping", icon: <Truck size={13} strokeWidth={2.2} />, label: `Envío gratis desde ${fmt(freeShippingThreshold)}` }]
+    ...(freeShippingThresholdSucursal
+      ? [{ key: "shipping-sucursal", icon: <Truck size={13} strokeWidth={2.2} />, label: `Envío gratis a sucursal desde ${fmt(freeShippingThresholdSucursal)}` }]
+      : []),
+    ...(freeShippingThresholdDomicilio
+      ? [{ key: "shipping-domicilio", icon: <Truck size={13} strokeWidth={2.2} />, label: `Envío gratis a domicilio desde ${fmt(freeShippingThresholdDomicilio)}` }]
       : []),
   ];
 

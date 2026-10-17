@@ -158,10 +158,11 @@ function agencyIdOf(a: Agency): string {
  * componente es ahora el único dueño de la dirección, el carrito ya no
  * renderiza su propio `<ShippingAddressForm>` fijo).
  *
- * Si la marca actual tiene `Brand.shipping_config.free_shipping_threshold`
- * cargado, muestra el mensaje de "te faltan $X" o "envío gratis" sin que el
- * comprador tenga que elegir nada — apenas el subtotal alcanza el umbral, se
- * informa costo 0 directo, sin importar la modalidad.
+ * Si la marca actual tiene `Brand.shipping_config.free_shipping_threshold_sucursal`/
+ * `_domicilio` cargado, muestra el mensaje de "te faltan $X" o "envío gratis"
+ * para la MODALIDAD activa (cada una tiene su propio umbral, porque cada una
+ * tiene un costo real distinto de Correo Argentino) — cambia de mensaje solo
+ * si el comprador cambia de modalidad, no hace falta que elija nada más.
  */
 export function ShippingEstimator({
   items,
@@ -173,7 +174,8 @@ export function ShippingEstimator({
   inputClassName = DEFAULT_INPUT_CLS,
 }: ShippingEstimatorProps) {
   const brandSlug = useBrandNamespace();
-  const [threshold, setThreshold] = useState<number | null>(null);
+  const [thresholdSucursal, setThresholdSucursal] = useState<number | null>(null);
+  const [thresholdDomicilio, setThresholdDomicilio] = useState<number | null>(null);
   const [methods, setMethods] = useState<ShippingMethod[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -209,8 +211,11 @@ export function ShippingEstimator({
         if (cancelled) return;
         const list: BrandType[] = data?.results ?? data ?? [];
         const bySlug = flattenBySlug(list);
-        const value = bySlug[brandSlug]?.shipping_config?.free_shipping_threshold;
-        setThreshold(typeof value === "number" && value > 0 ? value : null);
+        const config = bySlug[brandSlug]?.shipping_config;
+        const sucursalValue = config?.free_shipping_threshold_sucursal;
+        const domicilioValue = config?.free_shipping_threshold_domicilio;
+        setThresholdSucursal(typeof sucursalValue === "number" && sucursalValue > 0 ? sucursalValue : null);
+        setThresholdDomicilio(typeof domicilioValue === "number" && domicilioValue > 0 ? domicilioValue : null);
       })
       .catch(() => {});
     return () => {
@@ -218,6 +223,7 @@ export function ShippingEstimator({
     };
   }, [brandSlug]);
 
+  const threshold = modality === "sucursal" ? thresholdSucursal : thresholdDomicilio;
   const freeShippingActive = threshold != null && subtotal >= threshold;
   const missingForFreeShipping = threshold != null && !freeShippingActive ? threshold - subtotal : 0;
 
@@ -396,12 +402,13 @@ export function ShippingEstimator({
         <div className="mb-3 text-xs">
           {freeShippingActive ? (
             <span className="inline-flex items-center gap-1.5 text-emerald-600 font-semibold">
-              <CheckCircle2 className="w-3.5 h-3.5" /> ¡Felicitaciones! Tu pedido tiene envío gratis.
+              <CheckCircle2 className="w-3.5 h-3.5" /> ¡Felicitaciones! Tu pedido tiene envío gratis
+              {modality === "sucursal" ? " a sucursal" : " a domicilio"}.
             </span>
           ) : (
             <span className="text-muted-foreground">
               Te faltan <strong className="text-foreground">{fmt(missingForFreeShipping)}</strong> en tu compra para
-              tener envío gratis.
+              tener envío gratis {modality === "sucursal" ? "a sucursal" : "a domicilio"}.
             </span>
           )}
         </div>

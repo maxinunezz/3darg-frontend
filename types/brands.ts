@@ -122,12 +122,15 @@ export type BrandMetaPublicConfig = {
   catalog_id: string;
 };
 
-// Config de envío por marca. Clave disponible hoy: `free_shipping_threshold`
-// (monto de subtotal a partir del cual el envío es gratis). Vacío/sin la
-// clave = sin envío gratis para esa marca — ver `shipping-estimator.tsx` y
-// `Brand.shipping_config` en el backend (`brands/models.py`).
+// Config de envío por marca. Claves disponibles: `free_shipping_threshold_sucursal` /
+// `free_shipping_threshold_domicilio` (monto de subtotal a partir del cual el envío de
+// ESA modalidad es gratis — separados porque cada una tiene un costo real distinto de
+// Correo Argentino). Vacío/sin la clave = sin envío gratis para esa modalidad — ver
+// `shipping-estimator.tsx`, `product-promo-carousel.tsx` y `Brand.shipping_config` en
+// el backend (`brands/models.py`).
 export type BrandShippingConfig = {
-  free_shipping_threshold?: number;
+  free_shipping_threshold_sucursal?: number;
+  free_shipping_threshold_domicilio?: number;
 };
 
 // Tramos de descuento por CANTIDAD TOTAL de unidades del carrito (sumando
