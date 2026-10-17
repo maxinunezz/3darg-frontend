@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import { tierBarPercent, CheckpointBar } from "@/components/checkpoint-bar";
 import type { BrandType } from "@/types/brands";
 import type { ProductType, ProductVariantType } from "@/types/product";
 
@@ -35,68 +36,6 @@ const AUTO_SHOW_DELAY_MS = 1200;
 
 function fmt(n: number) {
   return "$ " + Math.ceil(n).toLocaleString("es-AR");
-}
-
-// Mismo heurístico de "relleno visual" que `ProductDiscountTease` (a pedido
-// del dueño: la barra no es proporcional a la distancia real entre
-// checkpoints, son tramos equiespaciados con 3 posiciones de relleno fijas
-// dentro del tramo activo) — generalizado acá para listas de 1-N checkpoints
-// con cualquier `value` numérico (monto o cantidad), no solo tramos de
-// descuento por cantidad.
-function tierBarPercent(sortedValues: number[], previewValue: number): { currentIdx: number; barPercent: number } {
-  const n = sortedValues.length;
-  let currentIdx = -1;
-  for (let i = 0; i < n; i++) {
-    if (previewValue >= sortedValues[i]) currentIdx = i;
-  }
-  if (currentIdx === n - 1) return { currentIdx, barPercent: 100 };
-  const segmentIndex = currentIdx + 1;
-  const localFill =
-    currentIdx === -1 ? 0.5 : previewValue - 1 < sortedValues[currentIdx] ? 0.3 : 0.9;
-  return { currentIdx, barPercent: ((segmentIndex + localFill) / n) * 100 };
-}
-
-function CheckpointBar({
-  sortedValues,
-  previewValue,
-  labelFor,
-}: {
-  sortedValues: number[];
-  previewValue: number;
-  labelFor: (value: number, reached: boolean) => React.ReactNode;
-}) {
-  const n = sortedValues.length;
-  const { barPercent } = tierBarPercent(sortedValues, previewValue);
-  return (
-    <>
-      <div className="relative h-2 mt-3">
-        <div className="absolute inset-0 rounded-full bg-muted overflow-hidden">
-          <div
-            className="h-full bg-primary rounded-full transition-all duration-300"
-            style={{ width: `${barPercent}%` }}
-          />
-        </div>
-        {sortedValues.map((value, i) => (
-          <span
-            key={value}
-            className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-amber-400 border-2 border-card z-10"
-            style={{ left: `${((i + 1) / n) * 100}%` }}
-          />
-        ))}
-      </div>
-      <div className="relative h-8 mt-1.5">
-        {sortedValues.map((value, i) => (
-          <div
-            key={value}
-            className="absolute -translate-x-1/2 flex flex-col items-center"
-            style={{ left: `${((i + 1) / n) * 100}%` }}
-          >
-            {labelFor(value, previewValue >= value)}
-          </div>
-        ))}
-      </div>
-    </>
-  );
 }
 
 /**
