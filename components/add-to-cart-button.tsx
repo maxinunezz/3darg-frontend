@@ -10,12 +10,31 @@ interface AddToCartButtonProps {
   disabled?: boolean;
   /** Elemento opcional a la derecha del botón de compra, en la misma fila (ej: link a Mayoristas). */
   secondaryAction?: React.ReactNode;
+  /** Cantidad controlada desde el padre (ej: `product-detail.tsx`, para que
+   * `ProductDiscountTease` pueda recalcular el descuento en vivo con el mismo
+   * valor del selector). Si no se pasa, el componente mantiene su propio
+   * estado interno (uso suelto, ej. cards de listado). */
+  qty?: number;
+  onQtyChange?: (qty: number) => void;
 }
 
-export function AddToCartButton({ product, disabled, secondaryAction }: AddToCartButtonProps) {
+export function AddToCartButton({
+  product,
+  disabled,
+  secondaryAction,
+  qty: qtyProp,
+  onQtyChange,
+}: AddToCartButtonProps) {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
-  const [qty, setQty] = useState(1);
+  const [qtyState, setQtyState] = useState(1);
+  const qty = qtyProp ?? qtyState;
+  const stockCap = product.stock || 99;
+  const setQty = (updater: (q: number) => number) => {
+    const next = updater(qty);
+    onQtyChange?.(next);
+    if (qtyProp == null) setQtyState(next);
+  };
 
   function handleAdd() {
     addItem(product, qty);
@@ -37,7 +56,7 @@ export function AddToCartButton({ product, disabled, secondaryAction }: AddToCar
           </button>
           <span className="px-4 py-2 text-sm font-semibold min-w-[3rem] text-center">{qty}</span>
           <button
-            onClick={() => setQty((q) => Math.min(product.stock || 99, q + 1))}
+            onClick={() => setQty((q) => Math.min(stockCap, q + 1))}
             className="px-3 py-2 hover:bg-muted transition-colors text-lg leading-none"
             aria-label="Sumar"
           >

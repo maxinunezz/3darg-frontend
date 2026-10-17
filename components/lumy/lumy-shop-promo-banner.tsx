@@ -12,22 +12,23 @@ function fmt(n: number) {
 
 /**
  * Marquee chico y full-width con los tramos de `Brand.cart_discount_config`
- * y el umbral de envío gratis (`Brand.shipping_config.free_shipping_threshold`)
- * — mismo mecanismo de scroll infinito que el `Marquee` de la home
+ * (por CANTIDAD TOTAL de unidades del carrito) y el umbral de envío gratis
+ * (`Brand.shipping_config.free_shipping_threshold`, que sigue siendo por
+ * monto) — mismo mecanismo de scroll infinito que el `Marquee` de la home
  * (`.lm-marquee`: dos copias del contenido + `translateX(-50%)` vía CSS).
  * El `marginTop` compensa el logo grande "asomando" de `LumyNavbar`
  * (8.5rem de alto sin scrollear vs. `--nav-height` de 5rem) para que no
  * se superponga con el logo al tope de la página.
  */
 export function LumyShopPromoBanner({ tiers, freeShippingThreshold }: Props) {
-  const sortedTiers = [...tiers].sort((a, b) => a.min_amount - b.min_amount);
+  const sortedTiers = [...tiers].sort((a, b) => a.min_quantity - b.min_quantity);
   if (sortedTiers.length === 0 && !freeShippingThreshold) return null;
 
   const items = [
     ...sortedTiers.map((t) => ({
-      key: `tier-${t.min_amount}`,
+      key: `tier-${t.min_quantity}`,
       icon: <Percent size={13} strokeWidth={2.2} />,
-      label: `${t.discount_percent}% OFF desde ${fmt(t.min_amount)}`,
+      label: `${t.discount_percent}% OFF desde ${t.min_quantity} ${t.min_quantity === 1 ? "unidad" : "unidades"}`,
     })),
     ...(freeShippingThreshold
       ? [{ key: "shipping", icon: <Truck size={13} strokeWidth={2.2} />, label: `Envío gratis desde ${fmt(freeShippingThreshold)}` }]

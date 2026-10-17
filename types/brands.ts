@@ -130,12 +130,14 @@ export type BrandShippingConfig = {
   free_shipping_threshold?: number;
 };
 
-// Tramos de descuento por monto TOTAL del carrito (no por categoría ni
-// cantidad de artículos). El tramo aplicado es el de mayor `min_amount` que
-// el subtotal del carrito alcanza — ver `Brand.cart_discount_config` en el
+// Tramos de descuento por CANTIDAD TOTAL de unidades del carrito (sumando
+// todos los productos, no por categoría ni por monto en $). El tramo
+// aplicado es el de mayor `min_quantity` que la cantidad total del carrito
+// alcanza — el % sigue siendo un descuento en $, solo que lo dispara la
+// cantidad de unidades, no el monto. Ver `Brand.cart_discount_config` en el
 // backend y `cart/services/cart_discount.py`.
 export type CartDiscountTier = {
-  min_amount: number;
+  min_quantity: number;
   discount_percent: number;
 };
 

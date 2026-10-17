@@ -9,25 +9,25 @@ import type { CartDiscountTier } from "@/types/brands";
 
 export type CartItem = { id: number; product: ProductType; quantity: number };
 
-// Info del descuento por MONTO TOTAL del carrito (ver
+// Info del descuento por CANTIDAD TOTAL de unidades del carrito (ver
 // `cart/services/cart_discount.py::cart_discount_progress()` en el backend) —
-// qué tramo ya se alcanzó y cuánto falta (en $) para el próximo.
+// qué tramo ya se alcanzó y cuántas unidades faltan para el próximo.
 export type DiscountProgress = {
   tiers: CartDiscountTier[];
   current_discount_percent: number;
-  current_tier_min_amount: number | null;
-  next_tier_min_amount: number | null;
+  current_tier_min_quantity: number | null;
+  next_tier_min_quantity: number | null;
   next_tier_discount_percent: number | null;
-  amount_to_next_tier: string | null;
+  quantity_to_next_tier: number | null;
 };
 
 const EMPTY_PROGRESS: DiscountProgress = {
   tiers: [],
   current_discount_percent: 0,
-  current_tier_min_amount: null,
-  next_tier_min_amount: null,
+  current_tier_min_quantity: null,
+  next_tier_min_quantity: null,
   next_tier_discount_percent: null,
-  amount_to_next_tier: null,
+  quantity_to_next_tier: null,
 };
 
 interface CartContextType {
@@ -42,7 +42,7 @@ interface CartContextType {
   discountAmount: number;
   discountProgress: DiscountProgress;
   count: number;
-  // Precio unitario con descuento por monto del carrito ya aplicado (ver
+  // Precio unitario con descuento por cantidad del carrito ya aplicado (ver
   // `cart/services/cart_discount.py` en el backend) — usar esto en vez
   // de `product.final_price` para que lo mostrado coincida con lo que
   // cobra el checkout real.

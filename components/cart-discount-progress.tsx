@@ -3,29 +3,27 @@
 import { CheckCircle2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 
-function fmt(n: number) {
-  return "$ " + Number(n).toLocaleString("es-AR");
-}
-
 interface Props {
   className?: string;
 }
 
 /**
- * Barra de progreso visual del descuento por MONTO TOTAL del carrito (ver
- * `Brand.cart_discount_config` en el backend, resuelto en `discountProgress`
- * de `CartContext`) — reemplaza al viejo "Llevá 1/2/3" por categoría. No
- * hace fetch propio: todo llega ya calculado desde `useCart()`, a diferencia
- * de `ShippingEstimator` que sí pide `Brand.shipping_config` aparte.
+ * Barra de progreso visual del descuento por CANTIDAD TOTAL de unidades del
+ * carrito (ver `Brand.cart_discount_config` en el backend, resuelto en
+ * `discountProgress` de `CartContext`) — reemplaza al viejo "Llevá 1/2/3" por
+ * categoría y, más recientemente, al mecanismo por MONTO total (decisión del
+ * dueño: un solo mecanismo, por cantidad de unidades). No hace fetch propio:
+ * todo llega ya calculado desde `useCart()`, a diferencia de
+ * `ShippingEstimator` que sí pide `Brand.shipping_config` aparte.
  */
 export function CartDiscountProgress({ className }: Props) {
-  const { subtotal, discountProgress } = useCart();
-  const { tiers, current_discount_percent, next_tier_discount_percent, amount_to_next_tier } = discountProgress;
+  const { count, discountProgress } = useCart();
+  const { tiers, current_discount_percent, next_tier_discount_percent, quantity_to_next_tier } = discountProgress;
 
   if (tiers.length === 0) return null;
 
-  const maxAmount = tiers[tiers.length - 1].min_amount;
-  const barPercent = Math.min(100, (subtotal / maxAmount) * 100);
+  const maxQuantity = tiers[tiers.length - 1].min_quantity;
+  const barPercent = Math.min(100, (count / maxQuantity) * 100);
 
   return (
     <div className={className}>
@@ -36,11 +34,12 @@ export function CartDiscountProgress({ className }: Props) {
             Tenés {current_discount_percent}% OFF aplicado
           </span>
         ) : (
-          <span className="text-muted-foreground">Descuento por monto de compra</span>
+          <span className="text-muted-foreground">Descuento por cantidad de productos</span>
         )}
-        {next_tier_discount_percent != null && amount_to_next_tier != null && (
+        {next_tier_discount_percent != null && quantity_to_next_tier != null && (
           <span className="text-muted-foreground text-right shrink-0">
-            Faltan <strong className="text-foreground">{fmt(Number(amount_to_next_tier))}</strong> para {next_tier_discount_percent}%
+            Faltan <strong className="text-foreground">{quantity_to_next_tier}</strong>{" "}
+            {quantity_to_next_tier === 1 ? "unidad" : "unidades"} para {next_tier_discount_percent}%
           </span>
         )}
       </div>
@@ -54,11 +53,11 @@ export function CartDiscountProgress({ className }: Props) {
 
       <div className="relative h-4 mt-1">
         {tiers.map((tier) => {
-          const pos = Math.min(100, (tier.min_amount / maxAmount) * 100);
-          const reached = subtotal >= tier.min_amount;
+          const pos = Math.min(100, (tier.min_quantity / maxQuantity) * 100);
+          const reached = count >= tier.min_quantity;
           return (
             <span
-              key={tier.min_amount}
+              key={tier.min_quantity}
               className={`absolute -translate-x-1/2 text-[10px] font-semibold whitespace-nowrap ${
                 reached ? "text-primary" : "text-muted-foreground"
               }`}

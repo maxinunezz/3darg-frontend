@@ -13,6 +13,7 @@ import { FavoriteButton } from "@/components/favorite-button";
 import { ProductPrice } from "@/components/product-price";
 import { TransferDiscountBadge } from "@/components/transfer-discount-badge";
 import { RelatedByTheme } from "@/components/related-by-theme";
+import { ProductDiscountTease } from "@/components/product-discount-tease";
 
 interface Props {
   brand: BrandType;
@@ -156,6 +157,10 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
   const [product, setProduct] = useState<ProductType | null>(initialProduct);
   const [fetching, setFetching] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
+  // Cantidad del selector de "Cantidad" (antes vivía solo dentro de
+  // AddToCartButton) — se levanta acá para que ProductDiscountTease pueda
+  // recalcular en vivo qué descuento correspondería al confirmar la compra.
+  const [qty, setQty] = useState(1);
   // Si cambia el slug (producto nuevo), reseteamos a la primera imagen.
   // Ajuste de estado durante el render (patrón recomendado por React para
   // "resetear estado cuando cambia una prop") en vez de un useEffect, que
@@ -164,6 +169,7 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
   if (slug !== prevSlug) {
     setPrevSlug(slug);
     setActiveImage(0);
+    setQty(1);
   }
 
   useEffect(() => {
@@ -335,6 +341,11 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
             </span>
           )}
 
+          {/* "¡Llevá más, pagá menos!" — arriba del nombre de categoría, ver
+              `ProductDiscountTease` (usa el monto real del carrito, no un
+              mecanismo por cantidad de unidades). */}
+          <ProductDiscountTease brand={brand} product={product} qty={qty} />
+
           {product.category && (
             <Link
               href={`/${brand.slug}/shop?category=${product.category.slug}`}
@@ -369,6 +380,8 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
               product={product}
               disabled={!inStock}
               secondaryAction={<MayoristasButton brandSlug={brand.slug} />}
+              qty={qty}
+              onQtyChange={setQty}
             />
           </div>
 

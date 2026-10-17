@@ -5,23 +5,20 @@ interface Props {
   tiers: CartDiscountTier[];
 }
 
-function fmt(n: number) {
-  return "$" + Number(n).toLocaleString("es-AR");
-}
-
 /**
  * Animación del pedido "viajando" por los tramos reales de descuento
- * (`Brand.cart_discount_config`) — pura CSS (`@keyframes`, sin librerías),
- * mismo criterio que el marquee de `LumyShopPromoBanner` (`.lm-marquee`).
- * El pedido sube por una línea vertical (menor monto abajo, mayor arriba);
- * los checkpoints y sus textos quedan en una columna aparte a la derecha de
- * la línea, así la animación nunca pasa por encima de ningún texto.
+ * (`Brand.cart_discount_config`, por CANTIDAD TOTAL de unidades del
+ * carrito) — pura CSS (`@keyframes`, sin librerías), mismo criterio que el
+ * marquee de `LumyShopPromoBanner` (`.lm-marquee`). El pedido sube por una
+ * línea vertical (menos unidades abajo, más arriba); los checkpoints y sus
+ * textos quedan en una columna aparte a la derecha de la línea, así la
+ * animación nunca pasa por encima de ningún texto.
  * `animation-direction: alternate` hace que vuelva sola al principio.
  */
 export function WholesaleTierJourney({ tiers }: Props) {
   if (tiers.length === 0) return null;
 
-  const sorted = [...tiers].sort((a, b) => a.min_amount - b.min_amount);
+  const sorted = [...tiers].sort((a, b) => a.min_quantity - b.min_quantity);
   const n = sorted.length;
   // % desde abajo: el tramo de menor monto queda al piso, el de mayor monto arriba del todo.
   const positions = n === 1 ? [50] : sorted.map((_, i) => (i / (n - 1)) * 100);
@@ -96,12 +93,14 @@ export function WholesaleTierJourney({ tiers }: Props) {
         <div className="relative w-44">
           {sorted.map((tier, i) => (
             <div
-              key={tier.min_amount}
+              key={tier.min_quantity}
               className="absolute left-0 right-0 flex flex-col justify-center"
               style={{ bottom: `${positions[i]}%`, transform: "translateY(50%)" }}
             >
               <span className="text-lg font-bold text-primary leading-tight">{tier.discount_percent}% OFF</span>
-              <span className="text-sm text-muted-foreground leading-tight">desde {fmt(tier.min_amount)}</span>
+              <span className="text-sm text-muted-foreground leading-tight">
+                desde {tier.min_quantity} {tier.min_quantity === 1 ? "unidad" : "unidades"}
+              </span>
             </div>
           ))}
         </div>
