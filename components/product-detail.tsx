@@ -370,7 +370,11 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
             <ProductPromoCarousel brand={brand} product={product} qty={qty} variant={effectiveVariant} />
           </div>
           {images.length > 1 && (
-            <div className="grid grid-cols-4 gap-2">
+            // grid-cols-5 (no 4): las miniaturas quedan un poco más chicas
+            // (20% del ancho c/u en vez de 25%) sin tocar el resto del
+            // layout — como mostramos como mucho 4 fotos, la 5ta columna
+            // simplemente queda vacía a la derecha.
+            <div className="grid grid-cols-5 gap-2">
               {images.slice(0, 4).map((img, i) => (
                 <button
                   key={img.id}
