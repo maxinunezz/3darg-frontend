@@ -3,6 +3,10 @@ import type { CartDiscountTier } from "@/types/brands";
 
 interface Props {
   tiers: CartDiscountTier[];
+  /** Se agrega (no reemplaza) a las clases default del contenedor — pensado
+   * para que usos sueltos (ej. al lado del carrito) puedan fijar un ancho
+   * propio sin tocar el resto del componente. */
+  className?: string;
 }
 
 /**
@@ -15,7 +19,7 @@ interface Props {
  * animación nunca pasa por encima de ningún texto.
  * `animation-direction: alternate` hace que vuelva sola al principio.
  */
-export function WholesaleTierJourney({ tiers }: Props) {
+export function WholesaleTierJourney({ tiers, className }: Props) {
   if (tiers.length === 0) return null;
 
   const sorted = [...tiers].sort((a, b) => a.min_quantity - b.min_quantity);
@@ -43,7 +47,7 @@ export function WholesaleTierJourney({ tiers }: Props) {
     // Sin max-w: antes quedaba más angosta que el 100% de su columna del grid
     // (max-w-sm, 384px) dejando un hueco vacío a la derecha — desalineada
     // contra la tarjeta Mayorista/Emprendedor de al lado, que sí ocupa el 100%.
-    <div className="h-full flex flex-col items-center text-center bg-card border border-border rounded-2xl p-6">
+    <div className={`h-full flex flex-col items-center text-center bg-card border border-border rounded-2xl p-6 ${className ?? ""}`}>
       <style>{`@keyframes wholesale-package-travel { ${stops.join(" ")} }`}</style>
       <p className="text-xs font-bold uppercase tracking-widest text-primary mb-1!">
         Descuento automático
