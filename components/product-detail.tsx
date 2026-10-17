@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Package, Lock, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import { Package, Lock, Truck, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiUrl, cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import type { ProductType, ProductVariantType } from "@/types/product";
@@ -38,6 +38,14 @@ const LUMY_FAQ: { q: string; a: string }[] = [
   { q: "¿Tienen stock?", a: "Sí, trabajamos con stock disponible para que recibas tu pedido lo antes posible." },
   { q: "¿Hacen descuentos por cantidad?", a: "Sí, consultanos por compras mayoristas." },
 ];
+
+// Mismo formato ("$120.000", sin decimales, punto de miles es-AR) que usan
+// `product-promo-carousel.tsx`/`lumy-shop-promo-banner.tsx` para los mismos
+// umbrales de envío gratis — acá solo hace falta el valor redondeado, no la
+// barra de progreso.
+function fmtShippingThreshold(n: number) {
+  return "$" + Math.ceil(n).toLocaleString("es-AR");
+}
 
 type DescriptionBlock =
   | { type: "lead"; text: string }
@@ -185,6 +193,13 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
   // AddToCartButton) — se levanta acá para que ProductDiscountTease pueda
   // recalcular en vivo qué descuento correspondería al confirmar la compra.
   const [qty, setQty] = useState(1);
+  // Umbrales de envío gratis por modalidad (mismo dato que lee
+  // `ProductPromoCarousel` más abajo, ver `Brand.shipping_config`) — acá solo
+  // para el texto estático del cartel de "trust signals", sin barra de
+  // progreso ni reactividad al subtotal.
+  const sucursalFreeShippingThreshold = brand.shipping_config?.free_shipping_threshold_sucursal;
+  const domicilioFreeShippingThreshold = brand.shipping_config?.free_shipping_threshold_domicilio;
+  const hasFreeShippingInfo = Boolean(sucursalFreeShippingThreshold || domicilioFreeShippingThreshold);
   // Talle elegido en el selector de abajo (ver `TalleSelector`) — `null` hasta
   // que el usuario elige o hasta resolver el default (primer talle por
   // `order`). Se guarda solo el id: el objeto completo se deriva siempre del
@@ -444,12 +459,40 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
             />
           </div>
 
-          {/* Trust signals */}
-          <div className="border border-border rounded-xl p-4 mt-2 space-y-2 text-sm text-muted-foreground">
-            <p>🔒 Pago seguro con MercadoPago</p>
-            <p>🚚 Envíos a todo el país</p>
-            <p>🖨️ Impreso a pedido en Argentina</p>
-          </div>
+          {/* Trust signals — dividido en 2 columnas (sin línea divisoria
+              visible, a propósito) cuando hay info de envío gratis para
+              cargar, así cada mitad tiene su propio ancho/alto para agrandar
+              ícono y texto sin que una sección le gane espacio a la otra. Sin
+              esa info (marca sin `shipping_config` cargado) queda una sola
+              columna, como antes. */}
+          {hasFreeShippingInfo ? (
+            <div className="border border-border rounded-xl mt-2 text-sm text-muted-foreground grid grid-cols-2">
+              <div className="p-4">
+                <p className="flex items-center gap-2 text-foreground font-medium">
+                  <Truck className="w-5 h-5 shrink-0" /> Envíos a todo el país
+                </p>
+                <ul className="pl-6 mt-1.5 space-y-1.5 list-disc">
+                  {sucursalFreeShippingThreshold ? (
+                    <li>Gratis a sucursal de correo a partir de {fmtShippingThreshold(sucursalFreeShippingThreshold)}</li>
+                  ) : null}
+                  {domicilioFreeShippingThreshold ? (
+                    <li>Gratis a domicilio a partir de {fmtShippingThreshold(domicilioFreeShippingThreshold)}</li>
+                  ) : null}
+                </ul>
+              </div>
+              <div className="p-4 flex flex-col items-center justify-center gap-2 text-center">
+                <Image src="/mercadopago-logo.png" alt="Mercado Pago" width={56} height={56} />
+                <p className="font-medium text-foreground leading-snug">Pago seguro con MercadoPago</p>
+              </div>
+            </div>
+          ) : (
+            <div className="border border-border rounded-xl p-4 mt-2 text-sm text-muted-foreground">
+              <p className="flex items-center gap-2">
+                <Image src="/mercadopago-logo.png" alt="Mercado Pago" width={20} height={20} className="shrink-0" />{" "}
+                Pago seguro con MercadoPago
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
