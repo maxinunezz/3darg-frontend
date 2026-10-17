@@ -19,6 +19,14 @@ import { Trash2, Minus, Plus, ShoppingBag, Loader2 } from "lucide-react";
 const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
 const USE_SANDBOX = process.env.NEXT_PUBLIC_MP_SANDBOX === "true";
 
+// minimumFractionDigits fuerza los ",00" aunque el monto sea un número
+// entero (ej. Subtotal $86.415) — sin esto `toLocaleString` solo muestra
+// decimales cuando el número los tiene, y quedaba inconsistente al lado de
+// Descuento/Envío/Total que sí traen centavos.
+function fmt(n: number) {
+  return "$ " + Number(n).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 const EMPTY_ADDRESS: ShippingAddress = {
   fullName: "",
   phone: "",
@@ -215,10 +223,10 @@ export function CartPageContent() {
                       <p className="text-sm text-muted-foreground">Talle: {variantLabel(variant)}</p>
                     )}
                     <p className="text-primary font-bold text-base mt-0.5 flex items-baseline gap-1.5">
-                      $ {unit.toLocaleString("es-AR")}
+                      {fmt(unit)}
                       {unit < listPrice && (
                         <span className="text-xs font-normal text-muted-foreground line-through">
-                          $ {listPrice.toLocaleString("es-AR")}
+                          {fmt(listPrice)}
                         </span>
                       )}
                     </p>
@@ -250,9 +258,7 @@ export function CartPageContent() {
                         <Plus className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                    <p className="text-sm font-semibold">
-                      $ {Number(unit * quantity).toLocaleString("es-AR")}
-                    </p>
+                    <p className="text-sm font-semibold">{fmt(unit * quantity)}</p>
                   </div>
                 </div>
               );
@@ -293,12 +299,12 @@ export function CartPageContent() {
             )}
             <div className="flex justify-between items-center text-base text-muted-foreground mb-1">
               <span>Subtotal</span>
-              <span>$ {Number(subtotal).toLocaleString("es-AR")}</span>
+              <span>{fmt(subtotal)}</span>
             </div>
             {discountAmount > 0 && (
               <div className="flex justify-between items-center text-base text-emerald-600 mb-1 font-semibold">
                 <span>Descuento ({discountPercent}%)</span>
-                <span>- $ {Number(discountAmount).toLocaleString("es-AR")}</span>
+                <span>- {fmt(discountAmount)}</span>
               </div>
             )}
             <div className="flex justify-between items-center text-base text-muted-foreground mb-3">
@@ -306,16 +312,14 @@ export function CartPageContent() {
               <span>
                 {shippingEstimate
                   ? shippingEstimate.cost > 0
-                    ? `$ ${shippingEstimate.cost.toLocaleString("es-AR")}`
+                    ? fmt(shippingEstimate.cost)
                     : "Gratis"
                   : "A calcular"}
               </span>
             </div>
             <div className="flex justify-between items-center mb-3">
               <span className="text-base font-semibold text-muted-foreground">Total</span>
-              <span className="font-bold text-xl">
-                $ {Number(total + (shippingEstimate?.cost ?? 0)).toLocaleString("es-AR")}
-              </span>
+              <span className="font-bold text-xl">{fmt(total + (shippingEstimate?.cost ?? 0))}</span>
             </div>
             <button
               onClick={handleCheckout}

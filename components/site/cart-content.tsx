@@ -41,7 +41,11 @@ const INK_INPUT_CLS =
   "w-full h-10 bg-[var(--surface-card)] text-base outline-none border border-[var(--border-input)] rounded-[var(--radius-lg)] px-3 focus:border-[var(--ink-900)] transition-colors";
 
 function fmt(n: number) {
-  return "$ " + Number(n).toLocaleString("es-AR");
+  // minimumFractionDigits fuerza los ",00" aunque el monto sea un número
+  // entero (ej. Subtotal $86.415) — sin esto `toLocaleString` solo muestra
+  // decimales cuando el número los tiene, y quedaba inconsistente al lado
+  // de Descuento/Envío/Total que sí traen centavos.
+  return "$ " + Number(n).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 async function createMpPreference(

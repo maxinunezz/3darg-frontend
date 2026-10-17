@@ -510,7 +510,24 @@ export function ShippingEstimator({
             <div className={`rounded-xl border ${modality === "sucursal" ? "border-primary" : "border-border"}`}>
               <label className="flex items-center justify-between gap-3 p-3 cursor-pointer text-sm">
                 <span className="flex items-center gap-2">
-                  <input type="radio" checked={modality === "sucursal"} onChange={() => setModality("sucursal")} />
+                  {/* appearance-none quita el dibujo nativo del radio (ring +
+                      punto de color de acento) — queda un círculo fijo
+                      blanco con borde coral (bg-primary, color de marca). El
+                      punto del medio ya no lo dibuja el navegador: es un
+                      `span` aparte, mostrado a mano según `modality`, en
+                      dorado (bg-amber-400 — mismo tono que los checkpoints
+                      de envío/descuento del carrito). */}
+                  <span className="relative w-4 h-4 shrink-0 inline-flex items-center justify-center">
+                    <input
+                      type="radio"
+                      checked={modality === "sucursal"}
+                      onChange={() => setModality("sucursal")}
+                      className="appearance-none w-4 h-4 rounded-full border-2 border-primary bg-white cursor-pointer"
+                    />
+                    {modality === "sucursal" && (
+                      <span className="absolute w-2 h-2 rounded-full bg-amber-400 pointer-events-none" />
+                    )}
+                  </span>
                   <span>
                     Retirar en sucursal
                     <span className="block text-[11px] text-muted-foreground font-normal">
@@ -607,7 +624,17 @@ export function ShippingEstimator({
             <div className={`rounded-xl border ${modality === "domicilio" ? "border-primary" : "border-border"}`}>
               <label className="flex items-center justify-between gap-3 p-3 cursor-pointer text-sm">
                 <span className="flex items-center gap-2">
-                  <input type="radio" checked={modality === "domicilio"} onChange={() => setModality("domicilio")} />
+                  <span className="relative w-4 h-4 shrink-0 inline-flex items-center justify-center">
+                    <input
+                      type="radio"
+                      checked={modality === "domicilio"}
+                      onChange={() => setModality("domicilio")}
+                      className="appearance-none w-4 h-4 rounded-full border-2 border-primary bg-white cursor-pointer"
+                    />
+                    {modality === "domicilio" && (
+                      <span className="absolute w-2 h-2 rounded-full bg-amber-400 pointer-events-none" />
+                    )}
+                  </span>
                   <span>
                     Envío a domicilio
                     <span className="block text-[11px] text-muted-foreground font-normal">
