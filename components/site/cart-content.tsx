@@ -149,7 +149,7 @@ export function SiteCartContent() {
   }
 
   return (
-    <div className="max-w-[1180px] mx-auto px-[var(--gutter)] py-[var(--section-y)]">
+    <div className="max-w-[1420px] mx-auto px-[var(--gutter)] py-[var(--section-y)]">
       <div className="flex items-center justify-between mb-2">
         <SpecLabel index={1}>Carrito</SpecLabel>
         <button onClick={clearCart} className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--text-muted)] hover:text-[var(--signal-error)] transition-colors">
@@ -167,6 +167,17 @@ export function SiteCartContent() {
       )}
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
+        {/* Mapa de tramos de descuento (todos los escalones, no solo el
+            próximo como `CartDiscountProgress`) — mismo ancho que la columna
+            de sugerencias de la derecha, a la izquierda del rectángulo del
+            carrito. */}
+        {discountProgress.tiers.length > 0 && (
+          <WholesaleTierJourney
+            tiers={discountProgress.tiers}
+            className="w-full lg:w-56 shrink-0"
+          />
+        )}
+
         <div className="border border-[var(--border-hairline)] rounded-[var(--radius-2xl)] overflow-hidden flex-1 min-w-0">
           <div className="px-5 py-3 bg-[var(--surface-inset)] border-b border-[var(--border-hairline)] flex items-center justify-between">
             <span className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)]">{brandSlug}</span>
