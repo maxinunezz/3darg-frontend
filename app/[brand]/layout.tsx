@@ -132,6 +132,16 @@ export default async function BrandLayout({
           >
             Envíos y devoluciones
           </a>
+          {/* Botón de arrepentimiento (Resolución 424/2020): link directo al form de
+              contacto, con asunto/mensaje precargados, sin pedir registro previo. */}
+          <a
+            href={`/${brand.slug}/contact?title=${encodeURIComponent("Derecho de arrepentimiento")}&body=${encodeURIComponent(
+              "Quiero ejercer mi derecho de arrepentimiento sobre una compra ya realizada. Mi número de pedido es: ",
+            )}`}
+            className="text-xs underline underline-offset-4 hover:text-foreground transition-colors"
+          >
+            Botón de arrepentimiento
+          </a>
         </p>
       </footer>
       <WhatsappCommunityWidget brand={brand} />

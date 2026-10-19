@@ -107,6 +107,16 @@ export const Footer = ({ data, logoUrl }: { data?: Partial<FooterData>; logoUrl?
             <Link href="/legal/envios-y-devoluciones" className="hover:text-[var(--ink-300)] transition-colors uppercase tracking-[var(--tracking-label)]">
               Envíos y devoluciones
             </Link>
+            {/* Botón de arrepentimiento (Resolución 424/2020): link directo al form de
+                contacto, sin pedir registro previo. El form de /contact acá en el sitio
+                raíz no soporta precarga por query params (a diferencia del de las
+                sub-marcas), por eso va sin title/body. */}
+            <Link
+              href="/contact"
+              className="hover:text-[var(--ink-300)] transition-colors uppercase tracking-[var(--tracking-label)]"
+            >
+              Botón de arrepentimiento
+            </Link>
             <span>{F.made_in}</span>
           </div>
         </div>

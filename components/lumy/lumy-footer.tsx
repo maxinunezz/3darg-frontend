@@ -87,6 +87,15 @@ export function LumyFooter({ brand }: LumyFooterProps) {
             <Link href={`${base}/legal/terminos`}>Términos</Link>
             <Link href={`${base}/legal/privacidad`}>Privacidad</Link>
             <Link href={`${base}/legal/envios-y-devoluciones`}>Envíos y devoluciones</Link>
+            {/* Botón de arrepentimiento (Resolución 424/2020): link directo al form de
+                contacto, con asunto/mensaje precargados, sin pedir registro previo. */}
+            <Link
+              href={`${base}/contact?title=${encodeURIComponent("Derecho de arrepentimiento")}&body=${encodeURIComponent(
+                "Quiero ejercer mi derecho de arrepentimiento sobre una compra ya realizada. Mi número de pedido es: ",
+              )}`}
+            >
+              Botón de arrepentimiento
+            </Link>
           </div>
           <span>Hecho con amor en Argentina</span>
         </div>

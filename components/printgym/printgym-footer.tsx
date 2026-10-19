@@ -89,6 +89,15 @@ export function PrintGymFooter({ brand, categories = [] }: PrintGymFooterProps) 
             <a href={`${base}/legal/terminos`}>Términos</a>
             <a href={`${base}/legal/privacidad`}>Privacidad</a>
             <a href={`${base}/legal/envios-y-devoluciones`}>Envíos y devoluciones</a>
+            {/* Botón de arrepentimiento (Resolución 424/2020): link directo al form de
+                contacto, con asunto/mensaje precargados, sin pedir registro previo. */}
+            <a
+              href={`${base}/contact?title=${encodeURIComponent("Derecho de arrepentimiento")}&body=${encodeURIComponent(
+                "Quiero ejercer mi derecho de arrepentimiento sobre una compra ya realizada. Mi número de pedido es: ",
+              )}`}
+            >
+              Botón de arrepentimiento
+            </a>
           </div>
           <span>Fabricado en Argentina</span>
         </div>
