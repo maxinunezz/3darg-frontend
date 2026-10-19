@@ -229,6 +229,16 @@
     grid-template-columns: 1fr;
   }
 }
+/* El Manifiesto es un grid 2 columnas (miniaturas | texto) con, adentro de la
+   columna de miniaturas, OTRO grid de 2 columnas — en mobile ese anidado deja
+   cada miniatura en ~1/4 del ancho de pantalla. Lo apilamos a 1 columna para
+   que las miniaturas (que tienen su propio grid interno) usen el ancho completo. */
+@media (max-width: 760px) {
+  .site-lumy .lm-manifiesto-grid {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-8) !important;
+  }
+}
 @keyframes lm-marquee {
   from {
     transform: translateX(0);
@@ -286,6 +296,35 @@
   }
   .site-lumy .lm-light {
     animation: none;
+  }
+}
+/* En mobile, el bloque flotante del hero viene con `position:absolute` inline
+   (pensado para flotar junto al texto en desktop) — en pantallas angostas el
+   texto no tiene lugar para correrse y queda tapado. `!important` porque un
+   estilo inline solo lo puede pisar otro `!important` en la hoja de estilos. */
+@media (max-width: 760px) {
+  .site-lumy .lm-hero-float {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    width: 100% !important;
+    height: min(80vw, 22rem) !important;
+    margin: 0 0 var(--space-6);
+  }
+}
+/* La fila de CTAs del hero es un grid inline de 2 columnas
+   (`minmax(0,26rem) 1fr`) pensado para desktop — en mobile ambas columnas
+   quedan tan angostas que el párrafo y el texto script envuelven
+   palabra por palabra. La apilamos a 1 columna de ancho completo. */
+@media (max-width: 760px) {
+  .site-lumy .lm-hero-cta-grid {
+    grid-template-columns: 1fr !important;
+    align-items: start !important;
+    gap: var(--space-6) !important;
+  }
+  .site-lumy .lm-hero-cta-secondary {
+    align-items: flex-start !important;
+    text-align: left !important;
   }
 }
 .site-lumy .lm-idx {
@@ -502,11 +541,35 @@
 @media (max-width: 860px) {
   .site-lumy .lm-nav__links { display: none; }
 }
+/* En mobile el logo queda siempre chico y contenido dentro de la navbar — el
+   efecto de "asomar" grande sobre el hero y achicarse al scrollear (pensado
+   para desktop, donde hay lugar debajo) no tiene dónde flotar en una pantalla
+   angosta y termina tapando el contenido de abajo. Mismo tamaño/posición que
+   ya usa `.lm-nav--scrolled`, pero fijo, sin esperar al scroll. */
+@media (max-width: 860px) {
+  .site-lumy .lm-nav__logo {
+    align-self: center;
+  }
+  .site-lumy .lm-nav__logo::before {
+    opacity: 0;
+  }
+  .site-lumy .lm-nav__logo img {
+    height: calc(var(--nav-height) - 0.75rem);
+  }
+}
 
 /* ── Mobile nav sheet (no está en el handoff; patrón propio) ────────── */
 .site-lumy .lm-mobilenav {
+  /* `top/left/right` + `height` explícitos en vez de `inset: var(--nav-height) 0 0 0`:
+     `.lm-nav` tiene `backdrop-filter`, que lo convierte en el containing block de sus
+     hijos `position: fixed` (en vez del viewport). Como `.lm-nav` solo mide
+     `--nav-height` de alto, un `inset` con `bottom:0` calculaba una altura ≈0 y el
+     menú quedaba invisible aunque el botón cambiara a "X" correctamente. */
   position: fixed;
-  inset: var(--nav-height) 0 0 0;
+  top: var(--nav-height);
+  left: 0;
+  right: 0;
+  height: calc(100dvh - var(--nav-height));
   z-index: 49;
   background: var(--cream-50);
   padding: var(--space-6) var(--gutter);

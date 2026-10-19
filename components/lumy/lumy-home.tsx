@@ -377,7 +377,7 @@ function Hero({
             </span>
             <span style={{ display: "block" }}>{line3}</span>
           </h1>
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0,26rem) 1fr", gap: "var(--space-10)", alignItems: "end", marginTop: "var(--space-12)" }}>
+          <div className="lm-hero-cta-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0,26rem) 1fr", gap: "var(--space-10)", alignItems: "end", marginTop: "var(--space-12)" }}>
             <div>
               <p style={{ fontSize: "var(--text-body-l)", color: "var(--text-body)" }}>
                 {brand.short_description ||
@@ -388,7 +388,7 @@ function Hero({
                 <Link href={`${base}/shop`} className="lm-btn lm-btn--ghost lm-btn--lg">{ctaSecondary}</Link>
               </div>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "var(--space-4)", textAlign: "right" }}>
+            <div className="lm-hero-cta-secondary" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "var(--space-4)", textAlign: "right" }}>
               <span className="lm-script" style={{ fontSize: "clamp(1.5rem,2.4vw,2.25rem)", lineHeight: 1.1 }}>{script}</span>
               <ShapeRow size={26} />
             </div>
@@ -565,7 +565,7 @@ function Manifiesto({
 
   return (
     <section style={{ padding: "var(--space-10) 0 var(--space-10)", overflow: "hidden" }}>
-      <div className="lm-wrap" style={{ display: "grid", gridTemplateColumns: "0.95fr 1.05fr", gap: "var(--space-16)", alignItems: "start" }}>
+      <div className="lm-wrap lm-manifiesto-grid" style={{ display: "grid", gridTemplateColumns: "0.95fr 1.05fr", gap: "var(--space-16)", alignItems: "start" }}>
         {/* Ratio 9/16 = aspect-ratio nativo real de las dos piezas (foto 828x1472, video 352x624) —
             así se ven completas, sin recortar nada, y de paso los recuadros quedan más grandes. */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-8)" }}>
