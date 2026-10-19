@@ -102,6 +102,44 @@ export function ProductPromoCarousel({ brand, product, qty, variant }: Props) {
 
   const slides: React.ReactNode[] = [];
 
+  if (hasDiscountSlide) {
+    const quantities = sortedTiers.map((t) => t.min_quantity);
+    const { currentIdx } = tierBarPercent(quantities, previewQuantity);
+    const currentTier = currentIdx === -1 ? null : sortedTiers[currentIdx];
+    const nextTier = currentIdx + 1 < sortedTiers.length ? sortedTiers[currentIdx + 1] : null;
+    slides.push(
+      <div key="discount">
+        <p className="text-sm font-semibold">
+          {nextTier ? (
+            <>
+              🎁 Te faltan <span className="text-primary">{nextTier.min_quantity - previewQuantity}</span>{" "}
+              {nextTier.min_quantity - previewQuantity === 1 ? "producto" : "productos"} para el {nextTier.discount_percent}% OFF.
+            </>
+          ) : currentTier ? (
+            <>🎁 ¡Ya tenés el {currentTier.discount_percent}% OFF, el máximo disponible!</>
+          ) : (
+            <>🎁 Sumá productos a tu pedido y accedé a descuentos automáticos.</>
+          )}
+        </p>
+        <CheckpointBar
+          sortedValues={quantities}
+          previewValue={previewQuantity}
+          labelFor={(value, reached) => {
+            const tier = sortedTiers.find((t) => t.min_quantity === value)!;
+            return (
+              <>
+                <span className={`text-[11px] font-bold whitespace-nowrap ${reached ? "text-primary" : "text-muted-foreground"}`}>
+                  {tier.discount_percent}% OFF
+                </span>
+                <span className="text-[10px] font-bold text-muted-foreground whitespace-nowrap">{tier.min_quantity} un.</span>
+              </>
+            );
+          }}
+        />
+      </div>
+    );
+  }
+
   if (hasShippingSlide) {
     const amounts = shippingCheckpoints.map((c) => c.amount);
     const { currentIdx } = tierBarPercent(amounts, previewSubtotal);
@@ -142,44 +180,6 @@ export function ProductPromoCarousel({ brand, product, qty, variant }: Props) {
             }}
           />
         ) : null}
-      </div>
-    );
-  }
-
-  if (hasDiscountSlide) {
-    const quantities = sortedTiers.map((t) => t.min_quantity);
-    const { currentIdx } = tierBarPercent(quantities, previewQuantity);
-    const currentTier = currentIdx === -1 ? null : sortedTiers[currentIdx];
-    const nextTier = currentIdx + 1 < sortedTiers.length ? sortedTiers[currentIdx + 1] : null;
-    slides.push(
-      <div key="discount">
-        <p className="text-sm font-semibold">
-          {nextTier ? (
-            <>
-              🎁 Te faltan <span className="text-primary">{nextTier.min_quantity - previewQuantity}</span>{" "}
-              {nextTier.min_quantity - previewQuantity === 1 ? "producto" : "productos"} para el {nextTier.discount_percent}% OFF.
-            </>
-          ) : currentTier ? (
-            <>🎁 ¡Ya tenés el {currentTier.discount_percent}% OFF, el máximo disponible!</>
-          ) : (
-            <>🎁 Sumá productos a tu pedido y accedé a descuentos automáticos.</>
-          )}
-        </p>
-        <CheckpointBar
-          sortedValues={quantities}
-          previewValue={previewQuantity}
-          labelFor={(value, reached) => {
-            const tier = sortedTiers.find((t) => t.min_quantity === value)!;
-            return (
-              <>
-                <span className={`text-[11px] font-bold whitespace-nowrap ${reached ? "text-primary" : "text-muted-foreground"}`}>
-                  {tier.discount_percent}% OFF
-                </span>
-                <span className="text-[10px] font-bold text-muted-foreground whitespace-nowrap">{tier.min_quantity} un.</span>
-              </>
-            );
-          }}
-        />
       </div>
     );
   }
