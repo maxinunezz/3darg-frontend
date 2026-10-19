@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { X } from "lucide-react";
 import type { BrandType } from "@/types/brands";
@@ -29,44 +30,65 @@ const DEFAULT_SEGMENTS = [{ value: "pasteleria", label: "Pastelería" }];
 // mostrar los dos elementos exactamente al mismo tiempo.
 const DEFAULT_POPUP_DELAY_MS = 18000;
 const DEFAULT_BUBBLE_DELAY_MS = 12000;
+// Tiempo que el globo queda abierto solo (sin que el mouse esté encima)
+// antes de replegarse por su cuenta.
+const DEFAULT_BUBBLE_AUTOHIDE_MS = 6000;
 
 /**
  * Popup de suscripción al canal de WhatsApp de la marca + globo/botón
- * flotante permanente, ambos gateados por
- * `Brand.page_config.whatsapp_channel.channel_url` (vacío/sin cargar = los
- * dos quedan apagados para esa marca, no rompe nada).
+ * flotante, ambos gateados por `Brand.page_config.whatsapp_channel.channel_url`
+ * (vacío/sin cargar = los dos quedan apagados para esa marca, no rompe nada)
+ * y visibles **solo en la home** de la marca (no en shop/producto/perfil/etc,
+ * para no competir con el resto de la UI en páginas de más carga visual).
  *
- * Una vez cerrado el popup o el globo (sin importar si se suscribió o no),
- * cada uno deja de mostrarse por separado — se guarda en localStorage
- * namespaceado por marca, igual patrón que el cart de invitado.
+ * El globo se despliega solo una vez (con delay) y se repliega solo a los
+ * pocos segundos; después de eso, vuelve a desplegarse cada vez que el mouse
+ * pasa por encima del botón — no hay dismiss permanente para el globo.
+ * El popup de suscripción sí se sigue recordando como cerrado (localStorage)
+ * para no insistir en cada visita.
  */
 export function WhatsappCommunityWidget({ brand }: { brand: BrandType }) {
+  const pathname = usePathname();
   const config = brand.page_config?.whatsapp_channel;
   const channelUrl = config?.channel_url;
   const popupStorageKey = `wa_popup_dismissed__${brand.slug}`;
-  const bubbleStorageKey = `wa_bubble_dismissed__${brand.slug}`;
+
+  const homePath = brand.slug === "3darg" ? "/" : `/${brand.slug}`;
+  const isHome = pathname === homePath;
 
   const [showPopup, setShowPopup] = useState(false);
-  const [showBubble, setShowBubble] = useState(false);
+  const [autoShowBubble, setAutoShowBubble] = useState(false);
+  const [isHoveringBubble, setIsHoveringBubble] = useState(false);
   const [phone, setPhone] = useState("");
   const [selectedSegments, setSelectedSegments] = useState<string[]>([]);
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
+  const showBubble = autoShowBubble || isHoveringBubble;
+
   useEffect(() => {
-    if (!channelUrl) return;
+    if (!channelUrl || !isHome) return;
     if (window.localStorage.getItem(popupStorageKey)) return;
     const delay = config?.popup_delay_ms ?? DEFAULT_POPUP_DELAY_MS;
     const timer = setTimeout(() => setShowPopup(true), delay);
     return () => clearTimeout(timer);
-  }, [channelUrl, popupStorageKey, config?.popup_delay_ms]);
+  }, [channelUrl, isHome, popupStorageKey, config?.popup_delay_ms]);
 
+  // Despliegue automático del globo, una sola vez por visita a la home.
   useEffect(() => {
-    if (!channelUrl) return;
-    if (window.localStorage.getItem(bubbleStorageKey)) return;
-    const timer = setTimeout(() => setShowBubble(true), DEFAULT_BUBBLE_DELAY_MS);
+    if (!channelUrl || !isHome) return;
+    const timer = setTimeout(() => setAutoShowBubble(true), DEFAULT_BUBBLE_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [channelUrl, bubbleStorageKey]);
+  }, [channelUrl, isHome]);
+
+  // Repliegue automático del globo a los pocos segundos de haberse abierto
+  // solo — si en ese momento el mouse ya está encima, no lo cierra (lo deja
+  // en manos del mouseleave del hover).
+  useEffect(() => {
+    if (!autoShowBubble) return;
+    const timer = setTimeout(() => setAutoShowBubble(false), DEFAULT_BUBBLE_AUTOHIDE_MS);
+    return () => clearTimeout(timer);
+  }, [autoShowBubble]);
 
   useEffect(() => {
     if (!showPopup) return;
@@ -82,17 +104,11 @@ export function WhatsappCommunityWidget({ brand }: { brand: BrandType }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showPopup]);
 
-  if (!channelUrl) return null;
+  if (!channelUrl || !isHome) return null;
 
   function handleDismiss() {
     window.localStorage.setItem(popupStorageKey, "1");
     setShowPopup(false);
-  }
-
-  function handleDismissBubble(e?: React.MouseEvent) {
-    e?.stopPropagation();
-    window.localStorage.setItem(bubbleStorageKey, "1");
-    setShowBubble(false);
   }
 
   function toggleSegment(value: string) {
@@ -245,16 +261,21 @@ export function WhatsappCommunityWidget({ brand }: { brand: BrandType }) {
 
       {/* Globo flotante estilo chat de WhatsApp: ícono redondo siempre visible
           + un "mensaje" tipo viñeta que se despliega al lado, igual que una
-          notificación de chat real, en vez de un botón pill aburrido. */}
-      <div className="fixed bottom-6 right-6 z-[150] flex flex-col items-end gap-3">
+          notificación de chat real. Se abre solo una vez (delay) y se
+          repliega solo; de ahí en más, reaparece con el hover sobre el
+          contenedor (botón + globo). */}
+      <div
+        className="fixed bottom-6 right-6 z-[150] flex flex-col items-end gap-3"
+        onMouseEnter={() => setIsHoveringBubble(true)}
+        onMouseLeave={() => setIsHoveringBubble(false)}
+      >
         {showBubble && (
           <div className="relative max-w-[260px] animate-in fade-in slide-in-from-bottom-4 zoom-in-95 duration-300">
             <a
               href={channelUrl}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => window.localStorage.setItem(bubbleStorageKey, "1")}
-              className="flex items-center gap-3 bg-card !text-foreground border border-border rounded-2xl rounded-br-sm shadow-2xl px-4 py-3 pr-7 hover:brightness-95 transition-[filter]"
+              className="flex items-center gap-3 bg-card !text-foreground border border-border rounded-2xl rounded-br-sm shadow-2xl px-4 py-3 pr-4 hover:brightness-95 transition-[filter]"
             >
               {/* Logo de la marca, como si el mensaje lo mandara ella misma */}
               <div className="shrink-0 w-9 h-9 rounded-full overflow-hidden border border-border bg-white flex items-center justify-center">
@@ -273,13 +294,6 @@ export function WhatsappCommunityWidget({ brand }: { brand: BrandType }) {
               </div>
               <span className="text-sm leading-snug">{bubbleMessage}</span>
             </a>
-            <button
-              onClick={handleDismissBubble}
-              aria-label="Cerrar"
-              className="absolute top-1.5 right-1.5 !text-muted-foreground hover:!text-foreground transition-colors rounded-full p-0.5"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
             {/* Colita del globo, apuntando al ícono redondo de abajo */}
             <span
               aria-hidden
@@ -293,7 +307,6 @@ export function WhatsappCommunityWidget({ brand }: { brand: BrandType }) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Unirse a la comunidad de WhatsApp"
-          onClick={() => handleDismissBubble()}
           className="flex items-center justify-center w-14 h-14 rounded-full bg-[#25D366] !text-white shadow-lg hover:scale-105 transition-transform"
         >
           <WhatsAppIcon className="w-7 h-7" />
