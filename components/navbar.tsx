@@ -1,8 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { ShoppingCart, User, LogOut, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import LogoBlack from "../public/3DARG/logos/3dargblack.png";
@@ -25,12 +25,35 @@ const LINKS = [
 
 export const Navbar = () => {
   const router = useRouter();
+  const pathname = usePathname();
   const { count } = useCart();
   const { isAuthenticated, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+
+  // El Navbar vive en el layout compartido de (main)/ — al navegar entre
+  // páginas (ej. tocar "Ingresar") no se vuelve a montar, así que el menú
+  // mobile quedaba desplegado tapando la página de destino. Lo cerramos
+  // apenas cambia la ruta.
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  // Cerrar también al tocar fuera del menú.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
+        setMobileOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [mobileOpen]);
 
   return (
     <header
+      ref={headerRef}
       className="sticky top-0 z-50 border-b border-[var(--border-hairline)]"
       style={{ background: "var(--veil)", backdropFilter: "var(--blur-veil)" }}
     >

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ShoppingBag, User, Menu, X } from "lucide-react";
@@ -29,6 +29,7 @@ export function LumyNavbar({ brand }: LumyNavbarProps) {
   const { isAuthenticated } = useAuth();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
   const base = `/${brand.slug}`;
   const isHome = pathname === base;
   // w_400 (en vez de 200) para que no se vea pixelado en pantallas retina/HiDPI — el logo se
@@ -46,8 +47,31 @@ export function LumyNavbar({ brand }: LumyNavbarProps) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // LumyNavbar vive en el layout compartido de /lumy/** — al navegar entre
+  // páginas (ej. tocar "Ingresar") el componente no se vuelve a montar, así
+  // que el menú mobile quedaba desplegado tapando la página de destino hasta
+  // cerrarlo a mano. Lo cerramos solo apenas cambia la ruta.
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  // Cerrar también al tocar fuera del menú (el botón "Ingresar"/"Carrito" ya
+  // quedan por encima del overlay, pero tocar cualquier otro punto de la
+  // pantalla — o esos mismos botones antes de que la navegación los cierre —
+  // debe cerrar el menú al toque, no solo al elegir un link del listado).
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [open]);
+
   return (
-    <nav className={`lm-nav${scrolled ? " lm-nav--scrolled" : ""}`}>
+    <nav ref={navRef} className={`lm-nav${scrolled ? " lm-nav--scrolled" : ""}`}>
       <div className="lm-nav__inner">
         <Link className="lm-nav__logo" href={base} onClick={() => setOpen(false)}>
           {logo ? (
