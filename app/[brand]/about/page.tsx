@@ -230,9 +230,16 @@ export default async function AboutPage({
                       </div>
                     )}
                   </div>
-                  <p className="text-xs font-semibold leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                  <p className="text-sm font-semibold leading-snug group-hover:text-primary transition-colors line-clamp-2">
                     {product.name}
                   </p>
+                  {product.category && (
+                    <p className="text-xs text-muted-foreground mt-0.5! line-clamp-1">
+                      {product.category.parent_name
+                        ? `${product.category.parent_name} · ${product.category.name}`
+                        : product.category.name}
+                    </p>
+                  )}
                 </Link>
               ))}
             </div>
