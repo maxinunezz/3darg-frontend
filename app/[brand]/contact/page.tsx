@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getBrandBySlug } from "@/lib/brands";
 import { BrandContactForm } from "@/components/brand-contact-form";
+import { FeaturedProductsSection } from "@/components/featured-products-section";
 
 export async function generateMetadata({
   params,
@@ -54,6 +55,8 @@ export default async function ContactPage({
           </div>
         </div>
       </section>
+
+      <FeaturedProductsSection brand={brand} />
     </div>
   );
 }
