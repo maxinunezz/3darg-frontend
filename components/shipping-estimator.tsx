@@ -5,7 +5,9 @@ import { Loader2, CheckCircle2 } from "lucide-react";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { apiUrl } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 import { useBrandNamespace } from "@/lib/brand-context";
+import { sanitizePhone } from "@/lib/phone";
 import { tierBarPercent, CheckpointBar } from "@/components/checkpoint-bar";
 import type { CartItem } from "@/contexts/CartContext";
 import type { BrandType } from "@/types/brands";
@@ -181,6 +183,8 @@ export function ShippingEstimator({
   inputClassName = DEFAULT_INPUT_CLS,
 }: ShippingEstimatorProps) {
   const brandSlug = useBrandNamespace();
+  const { user } = useAuth();
+  const prefillAppliedRef = useRef(false);
   const [thresholdSucursal, setThresholdSucursal] = useState<number | null>(null);
   const [thresholdDomicilio, setThresholdDomicilio] = useState<number | null>(null);
   const [methods, setMethods] = useState<ShippingMethod[]>([]);
@@ -209,6 +213,24 @@ export function ShippingEstimator({
 
   // Modalidad "domicilio" — dirección completa, vía el form reusado.
   const [domicilioAddress, setDomicilioAddress] = useState<ShippingAddress>(EMPTY_DOMICILIO_ADDRESS);
+
+  // Si hay sesión iniciada, autocompleta nombre/teléfono con los datos
+  // guardados en "Mis datos" (una sola vez, y solo si el campo todavía está
+  // vacío — no pisa lo que el comprador ya haya escrito a mano).
+  useEffect(() => {
+    if (!user || prefillAppliedRef.current) return;
+    prefillAppliedRef.current = true;
+    const fullName = `${user.first_name} ${user.last_name}`.trim();
+    const phone = sanitizePhone(user.phone);
+    if (!fullName && !phone) return;
+    setSucursalFullName((prev) => prev || fullName);
+    setSucursalPhone((prev) => prev || phone);
+    setDomicilioAddress((prev) => ({
+      ...prev,
+      fullName: prev.fullName || fullName,
+      phone: prev.phone || phone,
+    }));
+  }, [user]);
 
   useEffect(() => {
     let cancelled = false;

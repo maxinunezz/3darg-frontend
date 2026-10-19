@@ -3,7 +3,10 @@
 import { useEffect, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import { useAuth } from "@/contexts/AuthContext";
+import { sanitizePhone } from "@/lib/phone";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 
 const inputCls =
@@ -56,6 +59,7 @@ export function AccountSettingsContent({ profileHref, loginHref }: { profileHref
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [emailCurrentPassword, setEmailCurrentPassword] = useState("");
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState("");
@@ -78,6 +82,7 @@ export function AccountSettingsContent({ profileHref, loginHref }: { profileHref
       setFirstName(user.first_name ?? "");
       setLastName(user.last_name ?? "");
       setEmail(user.email ?? "");
+      setPhone(sanitizePhone(user.phone));
     }
   }, [authLoading, isAuthenticated, user, router, loginHref]);
 
@@ -95,6 +100,7 @@ export function AccountSettingsContent({ profileHref, loginHref }: { profileHref
         first_name: firstName,
         last_name: lastName,
         email: email.trim(),
+        phone,
         ...(emailChanged && user!.has_usable_password && { current_password: emailCurrentPassword }),
       });
       setEmailCurrentPassword("");
@@ -167,6 +173,17 @@ export function AccountSettingsContent({ profileHref, loginHref }: { profileHref
             onChange={(e) => setEmail(e.target.value)}
             required
             className={inputCls}
+          />
+        </div>
+
+        <div>
+          <label className={labelCls}>Teléfono</label>
+          <PhoneInput
+            international
+            defaultCountry="AR"
+            value={phone || undefined}
+            onChange={(v) => setPhone(v ?? "")}
+            placeholder="Tu número de teléfono"
           />
         </div>
 
