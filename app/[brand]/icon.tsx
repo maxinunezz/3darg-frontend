@@ -1,8 +1,5 @@
-import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { getBrandBySlug } from "@/lib/brands";
-import { resolveMediaUrl } from "@/lib/api";
 
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
@@ -15,27 +12,13 @@ export default async function Icon({
   const { brand: slug } = await params;
 
   if (slug === "lumy") {
-    const brand = await getBrandBySlug("lumy");
-    const logoUrl = resolveMediaUrl(brand?.logo);
-    if (logoUrl) {
-      return new ImageResponse(
-        (
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: "#ffffff",
-            }}
-          >
-            <img src={logoUrl} width={28} height={28} style={{ objectFit: "contain" }} />
-          </div>
-        ),
-        { ...size }
-      );
-    }
+    // Isologo dedicado solo para el favicon de Lumy (fondo transparente,
+    // ya recortado y centrado en lienzo cuadrado) — independiente de
+    // `Brand.logo`, para no tocar el logo que se ve en navbar/landing/etc.
+    const file = await readFile(path.join(process.cwd(), "app", "lumy-icon.png"));
+    return new Response(new Uint8Array(file), {
+      headers: { "Content-Type": "image/png" },
+    });
   }
 
   // Resto de las sub-marcas: todavía sin ícono propio — se mantiene el mismo

@@ -31,6 +31,16 @@ export const metadata: Metadata = {
   title: "3DARG | Manufactura 3D Industrial",
   description:
     "Diseño y fabricación digital a escala industrial. Impresión 3D, prototipado y diseño 3D en Argentina.",
+  // Declarado explícito (en vez de depender de la convención de archivo
+  // app/favicon.ico) para que los layouts hijos —como el de Lumy, que define
+  // su propio isologo en generateMetadata— puedan reemplazarlo de verdad en
+  // vez de que Next siga sumando este <link> igual (la convención de archivo
+  // a nivel raíz nunca se puede "apagar" en una ruta hija).
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

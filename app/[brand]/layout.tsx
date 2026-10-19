@@ -9,6 +9,7 @@ import { LumyNavbar } from "@/components/lumy/lumy-navbar";
 import { LumyFooter } from "@/components/lumy/lumy-footer";
 import { WhatsappCommunityWidget } from "@/components/whatsapp-community-widget";
 import { getBrandBySlug } from "@/lib/brands";
+import type { Metadata } from "next";
 
 // Fuentes del Print&Gym Design System — self-hosted (display) + Google (body/mono).
 // Variables propias (--font-pg-*) para no acoplar con el sistema de fuentes de 3DARG.
@@ -51,6 +52,31 @@ const lmScript = Yellowtail({
   subsets: ["latin"],
   weight: ["400"],
 });
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ brand: string }>;
+}): Promise<Metadata> {
+  const { brand: slug } = await params;
+  // Lumy tiene su propio isologo como favicon (app/[brand]/icon.tsx) — sin esto,
+  // Next sigue ofreciendo también el favicon.ico/apple-icon.png raíz de 3DARG
+  // (convención de archivos a nivel app/), y la mayoría de los navegadores
+  // termina mostrando ese ícono viejo en la pestaña en vez del de Lumy. Declarar
+  // `icons` acá explícito reemplaza esos links heredados solo para /lumy.
+  if (slug === "lumy") {
+    return {
+      icons: {
+        icon: [{ url: "/lumy/icon", type: "image/png", sizes: "32x32" }],
+        shortcut: "/lumy/icon",
+        // Mismo apple-touch-icon que el resto del sitio — acá solo se pidió
+        // cambiar el favicon de pestaña, no el ícono de "agregar a inicio".
+        apple: "/apple-icon.png",
+      },
+    };
+  }
+  return {};
+}
 
 export default async function BrandLayout({
   children,
