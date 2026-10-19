@@ -169,7 +169,7 @@ export default async function Home() {
 
         <div
           className="relative max-w-[var(--container-narrow)] mx-auto flex flex-col items-center text-center gap-[26px] px-[var(--gutter)]"
-          style={{ paddingTop: "clamp(88px,13vw,168px)", paddingBottom: "clamp(72px,10vw,128px)" }}
+          style={{ paddingTop: "clamp(24px,4vw,56px)", paddingBottom: "clamp(72px,10vw,128px)" }}
         >
           <p className="font-mono text-[11px] tracking-[0.34em] uppercase text-[var(--ink-500)]">
             {HERO.eyebrow}

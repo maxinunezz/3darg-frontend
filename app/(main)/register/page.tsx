@@ -7,7 +7,7 @@ import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
-import Logo from "@/public/3DARG/logos/3dargblack.png";
+import Logo from "@/public/3DARG/logos/logonobg.png";
 import { PasswordFields, validatePassword } from "@/components/password-fields";
 import { GoogleLoginButton } from "@/components/google-login-button";
 
@@ -42,7 +42,7 @@ export default function RegisterPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <Image src={Logo} alt="3DARG" width={100} height={40} className="mx-auto mb-6" />
+          <Image src={Logo} alt="3DARG" width={56} height={56} className="mx-auto mb-6" />
           <h1 className="text-2xl font-bold">Crear cuenta</h1>
           <p className="text-muted-foreground mt-2 text-sm">
             ¿Ya tenés cuenta?{" "}

@@ -5,7 +5,7 @@ import { ShoppingCart, User, LogOut, Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import LogoBlack from "../public/3DARG/logos/3dargblack.png";
+import LogoBlack from "../public/3DARG/logos/logonobg.png";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { IconButton } from "@/components/site/core";
@@ -59,7 +59,7 @@ export const Navbar = () => {
     >
       <div className="max-w-[var(--container)] mx-auto h-20 px-[var(--gutter)] grid grid-cols-[auto_1fr_auto] items-center gap-8">
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <Image src={LogoBlack} alt="3DARG" height={64} className="w-auto h-11 md:h-14" priority />
+          <Image src={LogoBlack} alt="3DARG" height={200} className="w-auto h-[78px]" priority />
         </Link>
 
         <nav className="hidden md:flex items-center justify-center gap-6">
