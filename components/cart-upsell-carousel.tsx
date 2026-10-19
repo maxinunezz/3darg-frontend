@@ -62,7 +62,7 @@ export function CartUpsellCarousel({ brandSlug, className, orientation = "horizo
         <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-3">
           Sumá uno de estos y llegá al {next_tier_discount_percent}% OFF
         </p>
-        <div className="flex flex-col gap-3 max-h-80 overflow-y-auto pr-1">
+        <div className="flex flex-col gap-3">
           {candidates.map((product) => {
             const img = cloudinaryUrl(resolveMediaUrl(product.images?.[0]?.image ?? null), 150);
             return (
