@@ -13,6 +13,20 @@ npm run lint     # ESLint
 
 No hay test suite configurada.
 
+## Verificación de cambios de UI
+
+**No usar el preview server (Claude Preview MCP tools) en este proyecto.** El
+dueño prefiere verificar los cambios él mismo en el navegador — levantar un
+preview server aparte además choca con el contenedor Docker de `frontend` que
+ya ocupa el puerto 3000 (hay que pararlo, tocar `.env`, y después restaurarlo,
+con riesgo de dejar el contenedor en un estado roto, como pasó una vez con el
+mapeo de puertos). En vez de abrir un preview, después de cada cambio de UI
+indicar en la respuesta **cómo verificarlo a mano**: la URL exacta
+(`localhost:3000/...`), qué breakpoint/viewport mirar si es un fix de
+responsive, y qué interacción probar (ej. "abrí el menú hamburguesa en mobile
+y fijate que..."). El `frontend` de Docker Compose ya corre con hot reload
+(`next dev`), así que los cambios se ven solos sin reiniciar nada.
+
 ## Environment
 NEXT_PUBLIC_BACKEND_URL=http://localhost:8000/api
 NEXT_PUBLIC_BACKEND_MEDIA_URL=http://localhost:8000

@@ -604,7 +604,16 @@
 .site-lumy .lm-footer a:hover { color: var(--white); }
 .site-lumy .lm-footer__bottom { margin-top: var(--space-12); padding-top: var(--space-6); border-top: 1px solid oklch(1 0 0 / 0.12); display: flex; justify-content: space-between; gap: var(--space-4); font-size: var(--text-caption); color: oklch(1 0 0 / 0.55); }
 @media (max-width: 860px) {
-  .site-lumy .lm-footer__grid { grid-template-columns: 1fr 1fr; }
+  /* 2 columnas en mobile dejaba "Tienda" (solo un link, sin lista) en la misma
+     fila que la columna de descripción (mucho más alta) — como ambas celdas
+     comparten fila, la fila completa se estiraba a la altura de la más alta
+     y "Tienda" quedaba con un hueco enorme debajo. Apilamos a 1 columna: cada
+     bloque ocupa solo el alto que necesita. */
+  .site-lumy .lm-footer__grid { grid-template-columns: 1fr; gap: var(--space-8); }
+  /* El renglón inferior (copyright / links legales / "Hecho con amor") usa
+     `justify-content: space-between` en una fila — en mobile no entran los 3
+     bloques y se comprimen/envuelven feo. Los apilamos uno debajo del otro. */
+  .site-lumy .lm-footer__bottom { flex-direction: column; align-items: flex-start; gap: var(--space-3); }
 }
 
 /* ── Skeleton ───────────────────────────────────────────── */
