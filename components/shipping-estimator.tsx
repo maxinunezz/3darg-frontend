@@ -479,7 +479,7 @@ export function ShippingEstimator({
               return (
                 <>
                   <span
-                    className={`text-xs font-bold whitespace-nowrap ${reached ? "text-primary" : "text-muted-foreground"}`}
+                    className={`text-xs font-bold max-w-[6rem] ${reached ? "text-primary" : "text-muted-foreground"}`}
                   >
                     Gratis a {checkpoint.modality}
                   </span>
@@ -562,7 +562,7 @@ export function ShippingEstimator({
                       placeholder="Tu número de teléfono"
                     />
                   </label>
-                  <label className="grid gap-1.5">
+                  <label className="grid gap-1.5 min-w-0">
                     <span className={labelClassName}>Provincia</span>
                     <select
                       ref={provinceSelectRef}
@@ -591,7 +591,7 @@ export function ShippingEstimator({
                       </span>
                     )}
                   </label>
-                  <label className="grid gap-1.5">
+                  <label className="grid gap-1.5 min-w-0">
                     <span className={labelClassName}>Sucursal</span>
                     {!sucursalProvince ? (
                       <span className="text-[11px] text-muted-foreground self-center">Elegí la provincia primero.</span>

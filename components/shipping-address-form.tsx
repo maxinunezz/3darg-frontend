@@ -120,7 +120,7 @@ export function ShippingAddressForm({
         />
       </label>
 
-      <label className="grid gap-1.5">
+      <label className="grid gap-1.5 min-w-0">
         <span className={labelClassName}>Provincia</span>
         <select
           value={value.province}

@@ -222,7 +222,7 @@ export function CartPageContent() {
                     {variant && (
                       <p className="text-sm text-muted-foreground">Talle: {variantLabel(variant)}</p>
                     )}
-                    <p className="text-primary font-bold text-base mt-0.5 flex items-baseline gap-1.5">
+                    <p className="text-primary font-bold text-base mt-0.5 flex items-baseline gap-1.5 flex-wrap">
                       {fmt(unit)}
                       {unit < listPrice && (
                         <span className="text-xs font-normal text-muted-foreground line-through">

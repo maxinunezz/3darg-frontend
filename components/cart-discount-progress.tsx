@@ -27,7 +27,7 @@ export function CartDiscountProgress({ className }: Props) {
 
   return (
     <div className={className}>
-      <div className="flex items-center justify-between gap-2 text-sm mb-3">
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-sm mb-3">
         {current_discount_percent > 0 ? (
           <span className="inline-flex items-center gap-1.5 text-emerald-600 font-bold">
             <CheckCircle2 className="w-4 h-4 shrink-0" />

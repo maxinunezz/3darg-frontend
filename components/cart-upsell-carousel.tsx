@@ -82,7 +82,7 @@ export function CartUpsellCarousel({ brandSlug, className, orientation = "horizo
                     </p>
                   )}
                   <div className="flex items-center justify-between gap-2 mt-1">
-                    <div className="whitespace-nowrap">
+                    <div className="min-w-0">
                       <ProductPrice product={product} size="sm" />
                     </div>
                     <button
