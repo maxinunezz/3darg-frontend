@@ -17,5 +17,11 @@ export async function generateMetadata({
 
 export default async function BrandAccountPage({ params }: { params: Promise<{ brand: string }> }) {
   const { brand: slug } = await params;
-  return <AccountSettingsContent profileHref={`/${slug}/profile`} loginHref={`/${slug}/auth/login`} />;
+  return (
+    <AccountSettingsContent
+      profileHref={`/${slug}/profile`}
+      loginHref={`/${slug}/auth/login`}
+      forgotPasswordHref={`/${slug}/auth/forgot-password`}
+    />
+  );
 }

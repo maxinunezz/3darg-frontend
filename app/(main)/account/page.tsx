@@ -6,5 +6,11 @@ export const metadata: Metadata = {
 };
 
 export default function AccountPage() {
-  return <AccountSettingsContent profileHref="/profile" loginHref="/login" />;
+  return (
+    <AccountSettingsContent
+      profileHref="/profile"
+      loginHref="/login"
+      forgotPasswordHref="/forgot-password"
+    />
+  );
 }

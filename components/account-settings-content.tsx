@@ -52,7 +52,15 @@ function PasswordInput({
  * (ver regla 5 del CLAUDE.md), así que no hay una única cuenta "global" por
  * URL, pero sí una única implementación de UI, sin lógica de marca adentro.
  */
-export function AccountSettingsContent({ profileHref, loginHref }: { profileHref: string; loginHref: string }) {
+export function AccountSettingsContent({
+  profileHref,
+  loginHref,
+  forgotPasswordHref,
+}: {
+  profileHref: string;
+  loginHref: string;
+  forgotPasswordHref: string;
+}) {
   const { user, isAuthenticated, loading: authLoading, updateProfile, changePassword } = useAuth();
   const router = useRouter();
 
@@ -226,7 +234,12 @@ export function AccountSettingsContent({ profileHref, loginHref }: { profileHref
 
         {user.has_usable_password && (
           <div>
-            <label className={labelCls}>Contraseña actual</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className={labelCls + " mb-0"}>Contraseña actual</label>
+              <Link href={forgotPasswordHref} className="text-xs text-primary hover:underline">
+                ¿No recordás tu contraseña actual?
+              </Link>
+            </div>
             <PasswordInput value={currentPassword} onChange={setCurrentPassword} placeholder="••••••••" />
           </div>
         )}
