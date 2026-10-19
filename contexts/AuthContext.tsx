@@ -3,7 +3,24 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
 import { useBrandNamespace } from "@/lib/brand-context";
 
-type User = { id: number; email: string; username: string; phone: string; date_joined: string };
+type User = {
+  id: number;
+  email: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  date_joined: string;
+  has_usable_password: boolean;
+};
+
+export type UpdateProfileInput = Partial<{
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  current_password: string;
+}>;
 
 interface AuthContextType {
   user: User | null;
@@ -14,6 +31,15 @@ interface AuthContextType {
   logout: () => void;
   register: (email: string, username: string, password: string, phone?: string, brandSlug?: string) => Promise<void>;
   loginWithGoogle: (idToken: string, brandSlug?: string) => Promise<void>;
+  updateProfile: (data: UpdateProfileInput) => Promise<void>;
+  changePassword: (newPassword: string, currentPassword?: string) => Promise<void>;
+}
+
+function flattenApiErrors(err: Record<string, unknown>): string {
+  return Object.values(err)
+    .flat()
+    .map((v) => String(v))
+    .join(" ");
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -179,6 +205,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [fetchMe] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
+  const updateProfile = useCallback(
+    async (data: UpdateProfileInput) => {
+      const ns = namespaceRef.current;
+      const accessToken = localStorage.getItem(accessKey(ns));
+      if (!accessToken) throw new Error("No hay sesión activa");
+      const res = await fetch(`${API}/users/me/`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(flattenApiErrors(err) || "No se pudieron guardar los cambios");
+      }
+      setUser(await res.json());
+    },
+    []
+  );
+
+  const changePassword = useCallback(
+    async (newPassword: string, currentPassword?: string) => {
+      const ns = namespaceRef.current;
+      const accessToken = localStorage.getItem(accessKey(ns));
+      if (!accessToken) throw new Error("No hay sesión activa");
+      const res = await fetch(`${API}/users/change-password/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({
+          new_password: newPassword,
+          ...(currentPassword && { current_password: currentPassword }),
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(flattenApiErrors(err) || "No se pudo cambiar la contraseña");
+      }
+      // La cuenta ya tiene password usable tras esto (alta o cambio) — refrescamos
+      // el user para que la UI deje de mostrar el flujo "crear password".
+      await fetchMe(accessToken).catch(() => {});
+    },
+    [fetchMe]
+  );
+
   const register = useCallback(
     async (email: string, username: string, password: string, phone = "", brandSlug = "") => {
       const res = await fetch(`${API}/users/register/`, {
@@ -200,7 +269,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, isAuthenticated: !!token, loading, login, logout, register, loginWithGoogle }}
+      value={{
+        user, token, isAuthenticated: !!token, loading,
+        login, logout, register, loginWithGoogle, updateProfile, changePassword,
+      }}
     >
       {children}
     </AuthContext.Provider>

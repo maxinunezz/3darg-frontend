@@ -3,6 +3,8 @@
 import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
 import Logo from "@/public/3DARG/logos/3dargblack.png";
@@ -77,13 +79,12 @@ export default function RegisterPage() {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1.5">Teléfono (opcional)</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              autoComplete="tel"
-              className="w-full border border-input rounded-xl px-4 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-              placeholder="+54 9 11 XXXX XXXX"
+            <PhoneInput
+              international
+              defaultCountry="AR"
+              value={phone || undefined}
+              onChange={(v) => setPhone(v ?? "")}
+              placeholder="Tu número de teléfono"
             />
           </div>
 

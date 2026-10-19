@@ -12,6 +12,7 @@ export const ROOT_BRAND_SLUG = "3darg";
 // (app/[brand]/...). Mantener sincronizado con el filesystem real de
 // app/(main)/.
 const ROOT_STATIC_SEGMENTS = new Set([
+  "account",
   "capacidades",
   "cart",
   "casos-de-exito",

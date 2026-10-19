@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
-import { LogOut, Package, User as UserIcon, Heart } from "lucide-react";
+import { LogOut, Package, User as UserIcon, Heart, Settings } from "lucide-react";
 
 type OrderItem = {
   id: number;
@@ -87,13 +87,22 @@ export default function ProfilePage() {
           <p className="text-muted-foreground text-sm truncate">{user?.email}</p>
           {user?.phone && <p className="text-muted-foreground text-sm">{user.phone}</p>}
         </div>
-        <button
-          onClick={() => { logout(); router.push("/"); }}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors shrink-0"
-        >
-          <LogOut className="w-4 h-4" />
-          Salir
-        </button>
+        <div className="flex items-center gap-4 shrink-0">
+          <Link
+            href="/account"
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Settings className="w-4 h-4" />
+            Mis datos
+          </Link>
+          <button
+            onClick={() => { logout(); router.push("/"); }}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            Salir
+          </button>
+        </div>
       </div>
 
       {/* ── FAVORITOS ─────────────────────────────────────────────────────── */}
