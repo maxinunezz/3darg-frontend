@@ -51,13 +51,18 @@ export function GoogleLoginButton({ brandSlug, redirectTo, onError }: Props) {
       <div
         className={`flex justify-center ${loading ? "opacity-50 pointer-events-none" : ""}`}
       >
-        <GoogleLogin
-          onSuccess={handleSuccess}
-          onError={() => onError?.("No se pudo iniciar sesión con Google")}
-          text="continue_with"
-          shape="pill"
-          locale="es"
-        />
+        <div
+          className="inline-block rounded-full"
+          style={{ boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.8)" }}
+        >
+          <GoogleLogin
+            onSuccess={handleSuccess}
+            onError={() => onError?.("No se pudo iniciar sesión con Google")}
+            text="continue_with"
+            shape="pill"
+            locale="es"
+          />
+        </div>
       </div>
     </div>
   );
