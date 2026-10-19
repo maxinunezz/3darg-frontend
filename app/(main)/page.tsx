@@ -374,7 +374,7 @@ export default async function Home() {
             {CIERRE.paragraph}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <Link href="/contacto" className={buttonClass("ember", "lg")}>
+            <Link href="/contact" className={buttonClass("ember", "lg")}>
               {CIERRE.cta_primary}
             </Link>
             <Link href="/shop" className={buttonClass("outlineLight", "lg")}>

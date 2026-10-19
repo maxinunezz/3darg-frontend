@@ -17,9 +17,9 @@ interface LumyNavbarProps {
 const DEFAULT_LINKS = [
   { href: "", label: "Inicio" },
   { href: "/shop", label: "Tienda" },
-  { href: "/contacto", label: "Contanos tu idea" },
+  { href: "/contact", label: "Contanos tu idea" },
   { href: "/about", label: "Sobre Lumy" },
-  { href: "/mayoristas", label: "Mayoristas" },
+  { href: "/wholesales", label: "Mayoristas" },
 ];
 
 export function LumyNavbar({ brand }: LumyNavbarProps) {
@@ -64,7 +64,7 @@ export function LumyNavbar({ brand }: LumyNavbarProps) {
             const href = `${base}${l.href}`;
             const active = l.href === "" ? isHome : pathname?.startsWith(href);
             // Mayoristas se destaca en rosa siempre, para diferenciarlo del resto del menú.
-            const isMayoristas = l.href === "/mayoristas";
+            const isMayoristas = l.href === "/wholesales";
             return (
               <Link
                 key={l.label}
@@ -113,7 +113,7 @@ export function LumyNavbar({ brand }: LumyNavbarProps) {
               key={l.label}
               href={`${base}${l.href}`}
               onClick={() => setOpen(false)}
-              className={l.href === "/mayoristas" ? "lm-mobilenav__link--accent" : undefined}
+              className={l.href === "/wholesales" ? "lm-mobilenav__link--accent" : undefined}
             >
               {l.label}
             </Link>

@@ -206,7 +206,7 @@ const DEFAULT_INSPIRATION_ITEMS = [
     label: "[IMAGEN EGRESADOS]",
     tag: "Personalizaciones",
     title: "Llaveros o lo que se te ocurra para animar tu evento!",
-    tagHref: "/contacto",
+    tagHref: "/contact",
     // "top" para no tapar el texto "personalizados para eventos" que trae la foto incrustado arriba.
     media: { type: "image" as const, src: "https://res.cloudinary.com/aelxmwcx/image/upload/v1791897854/llaveros_batidora.jpg", objectPosition: "top" as const },
   },
@@ -384,7 +384,7 @@ function Hero({
                   "Diseñamos y armamos tu torta y decoración a medida, hecho pieza por pieza sobre tu idea."}
               </p>
               <div style={{ display: "flex", gap: "var(--space-3)", marginTop: "var(--space-8)", flexWrap: "wrap" }}>
-                <Link href={`${base}/contacto`} className="lm-btn lm-btn--primary lm-btn--lg">{ctaPrimary}</Link>
+                <Link href={`${base}/contact`} className="lm-btn lm-btn--primary lm-btn--lg">{ctaPrimary}</Link>
                 <Link href={`${base}/shop`} className="lm-btn lm-btn--ghost lm-btn--lg">{ctaSecondary}</Link>
               </div>
             </div>
@@ -600,7 +600,7 @@ function Manifiesto({
               {joinSpanishList(values)}.
             </span>
             <div style={{ borderTop: "1px solid var(--rose-200)", marginTop: "var(--space-8)", paddingTop: "var(--space-8)" }}>
-              <Link href={`${base}/contacto`} className="lm-btn lm-btn--primary lm-btn--lg">
+              <Link href={`${base}/contact`} className="lm-btn lm-btn--primary lm-btn--lg">
                 Hacé tu pedido
               </Link>
             </div>

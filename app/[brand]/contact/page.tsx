@@ -17,7 +17,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function ContactoPage({
+export default async function ContactPage({
   params,
   searchParams,
 }: {

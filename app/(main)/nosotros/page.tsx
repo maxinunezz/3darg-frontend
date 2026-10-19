@@ -216,7 +216,7 @@ export default async function NosotrosPage() {
           <p className="max-w-[48ch] text-[var(--text-muted)] leading-[var(--leading-body)]">
             {CIERRE.paragraph}
           </p>
-          <Link href="/contacto" className={buttonClass("ember", "lg")}>
+          <Link href="/contact" className={buttonClass("ember", "lg")}>
             {CIERRE.cta}
           </Link>
         </div>

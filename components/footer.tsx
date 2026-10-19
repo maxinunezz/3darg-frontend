@@ -72,7 +72,7 @@ export const Footer = ({ data, logoUrl }: { data?: Partial<FooterData>; logoUrl?
                 <li><Link href="/casos-de-exito" className={itemCls}>Casos de éxito</Link></li>
                 <li><Link href="/maquina-expendedora" className={itemCls}>Máquina expendedora</Link></li>
                 <li><Link href="/nosotros" className={itemCls}>Nosotros</Link></li>
-                <li><Link href="/contacto" className={itemCls}>Contacto</Link></li>
+                <li><Link href="/contact" className={itemCls}>Contacto</Link></li>
               </ul>
             </div>
 

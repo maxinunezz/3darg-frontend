@@ -141,7 +141,7 @@ export default async function CasosPage() {
           <p className="max-w-[48ch] text-[var(--ink-300)] leading-[var(--leading-body)]">
             {CIERRE.paragraph}
           </p>
-          <Link href="/contacto" className={buttonClass("ember", "lg")}>
+          <Link href="/contact" className={buttonClass("ember", "lg")}>
             {CIERRE.cta}
           </Link>
         </div>

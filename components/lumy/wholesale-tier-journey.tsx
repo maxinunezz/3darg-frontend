@@ -7,12 +7,12 @@ interface Props {
    * para que usos sueltos (ej. al lado del carrito) puedan fijar un ancho
    * propio sin tocar el resto del componente. */
   className?: string;
-  /** El diseño original (`/mayoristas`, ~450px de columna) usa tipografía
+  /** El diseño original (`/wholesales`, ~450px de columna) usa tipografía
    * grande para el título y los checkpoints. En usos angostos (ej. al lado
    * del carrito, ~224px) esos mismos tamaños fuerzan "TU PEDIDO SUBE DE
    * TRAMO SOLO" a 3 líneas y "DESCUENTO AUTOMÁTICO" a 2 — se ve apretado y
    * sucio. `compact` reduce tipografía/paddings para que entre prolijo en
-   * una columna angosta, sin tocar el diseño default de `/mayoristas`. */
+   * una columna angosta, sin tocar el diseño default de `/wholesales`. */
   compact?: boolean;
 }
 
@@ -46,7 +46,7 @@ export function WholesaleTierJourney({ tiers, className, compact = false }: Prop
 
   return (
     // h-full + flex flex-col: no-op cuando el padre no estira (ej. usos sueltos
-    // con alto "auto"), pero en /mayoristas permite que esta tarjeta ocupe todo
+    // con alto "auto"), pero en /wholesales permite que esta tarjeta ocupe todo
     // el alto de su columna del grid (misma altura que Mayorista+Emprendedor
     // apiladas a la izquierda) — y flex-col+flex-1 en el timeline de abajo hace
     // que la línea/animación se estire para ocupar ese alto entero, en vez de

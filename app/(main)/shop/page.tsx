@@ -120,7 +120,7 @@ export default async function ShopPage({
       <div className="mt-16 pt-10 border-t border-[var(--border-hairline)] text-center grid gap-3 justify-items-center">
         <p className="text-[var(--text-muted)]">¿No está lo que buscás? Es lo más común — hacemos piezas a medida.</p>
         <Link
-          href="/contacto"
+          href="/contact"
           className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--text-strong)] hover:text-[var(--accent-hover)] transition-colors"
         >
           Contanos qué necesitás →

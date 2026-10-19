@@ -18,7 +18,7 @@ const CANAL_ICONS: Record<string, LucideIcon> = {
 
 type Canal = { label: string; value: string; href?: string };
 
-export function ContactoForm({
+export function ContactForm({
   motivos,
   canales,
   tallerImg,

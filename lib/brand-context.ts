@@ -16,7 +16,7 @@ const ROOT_STATIC_SEGMENTS = new Set([
   "cart",
   "casos-de-exito",
   "checkout",
-  "contacto",
+  "contact",
   "login",
   "nosotros",
   "product",

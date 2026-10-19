@@ -39,7 +39,7 @@ const FAQ: { q: string; a: string }[] = [
   },
 ];
 
-export default async function MayoristasPage({
+export default async function WholesalesPage({
   params,
 }: {
   params: Promise<{ brand: string }>;

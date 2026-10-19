@@ -20,7 +20,7 @@ const LINKS = [
   { href: "https://maquina3d-landing.vercel.app/", label: "Máquina expendedora", external: true },
   { href: "/casos-de-exito", label: "Casos de éxito" },
   { href: "/nosotros", label: "Nosotros" },
-  { href: "/contacto", label: "Contacto" },
+  { href: "/contact", label: "Contacto" },
 ];
 
 export const Navbar = () => {

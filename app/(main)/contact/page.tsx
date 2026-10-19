@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SpecLabel } from "@/components/site/core";
 import { getCmsPage, getSection, getSectionImage } from "@/lib/cms";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
-import { ContactoForm } from "./contacto-form";
+import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = {
   title: "Contacto | 3DARG",
@@ -32,7 +32,7 @@ const HERO_FALLBACK = {
   subtitle: "Cuanto más detalle nos des, más rápido te cotizamos. Respondemos el mismo día hábil.",
 };
 
-export default async function ContactoPage() {
+export default async function ContactPage() {
   const cmsPage = await getCmsPage("3darg", "contacto");
 
   const heroSection = getSection(cmsPage, "hero");
@@ -58,7 +58,7 @@ export default async function ContactoPage() {
         </p>
       </div>
 
-      <ContactoForm motivos={MOTIVOS_DATA} canales={CANALES_DATA} tallerImg={tallerImg} />
+      <ContactForm motivos={MOTIVOS_DATA} canales={CANALES_DATA} tallerImg={tallerImg} />
     </div>
   );
 }

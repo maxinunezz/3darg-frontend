@@ -456,7 +456,7 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
             <AddToCartButton
               product={product}
               disabled={!inStock}
-              secondaryAction={<MayoristasButton brandSlug={brand.slug} />}
+              secondaryAction={<WholesalesButton brandSlug={brand.slug} />}
               qty={qty}
               onQtyChange={setQty}
               variant={effectiveVariant}
@@ -537,15 +537,15 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
 }
 
 /**
- * Deriva a la página de Mayoristas de la marca (`/[brand]/mayoristas`), para
+ * Deriva a la página de Mayoristas de la marca (`/[brand]/wholesales`), para
  * compras grandes o recurrentes que no entran en los tramos de descuento
  * automático del carrito. Estilo outline (no sólido) para no competir
  * visualmente con el CTA principal de "Agregar al carrito".
  */
-function MayoristasButton({ brandSlug }: { brandSlug: string }) {
+function WholesalesButton({ brandSlug }: { brandSlug: string }) {
   return (
     <Link
-      href={`/${brandSlug}/mayoristas`}
+      href={`/${brandSlug}/wholesales`}
       // `!text-primary`: algunos temas de marca (ej. site-lumy.css, regla
       // `.site-lumy a { color: var(--text-brand) }`) definen un color global
       // para <a> más específico que la utility de Tailwind — se fuerza acá
