@@ -144,7 +144,7 @@ export function CartPageContent() {
           Explorá nuestros productos y encontrá algo que te guste.
         </p>
         <Link
-          href="/"
+          href={`/${brandSlug}/shop`}
           className="inline-block bg-primary !text-primary-foreground px-8 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity"
         >
           Ir a la tienda
