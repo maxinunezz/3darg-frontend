@@ -292,35 +292,59 @@ export default async function ShopPage({
         <div className="flex-1 min-w-0">
           <BrandShopGrid brandSlug={slug} query={productQuery} initialProducts={products} />
 
-          {totalPages > 1 && (
-            <nav className="flex items-center justify-center gap-2 mt-10" aria-label="Paginación">
-              <Link
-                href={pageHref(Math.max(1, currentPage - 1))}
-                aria-disabled={currentPage <= 1}
-                className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                  currentPage <= 1
-                    ? "pointer-events-none opacity-40"
-                    : "hover:bg-muted"
-                }`}
-              >
-                Anterior
-              </Link>
-              <span className="text-sm text-muted-foreground px-2">
-                Página {currentPage} de {totalPages}
-              </span>
-              <Link
-                href={pageHref(Math.min(totalPages, currentPage + 1))}
-                aria-disabled={currentPage >= totalPages}
-                className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                  currentPage >= totalPages
-                    ? "pointer-events-none opacity-40"
-                    : "hover:bg-muted"
-                }`}
-              >
-                Siguiente
-              </Link>
-            </nav>
-          )}
+          {totalPages > 1 && (() => {
+            // Ventana deslizante de 5 números: arranca en la página actual (1-5,
+            // 2-6, 3-7...) y se frena cerca del final para no pasarse de
+            // `totalPages` — ahí se queda mostrando siempre las últimas 5.
+            const PAGE_WINDOW = 5;
+            const maxStart = Math.max(1, totalPages - PAGE_WINDOW + 1);
+            const windowStart = Math.min(currentPage, maxStart);
+            const windowEnd = Math.min(totalPages, windowStart + PAGE_WINDOW - 1);
+            const pageNumbers = Array.from(
+              { length: windowEnd - windowStart + 1 },
+              (_, i) => windowStart + i,
+            );
+            return (
+              <nav className="flex items-center justify-center gap-2 mt-10" aria-label="Paginación">
+                <Link
+                  href={pageHref(Math.max(1, currentPage - 1))}
+                  aria-disabled={currentPage <= 1}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                    currentPage <= 1
+                      ? "pointer-events-none opacity-40"
+                      : "hover:bg-muted"
+                  }`}
+                >
+                  Anterior
+                </Link>
+                {pageNumbers.map((n) => (
+                  <Link
+                    key={n}
+                    href={pageHref(n)}
+                    aria-current={n === currentPage ? "page" : undefined}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                      n === currentPage
+                        ? "bg-primary text-primary-foreground! border-primary"
+                        : "hover:bg-muted"
+                    }`}
+                  >
+                    {n}
+                  </Link>
+                ))}
+                <Link
+                  href={pageHref(Math.min(totalPages, currentPage + 1))}
+                  aria-disabled={currentPage >= totalPages}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                    currentPage >= totalPages
+                      ? "pointer-events-none opacity-40"
+                      : "hover:bg-muted"
+                  }`}
+                >
+                  Siguiente
+                </Link>
+              </nav>
+            );
+          })()}
         </div>
       </div>
       </div>
