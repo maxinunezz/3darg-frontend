@@ -44,8 +44,9 @@ const DEFAULT_BUBBLE_AUTOHIDE_MS = 6000;
  * El globo se despliega solo una vez (con delay) y se repliega solo a los
  * pocos segundos; después de eso, vuelve a desplegarse cada vez que el mouse
  * pasa por encima del botón — no hay dismiss permanente para el globo.
- * El popup de suscripción sí se sigue recordando como cerrado (localStorage)
- * para no insistir en cada visita.
+ * El popup de suscripción sí se sigue recordando como cerrado (sessionStorage)
+ * para no insistir en la misma sesión/pestaña, pero vuelve a aparecer en una
+ * sesión nueva.
  */
 export function WhatsappCommunityWidget({ brand }: { brand: BrandType }) {
   const pathname = usePathname();
@@ -68,7 +69,7 @@ export function WhatsappCommunityWidget({ brand }: { brand: BrandType }) {
 
   useEffect(() => {
     if (!channelUrl || !isHome) return;
-    if (window.localStorage.getItem(popupStorageKey)) return;
+    if (window.sessionStorage.getItem(popupStorageKey)) return;
     const delay = config?.popup_delay_ms ?? DEFAULT_POPUP_DELAY_MS;
     const timer = setTimeout(() => setShowPopup(true), delay);
     return () => clearTimeout(timer);
@@ -107,7 +108,7 @@ export function WhatsappCommunityWidget({ brand }: { brand: BrandType }) {
   if (!channelUrl || !isHome) return null;
 
   function handleDismiss() {
-    window.localStorage.setItem(popupStorageKey, "1");
+    window.sessionStorage.setItem(popupStorageKey, "1");
     setShowPopup(false);
   }
 
@@ -134,7 +135,7 @@ export function WhatsappCommunityWidget({ brand }: { brand: BrandType }) {
       });
       if (res.ok) {
         setStatus("success");
-        window.localStorage.setItem(popupStorageKey, "1");
+        window.sessionStorage.setItem(popupStorageKey, "1");
         window.open(channelUrl, "_blank", "noopener,noreferrer");
       } else {
         const data = await res.json().catch(() => ({}));
