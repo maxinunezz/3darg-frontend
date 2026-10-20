@@ -105,6 +105,16 @@ export function WhatsappCommunityWidget({ brand }: { brand: BrandType }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showPopup]);
 
+  // El layout de marca no remonta este componente al navegar entre páginas
+  // (ej. tocar "Ingresar"/"Tienda" desde la home) — si el popup quedaba
+  // abierto al salir de la home, `isHome` pasaba a `false` y el early-return
+  // de abajo lo ocultaba visualmente, pero `showPopup` nunca bajaba a
+  // `false`, así que el scroll-lock del efecto anterior quedaba pegado para
+  // siempre en el resto del sitio. Lo cerramos apenas cambia la ruta.
+  useEffect(() => {
+    if (!isHome) setShowPopup(false);
+  }, [isHome]);
+
   if (!channelUrl || !isHome) return null;
 
   function handleDismiss() {

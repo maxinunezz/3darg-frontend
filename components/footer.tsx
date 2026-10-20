@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Logo from "../public/3DARG/logos/3dargwhite.png";
 import { ContactModal } from "@/components/contact-modal";
@@ -34,6 +35,15 @@ export const Footer = ({ data, logoUrl }: { data?: Partial<FooterData>; logoUrl?
   const F = { ...FOOTER_FALLBACK, ...data };
   const year = new Date().getFullYear();
   const [contactOpen, setContactOpen] = useState(false);
+  const pathname = usePathname();
+
+  // El Footer vive en el layout compartido — no se vuelve a montar al
+  // navegar (incluyendo atrás/adelante del navegador), así que el modal de
+  // contacto podía quedar abierto tapando la página de destino. Lo cerramos
+  // apenas cambia la ruta.
+  useEffect(() => {
+    setContactOpen(false);
+  }, [pathname]);
 
   return (
     <footer className="bg-[var(--ink-900)] text-[var(--ink-300)] border-t border-[var(--ink-700)]">

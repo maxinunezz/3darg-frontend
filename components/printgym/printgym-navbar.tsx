@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, User } from "lucide-react";
+import { ShoppingCart, User, Menu, X } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import type { BrandType } from "@/types/brands";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,11 +25,38 @@ export function PrintGymNavbar({ brand }: PrintGymNavbarProps) {
   const pathname = usePathname();
   const { count } = useCart();
   const { isAuthenticated } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
   const base = `/${brand.slug}`;
   const isHome = pathname === base;
 
+  // El navbar vive en el layout compartido de [brand]/ — al navegar entre
+  // páginas no se vuelve a montar, así que el menú mobile quedaba desplegado
+  // tapando la página de destino. Lo cerramos apenas cambia la ruta, y
+  // también al tocar fuera del menú.
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        setMobileOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [mobileOpen]);
+
+  function isActive(href: string) {
+    if (href.startsWith("#")) return false;
+    if (href === "") return isHome;
+    return pathname?.startsWith(`${base}${href}`);
+  }
+
   return (
-    <nav className="nav">
+    <nav ref={navRef} className="nav">
       <div className="wrap nav-in">
         <Link className="mark" href={base}>
           <div className="mark-hex" />
@@ -39,12 +67,15 @@ export function PrintGymNavbar({ brand }: PrintGymNavbarProps) {
 
         <div className="nav-links">
           {LINKS.map((l) => {
-            const href = l.href.startsWith("#") ? `${base}${l.href}` : `${base}${l.href}`;
-            const active = l.href === "" && isHome;
-            return (
-              <a key={l.label} href={href} className={active ? "on" : undefined}>
+            const active = isActive(l.href);
+            return l.href.startsWith("#") ? (
+              <a key={l.label} href={`${base}${l.href}`} className={active ? "on" : undefined}>
                 {l.label}
               </a>
+            ) : (
+              <Link key={l.label} href={`${base}${l.href}`} className={active ? "on" : undefined}>
+                {l.label}
+              </Link>
             );
           })}
         </div>
@@ -75,8 +106,46 @@ export function PrintGymNavbar({ brand }: PrintGymNavbarProps) {
               </span>
             )}
           </button>
+
+          <button
+            type="button"
+            className="nav-toggle"
+            aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+            onClick={() => setMobileOpen((v) => !v)}
+          >
+            {mobileOpen ? <X size={20} strokeWidth={1.6} /> : <Menu size={20} strokeWidth={1.6} />}
+          </button>
         </div>
       </div>
+
+      {mobileOpen && (
+        <div className="nav-mobile">
+          <div className="wrap">
+            {LINKS.map((l) => {
+              const active = isActive(l.href);
+              return l.href.startsWith("#") ? (
+                <a
+                  key={l.label}
+                  href={`${base}${l.href}`}
+                  onClick={() => setMobileOpen(false)}
+                  className={active ? "on" : undefined}
+                >
+                  {l.label}
+                </a>
+              ) : (
+                <Link
+                  key={l.label}
+                  href={`${base}${l.href}`}
+                  onClick={() => setMobileOpen(false)}
+                  className={active ? "on" : undefined}
+                >
+                  {l.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

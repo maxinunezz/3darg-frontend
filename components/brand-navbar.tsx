@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingCart, ChevronDown, User, LayoutDashboard, LogOut } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { ShoppingCart, ChevronDown, User, LayoutDashboard, LogOut, Menu, X } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import type { BrandType } from "@/types/brands";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
@@ -17,25 +17,50 @@ interface BrandNavbarProps {
 
 export function BrandNavbar({ brand }: BrandNavbarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { count } = useCart();
   const { isAuthenticated, user, logout } = useAuth();
   const hasShop = brand.brand_type !== "services";
 
   const [accountOpen, setAccountOpen]   = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const accountRef  = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+
+  // El navbar vive en el layout compartido de [brand]/ — al navegar entre
+  // páginas no se vuelve a montar, así que tanto el dropdown de cuenta como
+  // el menú mobile quedaban abiertos/desplegados tapando la página de
+  // destino (o el link de atrás/adelante del navegador no los cerraba, al no
+  // pasar por un click dentro del árbol). Los cerramos apenas cambia la ruta.
+  useEffect(() => {
+    setAccountOpen(false);
+    setMobileOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
+    if (!accountOpen) return;
+    function onPointerDown(e: PointerEvent) {
       if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
         setAccountOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [accountOpen]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    function onPointerDown(e: PointerEvent) {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        setMobileOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [mobileOpen]);
 
   return (
-    <nav className="border-b border-border/40 backdrop-blur-sm bg-background/90 sticky top-0 z-50">
+    <nav ref={navRef} className="border-b border-border/40 backdrop-blur-sm bg-background/90 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="h-28 flex items-center justify-between gap-4">
 
@@ -149,10 +174,57 @@ export function BrandNavbar({ brand }: BrandNavbarProps) {
               </button>
             )}
             <ToggleTheme />
+
+            <button
+              type="button"
+              className="md:hidden inline-flex items-center justify-center w-9 h-9 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+              onClick={() => setMobileOpen((v) => !v)}
+            >
+              {mobileOpen ? <X size={20} strokeWidth={1.5} /> : <Menu size={20} strokeWidth={1.5} />}
+            </button>
           </div>
 
         </div>
       </div>
+
+      {mobileOpen && (
+        <div className="md:hidden border-t border-border bg-background px-4 sm:px-6 py-4 flex flex-col gap-4 text-sm font-medium">
+          <Link href={`/${brand.slug}`} onClick={() => setMobileOpen(false)} className="hover:text-primary transition-colors">
+            Inicio
+          </Link>
+
+          {hasShop && (
+            <Link href={`/${brand.slug}/shop`} onClick={() => setMobileOpen(false)} className="hover:text-primary transition-colors">
+              Tienda
+            </Link>
+          )}
+
+          <Link href={`/${brand.slug}/about`} onClick={() => setMobileOpen(false)} className="hover:text-primary transition-colors">
+            Nosotros
+          </Link>
+
+          {brand.social_links?.instagram && (
+            <a
+              href={brand.social_links.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setMobileOpen(false)}
+              className="hover:text-primary transition-colors"
+            >
+              Instagram
+            </a>
+          )}
+
+          <Link
+            href="/"
+            onClick={() => setMobileOpen(false)}
+            className="text-muted-foreground hover:text-foreground transition-colors text-xs border border-border rounded-full px-3 py-1 w-fit"
+          >
+            ← 3DARG
+          </Link>
+        </div>
+      )}
     </nav>
   );
 }
