@@ -76,23 +76,46 @@ export function CategoryTile({
   label,
   meta,
   className,
+  logoSrc,
+  logoAlt,
 }: {
   href: string;
   label: string;
   meta?: string;
   className?: string;
+  /** Si se pasa, reemplaza el label de texto por el logo de la marca. */
+  logoSrc?: string | null;
+  logoAlt?: string;
 }) {
   return (
     <Link
       href={href}
       className={cn(
-        "group relative flex flex-col justify-between h-[132px] p-5 rounded-[var(--radius-2xl)] overflow-hidden border border-[var(--border-hairline)] bg-[var(--surface-card)] text-[var(--text-strong)] transition-[background,color,border-color] duration-[var(--dur-base)] ease-[var(--ease-standard)] hover:bg-[var(--ink-900)] hover:text-[var(--bone-050)] hover:border-[var(--ink-900)]",
+        "group relative flex flex-col justify-between gap-3 min-h-[132px] p-5 rounded-[var(--radius-2xl)] overflow-hidden border border-[var(--border-hairline)] bg-[var(--surface-card)] text-[var(--text-strong)] transition-[background,color,border-color] duration-[var(--dur-base)] ease-[var(--ease-standard)] hover:bg-[var(--ink-900)] hover:text-[var(--bone-050)] hover:border-[var(--ink-900)]",
         className,
       )}
     >
-      <div className="font-bold text-[17px] tracking-[var(--tracking-tight)]">{label}</div>
-      <div className="flex items-center gap-1.5 font-mono text-[10px] tracking-[var(--tracking-label)] uppercase opacity-70">
-        {meta || "Ver"} <ChevronRight size={12} strokeWidth={1.5} />
+      {logoSrc ? (
+        // Chip blanco fijo detrás del logo: el tile invierte a fondo oscuro
+        // en hover (mismo patrón que el resto de la tarjeta), pero el logo
+        // de la marca no necesariamente tiene una variante clara — así queda
+        // legible en los dos estados sin depender del color del PNG.
+        <div className="inline-flex w-fit items-center rounded-md bg-white px-4 py-3">
+          <Image
+            src={logoSrc}
+            alt={logoAlt || label}
+            width={320}
+            height={96}
+            unoptimized
+            className="h-24 w-auto object-contain object-left"
+          />
+        </div>
+      ) : (
+        <div className="font-bold text-[17px] tracking-[var(--tracking-tight)]">{label}</div>
+      )}
+      <div className="flex items-start gap-1.5 font-mono text-[10px] tracking-[var(--tracking-label)] uppercase opacity-70">
+        <span>{meta || "Ver"}</span>
+        <ChevronRight size={12} strokeWidth={1.5} className="shrink-0 mt-0.5" />
       </div>
       <div
         className="absolute inset-0 pointer-events-none opacity-100 group-hover:opacity-50 group-hover:mix-blend-screen"

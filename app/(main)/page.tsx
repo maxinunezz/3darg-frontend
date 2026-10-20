@@ -18,10 +18,16 @@ export const metadata: Metadata = {
 
 async function getSubBrands(): Promise<BrandType[]> {
   const brands = await getBrands();
-  return brands
-    .flatMap((b) => b.children ?? [])
-    .filter((b) => b.is_active && b.show_in_navbar)
-    .sort((a, b) => a.navbar_order - b.navbar_order);
+  return (
+    brands
+      .flatMap((b) => b.children ?? [])
+      .filter((b) => b.is_active && b.show_in_navbar)
+      // Solo Lumy está lista para mostrarse acá — Print&Gym, MiniSlam y
+      // CyberWeed todavía no salen a la luz (a pedido del dueño, 2026-10-20).
+      // Sacar este filtro cuando el resto esté lista para publicarse.
+      .filter((b) => b.slug === "lumy")
+      .sort((a, b) => a.navbar_order - b.navbar_order)
+  );
 }
 
 // Posiciones/tamaños de las esferas del hero — ver README (HomePage.jsx → ORBS).
@@ -324,7 +330,9 @@ export default async function Home() {
                   key={brand.id}
                   href={`/${brand.slug}`}
                   label={brand.name}
-                  meta={brand.slogan ? brand.slogan.slice(0, 28) : "Visitar"}
+                  logoSrc={cloudinaryUrl(resolveMediaUrl(brand.logo), 640)}
+                  logoAlt={brand.name}
+                  meta={brand.slogan || "Visitar"}
                 />
               ))}
             </div>
