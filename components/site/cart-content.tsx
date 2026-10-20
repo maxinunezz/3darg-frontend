@@ -11,6 +11,7 @@ import type { CartItem } from "@/contexts/CartContext";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { variantLabel } from "@/lib/product-variant";
 import { ShippingEstimator, type ShippingEstimate } from "@/components/shipping-estimator";
+import { RequiredDot, RequiredFieldsNote } from "@/components/shipping-address-form";
 import { type ShippingAddress, isShippingAddressComplete } from "@/types/shipping";
 import { CartDiscountProgress } from "@/components/cart-discount-progress";
 import { CartUpsellCarousel } from "@/components/cart-upsell-carousel";
@@ -246,6 +247,7 @@ export function SiteCartContent() {
                 onAddressChange={setAddress}
                 labelClassName={INK_LABEL_CLS}
                 inputClassName={INK_INPUT_CLS}
+                noteClassName="font-mono text-[11px] text-[var(--text-faint)] mb-2"
               />
             </div>
           </div>
@@ -281,7 +283,9 @@ export function SiteCartContent() {
               <div className="mb-4">
                 <label className="block font-mono text-xs uppercase tracking-[var(--tracking-label)] text-[var(--text-faint)] mb-2">
                   Email para tu compra
+                  <RequiredDot />
                 </label>
+                <RequiredFieldsNote className="font-mono text-[11px] text-[var(--text-faint)] mb-2" />
                 <input
                   type="email"
                   value={guestEmail}

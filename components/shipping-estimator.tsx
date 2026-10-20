@@ -12,7 +12,13 @@ import { tierBarPercent, CheckpointBar } from "@/components/checkpoint-bar";
 import type { CartItem } from "@/contexts/CartContext";
 import type { BrandType } from "@/types/brands";
 import { AR_PROVINCES, type ShippingAddress, type ShippingModality } from "@/types/shipping";
-import { ShippingAddressForm, DEFAULT_LABEL_CLS, DEFAULT_INPUT_CLS } from "@/components/shipping-address-form";
+import {
+  ShippingAddressForm,
+  DEFAULT_LABEL_CLS,
+  DEFAULT_INPUT_CLS,
+  RequiredDot,
+  RequiredFieldsNote,
+} from "@/components/shipping-address-form";
 
 const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
 
@@ -93,6 +99,10 @@ interface ShippingEstimatorProps {
    * que 3DARG (`site/cart-content.tsx`) pueda pasar su estética "ink". */
   labelClassName?: string;
   inputClassName?: string;
+  /** Clase de la leyenda "Los campos con • son obligatorios" — mismo
+   * criterio que `labelClassName`/`inputClassName`, para que 3DARG pueda
+   * pasar su estética "ink" en vez del default shadcn. */
+  noteClassName?: string;
 }
 
 function flattenBySlug(brands: BrandType[]): Record<string, BrandType> {
@@ -181,6 +191,7 @@ export function ShippingEstimator({
   className,
   labelClassName = DEFAULT_LABEL_CLS,
   inputClassName = DEFAULT_INPUT_CLS,
+  noteClassName,
 }: ShippingEstimatorProps) {
   const brandSlug = useBrandNamespace();
   const { user } = useAuth();
@@ -513,6 +524,8 @@ export function ShippingEstimator({
         </div>
       )}
 
+      <RequiredFieldsNote className={noteClassName} />
+
       {loading && !methods.length ? (
         <p className="text-xs text-muted-foreground flex items-center gap-1.5">
           <Loader2 className="w-3.5 h-3.5 animate-spin" /> Calculando el costo de envío...
@@ -565,7 +578,10 @@ export function ShippingEstimator({
               {modality === "sucursal" && (
                 <div className="px-3 pb-3 grid grid-cols-2 gap-3">
                   <label className="grid gap-1.5 col-span-2">
-                    <span className={labelClassName}>Nombre y apellido</span>
+                    <span className={labelClassName}>
+                      Nombre y apellido
+                      <RequiredDot />
+                    </span>
                     <input
                       type="text"
                       value={sucursalFullName}
@@ -575,7 +591,10 @@ export function ShippingEstimator({
                     />
                   </label>
                   <label className="grid gap-1.5 col-span-2">
-                    <span className={labelClassName}>Teléfono</span>
+                    <span className={labelClassName}>
+                      Teléfono
+                      <RequiredDot />
+                    </span>
                     <PhoneInput
                       international
                       defaultCountry="AR"
@@ -585,7 +604,10 @@ export function ShippingEstimator({
                     />
                   </label>
                   <label className="grid gap-1.5 min-w-0">
-                    <span className={labelClassName}>Provincia</span>
+                    <span className={labelClassName}>
+                      Provincia
+                      <RequiredDot />
+                    </span>
                     <select
                       ref={provinceSelectRef}
                       value={sucursalProvince}
@@ -614,7 +636,10 @@ export function ShippingEstimator({
                     )}
                   </label>
                   <label className="grid gap-1.5 min-w-0">
-                    <span className={labelClassName}>Sucursal</span>
+                    <span className={labelClassName}>
+                      Sucursal
+                      <RequiredDot />
+                    </span>
                     {!sucursalProvince ? (
                       <span className="text-[11px] text-muted-foreground self-center">Elegí la provincia primero.</span>
                     ) : agenciesLoading ? (

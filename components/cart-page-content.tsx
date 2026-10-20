@@ -8,6 +8,7 @@ import type { CartItem } from "@/contexts/CartContext";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { variantLabel } from "@/lib/product-variant";
 import { ShippingEstimator, type ShippingEstimate } from "@/components/shipping-estimator";
+import { RequiredDot } from "@/components/shipping-address-form";
 import { type ShippingAddress, isShippingAddressComplete } from "@/types/shipping";
 import { CartDiscountProgress } from "@/components/cart-discount-progress";
 import { CartUpsellCarousel } from "@/components/cart-upsell-carousel";
@@ -295,6 +296,7 @@ export function CartPageContent() {
               <div className="mb-4">
                 <label className="block text-sm font-bold uppercase tracking-widest text-muted-foreground mb-2">
                   Email para tu compra
+                  <RequiredDot />
                 </label>
                 <input
                   type="email"

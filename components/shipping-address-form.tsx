@@ -24,6 +24,44 @@ export const DEFAULT_LABEL_CLS = "text-xs font-semibold uppercase tracking-wides
 export const DEFAULT_INPUT_CLS =
   "w-full h-10 bg-card text-sm outline-none border border-border rounded-xl px-3 focus:border-primary transition-colors";
 
+/** Punto al lado del label de un campo obligatorio — reusado por
+ * `ShippingAddressForm`, `ShippingEstimator` (mini-form de sucursal) y el
+ * email de invitado en `cart-page-content.tsx`/`site/cart-content.tsx`, para
+ * que el comprador sepa de entrada qué le falta completar antes de que el
+ * botón de pagar se habilite (ver `isShippingAddressComplete` en
+ * `types/shipping.ts`). Los campos opcionales (Piso/Depto) ya lo dicen en el
+ * propio texto del label ("(opcional)") y no lo llevan. `bg-primary` en vez
+ * de un rojo fijo: toma el color de marca activa (coral en Lumy) en vez de
+ * una alarma visual — más sutil, mismo criterio de "no hardcodear colores en
+ * rutas de [brand]" del resto del sitio. `opacity-60` lo baja un poco más
+ * todavía respecto del resto de la UI. */
+export function RequiredDot() {
+  return (
+    <span
+      className="inline-block w-1 h-1 rounded-full bg-primary opacity-60 ml-1 align-middle"
+      aria-hidden="true"
+      title="Obligatorio"
+    />
+  );
+}
+
+/**
+ * Leyenda breve que explica qué significa `RequiredDot` — se muestra una
+ * sola vez por bloque de campos (arriba del primer campo con punto, no
+ * repetida al lado de cada uno) para que el comprador no tenga que inferir
+ * qué es el puntito solo. La usan `cart-page-content.tsx` y
+ * `site/cart-content.tsx`, una vez por zona de campos obligatorios (envío +
+ * email de invitado, que en el carrito de 3DARG quedan separados por el
+ * panel de totales).
+ */
+export function RequiredFieldsNote({ className }: { className?: string }) {
+  return (
+    <p className={className ?? "text-[11px] text-muted-foreground mb-2"}>
+      Los campos con <RequiredDot /> son obligatorios.
+    </p>
+  );
+}
+
 /**
  * Formulario de dirección del comprador, pedido en el checkout antes de
  * pagar — PaqAr v2 (Correo Argentino) exige `shippingData.address` completa
@@ -47,7 +85,10 @@ export function ShippingAddressForm({
   return (
     <div className={className ?? "grid grid-cols-2 gap-3"}>
       <label className="grid gap-1.5 col-span-2">
-        <span className={labelClassName}>Nombre y apellido</span>
+        <span className={labelClassName}>
+          Nombre y apellido
+          <RequiredDot />
+        </span>
         <input
           type="text"
           value={value.fullName}
@@ -58,7 +99,10 @@ export function ShippingAddressForm({
       </label>
 
       <label className="grid gap-1.5 col-span-2">
-        <span className={labelClassName}>Teléfono</span>
+        <span className={labelClassName}>
+          Teléfono
+          <RequiredDot />
+        </span>
         <PhoneInput
           international
           defaultCountry="AR"
@@ -69,7 +113,10 @@ export function ShippingAddressForm({
       </label>
 
       <label className="grid gap-1.5 col-span-2 sm:col-span-1">
-        <span className={labelClassName}>Calle</span>
+        <span className={labelClassName}>
+          Calle
+          <RequiredDot />
+        </span>
         <input
           type="text"
           value={value.street}
@@ -80,7 +127,10 @@ export function ShippingAddressForm({
       </label>
 
       <label className="grid gap-1.5">
-        <span className={labelClassName}>Altura</span>
+        <span className={labelClassName}>
+          Altura
+          <RequiredDot />
+        </span>
         <input
           type="text"
           value={value.streetNumber}
@@ -111,7 +161,10 @@ export function ShippingAddressForm({
       </label>
 
       <label className="grid gap-1.5">
-        <span className={labelClassName}>Ciudad</span>
+        <span className={labelClassName}>
+          Ciudad
+          <RequiredDot />
+        </span>
         <input
           type="text"
           value={value.city}
@@ -121,7 +174,10 @@ export function ShippingAddressForm({
       </label>
 
       <label className="grid gap-1.5 min-w-0">
-        <span className={labelClassName}>Provincia</span>
+        <span className={labelClassName}>
+          Provincia
+          <RequiredDot />
+        </span>
         <select
           value={value.province}
           onChange={(e) => set("province", e.target.value)}
@@ -137,7 +193,10 @@ export function ShippingAddressForm({
       </label>
 
       <label className="grid gap-1.5 col-span-2 sm:col-span-1">
-        <span className={labelClassName}>Código postal</span>
+        <span className={labelClassName}>
+          Código postal
+          <RequiredDot />
+        </span>
         <input
           type="text"
           inputMode="numeric"
