@@ -211,8 +211,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
         token
       )) as CartResponse;
       applyCart(data);
-    } catch {
-      setItems([]);
+    } catch (err) {
+      // GET /api/cart/ siempre crea el carrito si no existe y devuelve 200
+      // (ver `get_or_create_cart` en el backend) — nunca falla porque el
+      // carrito esté vacío. Si cae en este catch es un error real (401 por
+      // token vencido mientras se refresca, red caída, 500), no "no hay
+      // carrito". Antes esto vaciaba `items`, mostrando "carrito vacío" por
+      // encima de un carrito real con productos — dejamos el último estado
+      // conocido en vez de pisarlo.
+      console.error("No se pudo cargar el carrito", err);
     }
   }, [token, brandSlug]);
 
