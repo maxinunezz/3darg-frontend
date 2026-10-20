@@ -14,10 +14,12 @@ import { IconButton } from "@/components/site/core";
 // sticky, según el handoff de diseño (layout/Navbar.jsx).
 const LINKS = [
   { href: "/", label: "Inicio" },
-  { href: "/shop", label: "Tienda" },
+  // Tienda y máquina expendedora ocultas a pedido del dueño (2026-10-20),
+  // no eliminar — solo comentadas para reactivar fácil cuando corresponda.
+  // { href: "/shop", label: "Tienda" },
   { href: "/capacidades", label: "Capacidades" },
   // Landing externa (Vercel) de la máquina expendedora — no es una ruta interna.
-  { href: "https://maquina3d-landing.vercel.app/", label: "Máquina expendedora", external: true },
+  // { href: "https://maquina3d-landing.vercel.app/", label: "Máquina expendedora", external: true },
   { href: "/casos-de-exito", label: "Casos de éxito" },
   { href: "/nosotros", label: "Nosotros" },
   { href: "/contact", label: "Contacto" },

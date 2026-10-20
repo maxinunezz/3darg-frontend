@@ -196,9 +196,10 @@ export default async function Home() {
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
-            <Link href="/shop" className={buttonClass("ember", "lg")}>
+            {/* CTA a /shop oculto a pedido del dueño (2026-10-20), no eliminar. */}
+            {/* <Link href="/shop" className={buttonClass("ember", "lg")}>
               {HERO.cta_primary} <ArrowRight size={16} strokeWidth={1.5} />
-            </Link>
+            </Link> */}
             <Link href="/casos-de-exito" className={buttonClass("outlineLight", "lg")}>
               {HERO.cta_secondary}
             </Link>
@@ -377,9 +378,10 @@ export default async function Home() {
             <Link href="/contact" className={buttonClass("ember", "lg")}>
               {CIERRE.cta_primary}
             </Link>
-            <Link href="/shop" className={buttonClass("outlineLight", "lg")}>
+            {/* CTA a /shop oculto a pedido del dueño (2026-10-20), no eliminar. */}
+            {/* <Link href="/shop" className={buttonClass("outlineLight", "lg")}>
               {CIERRE.cta_secondary}
-            </Link>
+            </Link> */}
           </div>
         </div>
       </section>

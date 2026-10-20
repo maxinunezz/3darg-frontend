@@ -66,7 +66,8 @@ export const Footer = ({ data, logoUrl }: { data?: Partial<FooterData>; logoUrl?
             <div>
               <p className={colTitleCls}>Servicios</p>
               <ul className="space-y-4">
-                <li><Link href="/shop" className={itemCls}>Catálogo</Link></li>
+                {/* Catálogo oculto a pedido del dueño (2026-10-20), no eliminar. */}
+                {/* <li><Link href="/shop" className={itemCls}>Catálogo</Link></li> */}
                 <li>
                   <button onClick={() => setContactOpen(true)} className={itemCls}>
                     Cotizar proyecto
@@ -80,7 +81,8 @@ export const Footer = ({ data, logoUrl }: { data?: Partial<FooterData>; logoUrl?
               <p className={colTitleCls}>Empresa</p>
               <ul className="space-y-4">
                 <li><Link href="/casos-de-exito" className={itemCls}>Casos de éxito</Link></li>
-                <li><Link href="/maquina-expendedora" className={itemCls}>Máquina expendedora</Link></li>
+                {/* Máquina expendedora oculta a pedido del dueño (2026-10-20), no eliminar. */}
+                {/* <li><Link href="/maquina-expendedora" className={itemCls}>Máquina expendedora</Link></li> */}
                 <li><Link href="/nosotros" className={itemCls}>Nosotros</Link></li>
                 <li><Link href="/contact" className={itemCls}>Contacto</Link></li>
               </ul>
