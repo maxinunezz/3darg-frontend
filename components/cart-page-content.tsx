@@ -100,11 +100,22 @@ export function CartPageContent() {
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail);
   const requiresAgency = !!shippingEstimate?.methodId?.endsWith("_sucursal");
   const addressComplete = isShippingAddressComplete(address, requiresAgency ? "sucursal" : "domicilio");
-  const canCheckout = (isAuthenticated || emailValid) && addressComplete;
+  // El backend ahora EXIGE un `shipping_method_id` real (uno de los dos que
+  // siempre devuelve el selector) — si la cotización todavía está cargando o
+  // falló, `shippingEstimate` queda en `null` y el checkout pegaría con un
+  // id vacío, que el backend ya rechaza con 400. Antes esto no se chequeaba
+  // acá, así que en ese estado transitorio el botón de compra quedaba
+  // habilitado igual (con la dirección completa) y el pago fallaba recién al
+  // confirmar.
+  const canCheckout = (isAuthenticated || emailValid) && addressComplete && !!shippingEstimate;
 
   async function handleCheckout() {
     if (!(isAuthenticated || emailValid)) {
       setCheckoutError("Ingresá un email válido para continuar con la compra.");
+      return;
+    }
+    if (!shippingEstimate) {
+      setCheckoutError("No se pudo calcular el costo de envío. Probá de nuevo en unos segundos.");
       return;
     }
     if (!addressComplete) {
