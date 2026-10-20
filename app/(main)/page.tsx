@@ -253,18 +253,21 @@ export default async function Home() {
             {PROCESO.map((step, i) => (
               <div
                 key={step.t}
-                className="min-h-[230px] p-6 grid gap-3 content-start group"
+                className="min-h-[230px] p-6 flex flex-col gap-3 group"
                 style={{ background: "var(--ink-800)", color: "var(--bone-100)" }}
               >
                 <span className="font-mono text-[13px] text-[var(--accent)]">{String(i + 1).padStart(2, "0")}</span>
                 <div className="font-bold text-base">{step.t}</div>
                 <p className="text-[length:var(--text-body-sm)]" style={{ color: "var(--ink-400)" }}>{step.d}</p>
                 <div className="flex items-end gap-1 h-6 mt-auto">
-                  {Array.from({ length: 5 }).map((_, bi) => (
+                  {/* Barras de progreso: tantas barras como el número de paso
+                      (step 1 → 1 barra, step 5 → 5 barras), cada una un poco
+                      más alta que la anterior dentro del mismo paso. */}
+                  {Array.from({ length: i + 1 }).map((_, bi) => (
                     <span
                       key={bi}
                       className="w-[5px] bg-[var(--ink-600)] group-hover:bg-[var(--accent)] transition-colors"
-                      style={{ height: `${8 + bi * (i + 1) * 2}px` }}
+                      style={{ height: `${8 + bi * 3}px` }}
                     />
                   ))}
                 </div>
