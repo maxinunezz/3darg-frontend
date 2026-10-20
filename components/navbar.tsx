@@ -12,7 +12,7 @@ import { IconButton } from "@/components/site/core";
 
 // Navbar del sitio 3DARG (marca madre) — veil bone translúcido + blur, 80px,
 // sticky, según el handoff de diseño (layout/Navbar.jsx).
-const LINKS = [
+const LINKS: { href: string; label: string; external?: boolean }[] = [
   { href: "/", label: "Inicio" },
   // Tienda y máquina expendedora ocultas a pedido del dueño (2026-10-20),
   // no eliminar — solo comentadas para reactivar fácil cuando corresponda.
