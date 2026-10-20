@@ -181,6 +181,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [pricing, setPricing] = useState<Pricing>(EMPTY_PRICING);
   const migratingRef = useRef(false);
   const prevTokenRef = useRef<string | null>(null);
+  const prevBrandRef = useRef<string | null>(null);
 
   const applyCart = (data: CartResponse | null) => {
     if (!data) return;
@@ -230,6 +231,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const justLoggedIn = !prevTokenRef.current && !!token;
     prevTokenRef.current = token ?? null;
+
+    // Cada marca tiene su propio carrito (server-side o de invitado) — sin
+    // esto, al navegar rápido entre espacios de marca (ej. `/lumy` →
+    // `/print-and-gym`) `items`/`pricing` seguían mostrando el carrito de la
+    // marca anterior durante el instante que tarda el `await` de
+    // `fetchCart()`/la migración de invitado, así que el badge y la página
+    // de carrito flasheaban productos/totales que no son de la marca que se
+    // está mirando. Se ignora el primer render (brand inicial, no es un
+    // "cambio") para no vaciar el carrito recién cargado.
+    const brandChanged = prevBrandRef.current !== null && prevBrandRef.current !== brandSlug;
+    prevBrandRef.current = brandSlug;
+    if (brandChanged) {
+      setItems([]);
+      setPricing(EMPTY_PRICING);
+    }
 
     if (justLoggedIn && !migratingRef.current) {
       const guestItems = loadGuestCart(brandSlug);
