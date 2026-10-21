@@ -142,10 +142,16 @@ export function OrderStatusCard({ order }: { order: OrderStatusData }) {
           <p className="text-3xl font-bold mb-3 text-black">
             $ {Number(order.total_amount).toLocaleString("es-AR")}
           </p>
-          <p className="text-sm text-gray-600 mb-1">
-            Usá esta referencia en el concepto/motivo de la transferencia
+          <CopyField
+            label="Usá esta referencia en el concepto/motivo de la transferencia"
+            value={order.reference}
+          />
+          {/* El mismo código sirve después para encontrar el pedido sin cuenta
+              en /my-order (ver OrderLookupAPIView) — se aclara acá para que
+              el comprador lo guarde a propósito, no solo para la transferencia. */}
+          <p className="text-xs text-gray-600 -mt-1 mb-3">
+            Guardalo: también lo vas a necesitar más adelante para buscar tu pedido en «Mi pedido».
           </p>
-          <p className="font-mono text-lg font-bold mb-3 text-black">{order.reference}</p>
           {deadline && (
             <p className="text-sm text-amber-700">
               Tenés hasta el{" "}
