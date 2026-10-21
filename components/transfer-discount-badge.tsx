@@ -11,11 +11,16 @@ interface Props {
 }
 
 /**
- * Cartel informativo "X% OFF por transferencia" — reemplaza al viejo
- * "Llevá 1/2/3" en la ficha de producto (ver `Brand.transfer_discount_percent`
- * en el backend). Es puramente de display: el cobro real sigue yendo 100%
- * por MercadoPago al precio de lista, la diferencia se concilia por fuera
- * del sistema.
+ * Cartel "X% OFF por transferencia" — reemplaza al viejo "Llevá 1/2/3" en la
+ * ficha de producto (ver `Brand.transfer_discount_percent` en el backend).
+ * Ya NO es puramente informativo: desde que existe el canal de pago
+ * "Transferencia" en el carrito (`types/payment.ts`,
+ * `POST /api/payments/transfer/checkout/`), este mismo porcentaje es el que
+ * se descuenta de verdad del total a cobrar si el comprador elige esa forma
+ * de pago — ver `payments/services/transfer_discount.py` en el backend. Este
+ * cartel sigue siendo solo una preview en la ficha de producto (el cálculo
+ * real, con el resto de los descuentos aplicados, se recalcula en el
+ * carrito).
  */
 export function TransferDiscountBadge({ product, brand }: Props) {
   const percent = brand.transfer_discount_percent;

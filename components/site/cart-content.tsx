@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Trash2, ShoppingBag, CreditCard, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Trash2, ShoppingBag, CreditCard, Landmark, Loader2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBrandNamespace } from "@/lib/brand-context";
@@ -18,6 +19,9 @@ import { CartUpsellCarousel } from "@/components/cart-upsell-carousel";
 import { WholesaleTierJourney } from "@/components/lumy/wholesale-tier-journey";
 import { QuantityStepper } from "@/components/site/commerce";
 import { ImageSlot, SpecLabel, buttonClass } from "@/components/site/core";
+import { useTransferDiscountPercent } from "@/lib/useTransferDiscountPercent";
+import { useTransferAvailable } from "@/lib/useTransferAvailable";
+import type { PaymentChannel, TransferCheckoutResponse } from "@/types/payment";
 
 const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
 const USE_SANDBOX = process.env.NEXT_PUBLIC_MP_SANDBOX === "true";
@@ -49,6 +53,38 @@ function fmt(n: number) {
   return "$ " + Number(n).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// Mismo contrato de entrada para los dos canales (ver
+// `payments.TransferCheckoutCreateSerializer`, que subclasea el de MP sin
+// agregar campos) — se arma una sola vez y cada canal pega a su endpoint.
+function buildCheckoutBody(
+  brandSlug: string,
+  items: CartItem[],
+  customerEmail: string | undefined,
+  address: ShippingAddress,
+  shippingEstimate: ShippingEstimate
+) {
+  return {
+    brand_slug: brandSlug,
+    customer_email: customerEmail ?? "",
+    postal_code: shippingEstimate?.postalCode || address.postalCode || "",
+    province: address.province ?? "",
+    shipping_method_id: shippingEstimate?.methodId ?? "",
+    full_name: address.fullName ?? "",
+    phone: address.phone ?? "",
+    street: address.street ?? "",
+    street_number: address.streetNumber ?? "",
+    floor: address.floor ?? "",
+    department: address.department ?? "",
+    city: address.city ?? "",
+    agency_id: shippingEstimate?.agencyId || address.agencyId || "",
+    items: items.map(({ product, variant, quantity }) => ({
+      product_id: product.id,
+      variant_id: variant?.id ?? null,
+      quantity,
+    })),
+  };
+}
+
 async function createMpPreference(
   brandSlug: string,
   items: CartItem[],
@@ -62,26 +98,7 @@ async function createMpPreference(
   const res = await fetch(`${API}/payments/mp/checkout-pro/`, {
     method: "POST",
     headers,
-    body: JSON.stringify({
-      brand_slug: brandSlug,
-      customer_email: customerEmail ?? "",
-      postal_code: shippingEstimate?.postalCode || address.postalCode || "",
-      province: address.province ?? "",
-      shipping_method_id: shippingEstimate?.methodId ?? "",
-      full_name: address.fullName ?? "",
-      phone: address.phone ?? "",
-      street: address.street ?? "",
-      street_number: address.streetNumber ?? "",
-      floor: address.floor ?? "",
-      department: address.department ?? "",
-      city: address.city ?? "",
-      agency_id: shippingEstimate?.agencyId || address.agencyId || "",
-      items: items.map(({ product, variant, quantity }) => ({
-        product_id: product.id,
-        variant_id: variant?.id ?? null,
-        quantity,
-      })),
-    }),
+    body: JSON.stringify(buildCheckoutBody(brandSlug, items, customerEmail, address, shippingEstimate)),
   });
   if (!res.ok) {
     const err = await res.json();
@@ -90,16 +107,51 @@ async function createMpPreference(
   return res.json() as Promise<{ order_id: string; init_point: string; sandbox_init_point: string }>;
 }
 
+// Checkout por transferencia ("Opción 1") — no hay ninguna redirección
+// externa: el pedido queda PENDING y se lleva al comprador a la pantalla de
+// instrucciones (alias/CBU/monto/referencia) con el `order_id` devuelto.
+async function createTransferCheckout(
+  brandSlug: string,
+  items: CartItem[],
+  customerEmail: string | undefined,
+  token: string | undefined,
+  address: ShippingAddress,
+  shippingEstimate: ShippingEstimate
+) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await fetch(`${API}/payments/transfer/checkout/`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(buildCheckoutBody(brandSlug, items, customerEmail, address, shippingEstimate)),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail ?? "No se pudo generar el pedido por transferencia");
+  }
+  return res.json() as Promise<TransferCheckoutResponse>;
+}
+
 /** Carrito de la marca madre 3DARG — misma lógica de CartContext/checkout que el resto del sitio, capa visual del handoff. */
 export function SiteCartContent() {
   const { items, subtotal, total, discountPercent, discountAmount, discountProgress, clearCart, removeItem, updateQuantity, getUnitPrice } = useCart();
   const { user, token, isAuthenticated } = useAuth();
   const brandSlug = useBrandNamespace();
+  const router = useRouter();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
   const [shippingEstimate, setShippingEstimate] = useState<ShippingEstimate>(null);
   const [address, setAddress] = useState<ShippingAddress>(EMPTY_ADDRESS);
+  const [paymentChannel, setPaymentChannel] = useState<PaymentChannel>("mercadopago");
+  const transferAvailable = useTransferAvailable();
+  const transferDiscountPercent = useTransferDiscountPercent(brandSlug);
+  // Mismo orden de operaciones que `payments/services/transfer_discount.py`:
+  // el % de transferencia se aplica sobre `total` (ya con el descuento por
+  // cantidad del carrito aplicado), ANTES de sumar el envío.
+  const transferDiscountAmount =
+    paymentChannel === "transfer" ? Math.round(total * (transferDiscountPercent / 100) * 100) / 100 : 0;
+  const grandTotal = total - transferDiscountAmount + (shippingEstimate?.cost ?? 0);
 
   const itemCount = items.reduce((s, i) => s + i.quantity, 0);
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail);
@@ -133,6 +185,18 @@ export function SiteCartContent() {
     setCheckoutLoading(true);
     setCheckoutError("");
     try {
+      if (paymentChannel === "transfer") {
+        const data = await createTransferCheckout(
+          brandSlug,
+          items,
+          user?.email ?? guestEmail,
+          token ?? undefined,
+          address,
+          shippingEstimate
+        );
+        router.push(`/checkout/transfer?order_id=${data.order_id}&brand=${brandSlug}`);
+        return;
+      }
       const data = await createMpPreference(
         brandSlug,
         items,
@@ -143,7 +207,13 @@ export function SiteCartContent() {
       );
       window.location.href = USE_SANDBOX ? data.sandbox_init_point : data.init_point;
     } catch (e: unknown) {
-      setCheckoutError(e instanceof Error ? e.message : "Error al conectar con MercadoPago");
+      setCheckoutError(
+        e instanceof Error
+          ? e.message
+          : paymentChannel === "transfer"
+            ? "No se pudo generar el pedido por transferencia"
+            : "Error al conectar con MercadoPago"
+      );
     } finally {
       setCheckoutLoading(false);
     }
@@ -250,6 +320,52 @@ export function SiteCartContent() {
                 noteClassName="font-mono text-[11px] text-[var(--text-faint)] mb-2"
               />
             </div>
+
+            {/* El canal "Transferencia" se oculta hasta que el backend
+                confirma (`GET /api/payments/transfer/availability/`) que hay
+                una cuenta real cargada — mismo criterio "vacío = apagado"
+                del resto del sitio, ver `lib/useTransferAvailable.ts`. */}
+            {transferAvailable && (
+              <div>
+                <span className={`${INK_LABEL_CLS} block mb-2`}>Forma de pago</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentChannel("mercadopago")}
+                    className={
+                      "flex items-center gap-2 border rounded-[var(--radius-lg)] px-4 py-3 text-left transition-colors " +
+                      (paymentChannel === "mercadopago"
+                        ? "border-[var(--ink-900)] bg-[var(--surface-inset)]"
+                        : "border-[var(--border-hairline)]")
+                    }
+                  >
+                    <CreditCard size={16} strokeWidth={1.5} className="shrink-0" />
+                    <span className="font-mono text-xs uppercase tracking-[var(--tracking-label)]">MercadoPago</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentChannel("transfer")}
+                    className={
+                      "flex items-center gap-2 border rounded-[var(--radius-lg)] px-4 py-3 text-left transition-colors " +
+                      (paymentChannel === "transfer"
+                        ? "border-[var(--ink-900)] bg-[var(--surface-inset)]"
+                        : "border-[var(--border-hairline)]")
+                    }
+                  >
+                    <Landmark size={16} strokeWidth={1.5} className="shrink-0" />
+                    <span className="font-mono text-xs uppercase tracking-[var(--tracking-label)]">
+                      Transferencia{transferDiscountPercent > 0 ? ` (-${transferDiscountPercent}%)` : ""}
+                    </span>
+                  </button>
+                </div>
+                {paymentChannel === "transfer" && (
+                  <p className="font-mono text-[11px] text-[var(--text-faint)] mt-2">
+                    Te mostramos el alias/CBU y una referencia. El pedido queda reservado 48hs mientras
+                    confirmamos el pago.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Total en panel ink */}
@@ -264,6 +380,12 @@ export function SiteCartContent() {
                 <span>- {fmt(Number(discountAmount))}</span>
               </div>
             )}
+            {transferDiscountAmount > 0 && (
+              <div className="flex items-center justify-between font-mono text-xs uppercase tracking-[var(--tracking-label)] text-red-400 mb-1.5 font-bold">
+                <span>Descuento por transferencia ({transferDiscountPercent}%)</span>
+                <span>- {fmt(transferDiscountAmount)}</span>
+              </div>
+            )}
             <div className="flex items-center justify-between font-mono text-xs uppercase tracking-[var(--tracking-label)] text-[var(--ink-400)] mb-3">
               <span>Envío</span>
               <span>
@@ -273,7 +395,7 @@ export function SiteCartContent() {
             <div className="flex items-center justify-between">
               <span className="font-mono text-xs uppercase tracking-[var(--tracking-label)] text-[var(--ink-400)]">Total</span>
               <span className="font-display" style={{ fontSize: "clamp(30px,3.4vw,42px)", lineHeight: 1 }}>
-                {fmt(total + (shippingEstimate?.cost ?? 0))}
+                {fmt(grandTotal)}
               </span>
             </div>
           </div>
@@ -305,7 +427,12 @@ export function SiteCartContent() {
             >
               {checkoutLoading ? (
                 <>
-                  <Loader2 size={16} className="animate-spin" /> Redirigiendo...
+                  <Loader2 size={16} className="animate-spin" />{" "}
+                  {paymentChannel === "transfer" ? "Generando pedido..." : "Redirigiendo..."}
+                </>
+              ) : paymentChannel === "transfer" ? (
+                <>
+                  <Landmark size={16} strokeWidth={1.5} /> Continuar por transferencia
                 </>
               ) : (
                 <>

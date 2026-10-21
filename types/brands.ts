@@ -162,8 +162,11 @@ export type BrandType = {
   page_config: BrandPageConfig;
   meta_public_config: BrandMetaPublicConfig;
   shipping_config: BrandShippingConfig;
-  // Descuento informativo por pagar por transferencia (cartel con precio
-  // tachado en la ficha de producto). 0 = no se muestra el cartel.
+  // % OFF real por elegir el canal de pago "Transferencia" en el carrito
+  // (ver `types/payment.ts`, `lib/useTransferDiscountPercent.ts`) — se
+  // descuenta de verdad del total a cobrar, no es solo el cartel de la
+  // ficha de producto (`components/transfer-discount-badge.tsx`, que usa
+  // este mismo valor como preview). 0 = sin descuento / canal no destacado.
   transfer_discount_percent: number;
   cart_discount_config: CartDiscountTier[];
   links: BrandLinkType[];
