@@ -325,17 +325,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = useCallback(
     async (product: ProductType, quantity = 1, variant: ProductVariantType | null = null) => {
       if (!token) {
+        // El stock es información interna, nunca un tope para el comprador
+        // (ver `3darg-backend/CLAUDE.md` → regla de negocio 2026-10-21): acá
+        // no se clampea contra `product.stock`/`variant.stock`.
         setItems((prev) => {
           const key = lineKey(product.id, variant?.id ?? null);
           const existing = prev.find((i) => lineKey(i.product.id, i.variant?.id ?? null) === key);
-          const cap = variant ? variant.stock || 99 : product.stock || 99;
           const next = existing
             ? prev.map((i) =>
                 lineKey(i.product.id, i.variant?.id ?? null) === key
-                  ? { ...i, quantity: Math.min(cap, i.quantity + quantity) }
+                  ? { ...i, quantity: i.quantity + quantity }
                   : i
               )
-            : [...prev, { id: product.id, product, variant, quantity: Math.min(cap, quantity) }];
+            : [...prev, { id: product.id, product, variant, quantity }];
           saveGuestCart(brandSlug, next);
           return next;
         });
@@ -379,11 +381,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (quantity < 1) return;
       const key = lineKey(productId, variantId);
       if (!token) {
+        // Mismo criterio que `addItem`: sin tope de stock para el comprador.
         setItems((prev) => {
           const next = prev.map((i) =>
-            lineKey(i.product.id, i.variant?.id ?? null) === key
-              ? { ...i, quantity: Math.min((i.variant ? i.variant.stock : i.product.stock) || 99, quantity) }
-              : i
+            lineKey(i.product.id, i.variant?.id ?? null) === key ? { ...i, quantity } : i
           );
           saveGuestCart(brandSlug, next);
           return next;

@@ -129,7 +129,11 @@ export function CategoryTile({
 export function QuantityStepper({
   value,
   min = 1,
-  max = 99,
+  // Sin tope por default — el stock es información interna, nunca un límite
+  // para el comprador (regla de negocio 2026-10-21, ver CLAUDE.md backend).
+  // `max` queda disponible por si algún llamador puntual necesita un tope
+  // explícito (ninguno lo usa hoy).
+  max = Infinity,
   onChange,
   size = "md",
 }: {

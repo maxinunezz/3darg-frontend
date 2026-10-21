@@ -34,7 +34,11 @@ export function AddToCartButton({
   const [added, setAdded] = useState(false);
   const [qtyState, setQtyState] = useState(1);
   const qty = qtyProp ?? qtyState;
-  const stockCap = (variant ? variant.stock : product.stock) || 99;
+  // Regla de negocio (pedido del dueño, 2026-10-21): el stock es información
+  // interna, nunca un tope para el comprador — puede pedir la cantidad que
+  // quiera, sin importar el stock cargado. Si se vende de más, queda
+  // registrado (y se avisa al dueño) recién al confirmarse el pago, ver
+  // `orders/signals.py` en el backend.
   const setQty = (updater: (q: number) => number) => {
     const next = updater(qty);
     onQtyChange?.(next);
@@ -59,7 +63,7 @@ export function AddToCartButton({
 
   function commitQtyDraft(raw: string) {
     const parsed = parseInt(raw, 10);
-    const next = Number.isNaN(parsed) ? 1 : Math.min(stockCap, Math.max(1, parsed));
+    const next = Number.isNaN(parsed) ? 1 : Math.max(1, parsed);
     setQty(() => next);
     setQtyDraft(String(next));
   }
@@ -106,7 +110,7 @@ export function AddToCartButton({
             aria-label="Cantidad"
           />
           <button
-            onClick={() => setQty((q) => Math.min(stockCap, q + 1))}
+            onClick={() => setQty((q) => q + 1)}
             className="px-3 py-2 hover:bg-muted transition-colors text-lg leading-none"
             aria-label="Sumar"
           >
