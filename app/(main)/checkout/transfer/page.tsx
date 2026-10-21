@@ -124,7 +124,14 @@ function CheckoutTransferContent() {
           </>
         ) : (
           <>
-            <OrderStatusCard order={order} />
+            <OrderStatusCard
+              order={order}
+              onReceiptUploaded={(uploadedAt) =>
+                setOrder((prev) =>
+                  prev ? { ...prev, has_receipt: true, receipt_uploaded_at: uploadedAt } : prev
+                )
+              }
+            />
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link

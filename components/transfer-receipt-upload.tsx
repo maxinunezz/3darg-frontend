@@ -46,10 +46,20 @@ export function TransferReceiptUpload({
   orderId,
   initialHasReceipt = false,
   initialUploadedAt = null,
+  onUploaded,
 }: {
   orderId: string;
   initialHasReceipt?: boolean;
   initialUploadedAt?: string | null;
+  // Este componente guarda `hasReceipt` en estado LOCAL (ver comentario de
+  // abajo) — el `order` que vive en la página padre (`checkout/transfer` o
+  // `my-order`) nunca se entera solo. `onUploaded` avisa para que el padre
+  // actualice su copia de `order.has_receipt`/`receipt_uploaded_at`, que es
+  // lo que lee `OrderStatusCard`/`headerFor` para decidir entre el ícono
+  // gris ("falta adjuntar") y el reloj ámbar ("ya está, esperando
+  // confirmación") — sin esto, subir el comprobante actualiza ESTE bloque
+  // pero el encabezado de arriba queda mostrando el estado viejo.
+  onUploaded?: (uploadedAt: string) => void;
 }) {
   // `hasReceipt`/`uploadedAt` reflejan lo que YA hay guardado en el pedido
   // (viene de `reconcile/` al cargar la página, o se actualiza en vivo tras
@@ -123,10 +133,12 @@ export function TransferReceiptUpload({
         return;
       }
       const data = await res.json();
+      const newUploadedAt = data.uploaded_at ?? new Date().toISOString();
       setHasReceipt(true);
-      setUploadedAt(data.uploaded_at ?? new Date().toISOString());
+      setUploadedAt(newUploadedAt);
       setStatus("success");
       setShowForm(false);
+      onUploaded?.(newUploadedAt);
     } catch {
       setErrorMessage("No pudimos subir el comprobante. Revisá tu conexión y probá de nuevo.");
       setStatus("error");

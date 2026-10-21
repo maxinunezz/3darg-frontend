@@ -18,11 +18,13 @@ import { TransferReceiptUpload } from "@/components/transfer-receipt-upload";
 // `pendingTransferReceipt`: solo tiene sentido para pedidos PENDING/DRAFT de
 // canal transferencia (ver `isPendingTransfer` más abajo) — `undefined` para
 // cualquier otro caso (PAID/REJECTED/CANCELLED, o pendiente de otro canal)
-// deja el comportamiento de siempre. Mientras no haya comprobante subido
-// (`false`), el reloj ámbar (que sugiere "ya hiciste todo, estamos
-// esperando") se reemplaza por un ícono gris neutro — todavía falta una
-// acción del comprador — con una leyenda que lo deja explícito en vez de
-// sonar a que ya está todo listo.
+// deja el comportamiento de siempre (reloj ámbar + texto genérico de
+// "quedó reservado"). Con dato real de `has_receipt` hay dos variantes más:
+// `false` (todavía no subió nada) → ícono gris neutro, pidiendo
+// explícitamente el comprobante; `true` (ya lo subió, falta que el dueño lo
+// confirme a mano desde el admin) → mismo reloj ámbar de siempre pero con
+// título/texto propios ("estaremos confirmando..." + datos de contacto) en
+// vez del genérico que suena a que todavía falta algo de su lado.
 export function headerFor(
   status: string | null,
   { pendingTransferReceipt }: { pendingTransferReceipt?: boolean } = {}
@@ -47,6 +49,18 @@ export function headerFor(
           icon: <AlertCircle className="w-20 h-20 mx-auto text-gray-400 mb-6" />,
           title: "Falta un paso: hacé la transferencia",
           text: "Es necesario que adjuntes el comprobante para verificar la transferencia y procesar tu pedido.",
+        };
+      }
+      if (pendingTransferReceipt === true) {
+        return {
+          icon: <Clock className="w-20 h-20 mx-auto text-amber-500 mb-6" />,
+          title: "Estaremos confirmando tu pedido a la brevedad. ¡Muchas gracias!",
+          text: (
+            <>
+              Cualquier consulta no dudes en escribirnos a: <strong>3darg1@gmail.com</strong> o a
+              nuestro teléfono de contacto: <strong>+54 9 351 805 6553</strong>
+            </>
+          ),
         };
       }
       return {
@@ -111,7 +125,17 @@ function CopyField({
   );
 }
 
-export function OrderStatusCard({ order }: { order: OrderStatusData }) {
+export function OrderStatusCard({
+  order,
+  onReceiptUploaded,
+}: {
+  order: OrderStatusData;
+  // Ver comentario de `onUploaded` en `TransferReceiptUpload` — sin esto el
+  // encabezado (ícono/leyenda de "falta adjuntar" vs "ya está") no se
+  // entera cuando se sube un comprobante nuevo, porque `order` acá es un
+  // prop inmutable que viene de la página padre.
+  onReceiptUploaded?: (uploadedAt: string) => void;
+}) {
   const isPending = order.status === "PENDING" || order.status === "DRAFT";
   // Los datos de banco/referencia/comprobante solo existen para
   // `payment_channel === "transfer"` (ver `OrderStatusData`) — `/my-order`
@@ -152,6 +176,7 @@ export function OrderStatusCard({ order }: { order: OrderStatusData }) {
             orderId={order.order_id}
             initialHasReceipt={order.has_receipt}
             initialUploadedAt={order.receipt_uploaded_at}
+            onUploaded={onReceiptUploaded}
           />
         </div>
       )}

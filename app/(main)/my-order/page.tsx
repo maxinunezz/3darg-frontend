@@ -197,7 +197,14 @@ function MyOrderContent() {
           </>
         ) : (
           <>
-            <OrderStatusCard order={order} />
+            <OrderStatusCard
+              order={order}
+              onReceiptUploaded={(uploadedAt) =>
+                setOrder((prev) =>
+                  prev ? { ...prev, has_receipt: true, receipt_uploaded_at: uploadedAt } : prev
+                )
+              }
+            />
 
             {isReceiptIntent &&
               !(
