@@ -29,10 +29,13 @@ type Order = {
   created_at: string;
 };
 
+// PENDING/PAID con fondo sólido + texto blanco (pedido explícito del dueño,
+// más visibles que el estilo pastel anterior). REJECTED/CANCELLED/DRAFT
+// mantienen el criterio pastel -700/-100 (y -300/-900 en dark).
 const STATUS_COLORS: Record<string, string> = {
-  PAID:      "text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400",
-  PENDING:   "text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400",
-  REJECTED:  "text-red-500 bg-red-100 dark:bg-red-900/30",
+  PAID:      "text-white bg-green-600",
+  PENDING:   "text-white bg-yellow-500",
+  REJECTED:  "text-red-700 bg-red-100 dark:bg-red-900/30 dark:text-red-300",
   CANCELLED: "text-muted-foreground bg-muted",
   DRAFT:     "text-muted-foreground bg-muted",
 };

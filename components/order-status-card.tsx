@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle, Clock, XCircle, Copy, Check } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, XCircle, Copy, Check } from "lucide-react";
 import type { OrderStatusData } from "@/types/payment";
 import { TransferReceiptUpload } from "@/components/transfer-receipt-upload";
 
@@ -15,7 +15,18 @@ import { TransferReceiptUpload } from "@/components/transfer-receipt-upload";
 // viven acá a propósito — cada página que usa esto tiene su propio footer,
 // pasado como children.
 
-export function headerFor(status: string | null) {
+// `pendingTransferReceipt`: solo tiene sentido para pedidos PENDING/DRAFT de
+// canal transferencia (ver `isPendingTransfer` más abajo) — `undefined` para
+// cualquier otro caso (PAID/REJECTED/CANCELLED, o pendiente de otro canal)
+// deja el comportamiento de siempre. Mientras no haya comprobante subido
+// (`false`), el reloj ámbar (que sugiere "ya hiciste todo, estamos
+// esperando") se reemplaza por un ícono gris neutro — todavía falta una
+// acción del comprador — con una leyenda que lo deja explícito en vez de
+// sonar a que ya está todo listo.
+export function headerFor(
+  status: string | null,
+  { pendingTransferReceipt }: { pendingTransferReceipt?: boolean } = {}
+) {
   switch (status) {
     case "PAID":
       return {
@@ -31,6 +42,13 @@ export function headerFor(status: string | null) {
         text: "El plazo para transferir venció o el pedido fue cancelado. Si ya hiciste la transferencia, escribinos con el número de referencia.",
       };
     default:
+      if (pendingTransferReceipt === false) {
+        return {
+          icon: <AlertCircle className="w-20 h-20 mx-auto text-gray-400 mb-6" />,
+          title: "Falta un paso: hacé la transferencia",
+          text: "Es necesario que adjuntes el comprobante para verificar la transferencia y procesar tu pedido.",
+        };
+      }
       return {
         icon: <Clock className="w-20 h-20 mx-auto text-amber-500 mb-6" />,
         title: "Falta un paso: hacé la transferencia",
@@ -94,13 +112,15 @@ function CopyField({
 }
 
 export function OrderStatusCard({ order }: { order: OrderStatusData }) {
-  const header = headerFor(order.status);
   const isPending = order.status === "PENDING" || order.status === "DRAFT";
   // Los datos de banco/referencia/comprobante solo existen para
   // `payment_channel === "transfer"` (ver `OrderStatusData`) — `/my-order`
   // puede encontrar un pedido de cualquier canal, así que esta rama no
   // alcanza con mirar `isPending` solo.
   const isPendingTransfer = isPending && order.payment_channel === "transfer";
+  const header = headerFor(order.status, {
+    pendingTransferReceipt: isPendingTransfer ? order.has_receipt : undefined,
+  });
 
   const deadline =
     isPendingTransfer && order.created_at && order.expires_in_hours
