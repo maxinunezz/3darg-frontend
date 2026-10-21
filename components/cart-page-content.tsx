@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBrandNamespace } from "@/lib/brand-context";
@@ -15,11 +15,12 @@ import { FreeShippingProgress } from "@/components/free-shipping-progress";
 import { CartUpsellCarousel } from "@/components/cart-upsell-carousel";
 import { useTransferDiscountPercent } from "@/lib/useTransferDiscountPercent";
 import { useTransferAvailable } from "@/lib/useTransferAvailable";
+import { consumeTransferOrderCreated } from "@/lib/transfer-order-flag";
 import type { PaymentChannel, TransferCheckoutResponse } from "@/types/payment";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Trash2, Minus, Plus, ShoppingBag, Loader2, Landmark, CreditCard } from "lucide-react";
+import { Trash2, Minus, Plus, ShoppingBag, Loader2, Landmark, CreditCard, Clock } from "lucide-react";
 
 const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
 const USE_SANDBOX = process.env.NEXT_PUBLIC_MP_SANDBOX === "true";
@@ -143,6 +144,25 @@ export function CartPageContent() {
   const [paymentChannel, setPaymentChannel] = useState<PaymentChannel>("mercadopago");
   const transferAvailable = useTransferAvailable();
   const transferDiscountPercent = useTransferDiscountPercent(brandSlug);
+  // Si el carrito llegó vacío porque el comprador volvió con "atrás" desde
+  // `/checkout/transfer` (que lo vació a propósito al generarse el pedido),
+  // mostramos un mensaje distinto al empty-state genérico — ver
+  // lib/transfer-order-flag.ts.
+  const [justPlacedOrderId, setJustPlacedOrderId] = useState<string | null>(null);
+  // `consumeTransferOrderCreated` lee Y BORRA la clave de sessionStorage —
+  // no es idempotente. En dev, React Strict Mode dispara cada efecto dos
+  // veces al montar (mount → cleanup → mount) para detectar justamente
+  // efectos no-idempotentes: sin este guard, la 2da ejecución ya no
+  // encuentra la clave (la borró la 1ra) y pisa el estado con `null`,
+  // mostrando el empty-state genérico en vez del mensaje contextual. El
+  // `ref` sobrevive ese doble-disparo (a diferencia del estado), así que
+  // garantiza que la lectura real solo ocurra una vez por montaje.
+  const consumedTransferFlagRef = useRef(false);
+  useEffect(() => {
+    if (consumedTransferFlagRef.current) return;
+    consumedTransferFlagRef.current = true;
+    setJustPlacedOrderId(consumeTransferOrderCreated(brandSlug));
+  }, [brandSlug]);
   // Mismo orden de operaciones que `payments/services/transfer_discount.py`:
   // el % de transferencia se aplica sobre `total` (ya con el descuento por
   // cantidad del carrito aplicado), ANTES de sumar el envío.
@@ -218,6 +238,32 @@ export function CartPageContent() {
   }
 
   if (items.length === 0) {
+    if (justPlacedOrderId) {
+      return (
+        <div className="max-w-2xl mx-auto px-4 py-24 text-center">
+          <Clock className="w-16 h-16 mx-auto text-amber-500 mb-6" />
+          <h1 className="text-3xl font-bold mb-4!">Tu pedido ya se generó</h1>
+          <p className="text-muted-foreground mb-10! leading-relaxed">
+            El carrito se vació porque esos productos ya forman parte de tu
+            pedido pendiente de transferencia — no se perdió nada.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href={`/checkout/transfer?order_id=${justPlacedOrderId}&brand=${brandSlug}`}
+              className="inline-block bg-primary !text-primary-foreground px-8 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity"
+            >
+              Ver mi pedido
+            </Link>
+            <Link
+              href={`/${brandSlug}/shop`}
+              className="inline-block border border-border px-8 py-3 rounded-full font-semibold hover:bg-muted transition-colors"
+            >
+              Seguir comprando
+            </Link>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="max-w-2xl mx-auto px-4 py-24 text-center">
         <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground/40 mb-6" />

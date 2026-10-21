@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Trash2, ShoppingBag, CreditCard, Landmark, Loader2 } from "lucide-react";
+import { Trash2, ShoppingBag, CreditCard, Landmark, Loader2, Clock } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBrandNamespace } from "@/lib/brand-context";
@@ -21,6 +21,7 @@ import { QuantityStepper } from "@/components/site/commerce";
 import { ImageSlot, SpecLabel, buttonClass } from "@/components/site/core";
 import { useTransferDiscountPercent } from "@/lib/useTransferDiscountPercent";
 import { useTransferAvailable } from "@/lib/useTransferAvailable";
+import { consumeTransferOrderCreated } from "@/lib/transfer-order-flag";
 import type { PaymentChannel, TransferCheckoutResponse } from "@/types/payment";
 
 const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
@@ -146,6 +147,25 @@ export function SiteCartContent() {
   const [paymentChannel, setPaymentChannel] = useState<PaymentChannel>("mercadopago");
   const transferAvailable = useTransferAvailable();
   const transferDiscountPercent = useTransferDiscountPercent(brandSlug);
+  // Si el carrito llegó vacío porque el comprador volvió con "atrás" desde
+  // `/checkout/transfer` (que lo vació a propósito al generarse el pedido),
+  // mostramos un mensaje distinto al empty-state genérico — ver
+  // lib/transfer-order-flag.ts.
+  const [justPlacedOrderId, setJustPlacedOrderId] = useState<string | null>(null);
+  // `consumeTransferOrderCreated` lee Y BORRA la clave de sessionStorage —
+  // no es idempotente. En dev, React Strict Mode dispara cada efecto dos
+  // veces al montar (mount → cleanup → mount) para detectar justamente
+  // efectos no-idempotentes: sin este guard, la 2da ejecución ya no
+  // encuentra la clave (la borró la 1ra) y pisa el estado con `null`,
+  // mostrando el empty-state genérico en vez del mensaje contextual. El
+  // `ref` sobrevive ese doble-disparo (a diferencia del estado), así que
+  // garantiza que la lectura real solo ocurra una vez por montaje.
+  const consumedTransferFlagRef = useRef(false);
+  useEffect(() => {
+    if (consumedTransferFlagRef.current) return;
+    consumedTransferFlagRef.current = true;
+    setJustPlacedOrderId(consumeTransferOrderCreated(brandSlug));
+  }, [brandSlug]);
   // Mismo orden de operaciones que `payments/services/transfer_discount.py`:
   // el % de transferencia se aplica sobre `total` (ya con el descuento por
   // cantidad del carrito aplicado), ANTES de sumar el envío.
@@ -220,6 +240,23 @@ export function SiteCartContent() {
   }
 
   if (items.length === 0) {
+    if (justPlacedOrderId) {
+      return (
+        <div className="max-w-[var(--container-narrow)] mx-auto px-[var(--gutter)] py-24 text-center grid gap-4 justify-items-center">
+          <Clock size={56} strokeWidth={1.2} className="text-[var(--text-faint)]" />
+          <h1 className="font-display uppercase text-[length:var(--text-display-sm)]">Tu pedido ya se generó</h1>
+          <p className="text-[var(--text-muted)] max-w-[40ch]">
+            El carrito se vació porque esos productos ya forman parte de tu pedido pendiente de transferencia — no se perdió nada.
+          </p>
+          <div className="flex gap-3 mt-2">
+            <Link href={`/checkout/transfer?order_id=${justPlacedOrderId}&brand=${brandSlug}`} className={buttonClass("solid", "md")}>
+              Ver mi pedido
+            </Link>
+            <Link href="/shop" className={buttonClass("outline", "md")}>Seguir comprando</Link>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="max-w-[var(--container-narrow)] mx-auto px-[var(--gutter)] py-24 text-center grid gap-4 justify-items-center">
         <ShoppingBag size={56} strokeWidth={1.2} className="text-[var(--text-faint)]" />
