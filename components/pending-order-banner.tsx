@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle, Check, Copy, X } from "lucide-react";
 import {
   consumePendingPaymentWarning,
   type PendingPaymentWarning,
@@ -23,8 +23,16 @@ import {
 // logo terminaba superpuesto con el texto del aviso. Ahora es un toast
 // `fixed` flotando al costado (no participa del flujo del documento, así
 // que no empuja ni se superpone con nada del navbar/hero).
+//
+// Botón de copiar la referencia: tocar el link "Mi pedido" de abajo navega a
+// `/my-order` (fuera de este layout) y este toast se pierde con él — sin un
+// botón de copiar, el comprador se quedaba sin forma de llevarse el código a
+// mano para pegarlo ahí. El aviso de "ya se la mandamos por mail" es para que
+// no sienta que tiene que copiarla sí o sí ahora mismo: ese mismo código ya
+// vive en el mail de confirmación que recibió al generar el pedido.
 export function PendingOrderBanner({ brand }: { brand: string }) {
   const [data, setData] = useState<PendingPaymentWarning | null>(null);
+  const [copied, setCopied] = useState(false);
   const consumedRef = useRef(false);
 
   useEffect(() => {
@@ -35,20 +43,45 @@ export function PendingOrderBanner({ brand }: { brand: string }) {
 
   if (!data) return null;
 
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(data!.reference);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard API no disponible (navegador viejo, http sin TLS, etc.) —
+      // no es crítico, el código sigue visible en el toast para copiarlo a mano.
+    }
+  }
+
   return (
     <div className="fixed top-24 right-4 z-[60] w-[calc(100%-2rem)] max-w-sm rounded-xl border border-amber-500/30 bg-amber-50 shadow-lg">
       <div className="flex items-start gap-3 p-4">
         <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-        <p className="text-sm text-amber-800 flex-1">
-          Tu pedido anterior (referencia{" "}
-          <strong className="font-mono">{data.reference}</strong>) quedó{" "}
-          <strong>pendiente de pago</strong>. Podés buscarlo más tarde con ese código y el
-          email <strong>{data.email}</strong> en{" "}
-          <Link href={`/my-order?brand=${brand}`} className="underline font-semibold">
-            Mi pedido
-          </Link>
-          .
-        </p>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-amber-800">
+            Tu pedido anterior (referencia{" "}
+            <strong className="font-mono">{data.reference}</strong>) quedó{" "}
+            <strong>pendiente de pago</strong>. Podés buscarlo más tarde con ese código y el
+            email <strong>{data.email}</strong> en{" "}
+            <Link href={`/my-order?brand=${brand}`} className="underline font-semibold">
+              Mi pedido
+            </Link>
+            .
+          </p>
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-white px-2.5 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition-colors"
+          >
+            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? "¡Copiado!" : "Copiar código"}
+          </button>
+          <p className="mt-1.5 text-[11px] text-amber-700/80">
+            Copialo antes de entrar a &quot;Mi pedido&quot; — también te lo mandamos por mail, pero
+            así lo tenés a mano.
+          </p>
+        </div>
         <button
           type="button"
           onClick={() => setData(null)}
