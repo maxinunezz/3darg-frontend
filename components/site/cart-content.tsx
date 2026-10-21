@@ -235,11 +235,8 @@ export function SiteCartContent() {
 
   return (
     <div className="max-w-[1420px] mx-auto px-[var(--gutter)] py-[var(--section-y)]">
-      <div className="flex items-center justify-between mb-2">
+      <div className="mb-2">
         <SpecLabel index={1}>Carrito</SpecLabel>
-        <button onClick={clearCart} className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--text-muted)] hover:text-[var(--signal-error)] transition-colors">
-          Vaciar todo
-        </button>
       </div>
 
       {/* Mini-stepper */}
@@ -264,6 +261,22 @@ export function SiteCartContent() {
             columnas (riel + carrito + sugerencias) como al principio —
             pedido del dueño: "quiero que sea de ese tamaño el cartel". */}
         <div className="flex-1 min-w-0 w-full">
+          {/* Alineados a la derecha de esta columna (no de los 3-column row
+              completo) — pedido del dueño: "en ese lugar deben estar los
+              botones, no en la esquina" (esquina = punta derecha de toda la
+              página, por encima de la columna de sugerencias). */}
+          <div className="flex items-center justify-end gap-4 mb-3">
+            {/* Permite seguir sumando productos al carrito sin perder lo ya
+                agregado (a diferencia de "Vaciar todo", no toca el carrito) —
+                pedido del dueño. */}
+            <Link href="/shop" className={buttonClass("solid", "sm")}>
+              Volver a la tienda
+            </Link>
+            <button onClick={clearCart} className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)] text-[var(--text-muted)] hover:text-[var(--signal-error)] transition-colors">
+              Vaciar todo
+            </button>
+          </div>
+
           <FreeShippingProgress
             subtotal={total}
             className="mb-4 p-3 border border-[var(--border-hairline)] rounded-[var(--radius-2xl)]"

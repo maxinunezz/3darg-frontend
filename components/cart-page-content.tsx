@@ -237,19 +237,13 @@ export function CartPageContent() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
-      <div className="flex items-center justify-between mb-8">
+      <div className="mb-8">
         <h1 className="text-3xl font-bold">
           Carrito{" "}
           <span className="text-muted-foreground font-normal text-xl">
             ({items.reduce((s, i) => s + i.quantity, 0)} ítems)
           </span>
         </h1>
-        <button
-          onClick={clearCart}
-          className="text-sm text-muted-foreground hover:text-destructive transition-colors"
-        >
-          Vaciar todo
-        </button>
       </div>
 
       {checkoutError && (
@@ -271,6 +265,28 @@ export function CartPageContent() {
             columnas (riel + carrito + sugerencias) como al principio —
             pedido del dueño: "quiero que sea de ese tamaño el cartel". */}
         <div className="flex-1 min-w-0 w-full">
+          {/* Alineados a la derecha de esta columna (no de los 3-column row
+              completo) — pedido del dueño: "en ese lugar deben estar los
+              botones, no en la esquina" (esquina = punta derecha de toda la
+              página, por encima de la columna de sugerencias). */}
+          <div className="flex items-center justify-end gap-4 mb-3">
+            {/* Permite seguir sumando productos al carrito sin perder lo ya
+                agregado (a diferencia de "Vaciar todo", no toca el carrito) —
+                pedido del dueño. */}
+            <Link
+              href={`/${brandSlug}/shop`}
+              className="inline-flex items-center bg-primary !text-primary-foreground px-4 py-1.5 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
+            >
+              Volver a la tienda
+            </Link>
+            <button
+              onClick={clearCart}
+              className="text-sm text-muted-foreground hover:text-destructive transition-colors"
+            >
+              Vaciar todo
+            </button>
+          </div>
+
           <FreeShippingProgress subtotal={total} className="mb-4 p-3 border border-border rounded-2xl bg-card" />
 
           <div className="border border-border rounded-2xl overflow-hidden bg-card mb-8">
