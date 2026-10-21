@@ -16,6 +16,7 @@ import { CartUpsellCarousel } from "@/components/cart-upsell-carousel";
 import { useTransferDiscountPercent } from "@/lib/useTransferDiscountPercent";
 import { useTransferAvailable } from "@/lib/useTransferAvailable";
 import { consumeTransferOrderCreated } from "@/lib/transfer-order-flag";
+import { saveCheckoutDraft, loadCheckoutDraft, clearCheckoutDraft } from "@/lib/checkout-draft";
 import type { PaymentChannel, TransferCheckoutResponse } from "@/types/payment";
 import Image from "next/image";
 import Link from "next/link";
@@ -212,6 +213,31 @@ export function CartPageContent() {
     consumedTransferFlagRef.current = true;
     setJustPlacedOrderId(consumeTransferOrderCreated(brandSlug));
   }, [brandSlug]);
+  // Restaura email/dirección/envío/canal de pago guardados en sessionStorage
+  // (ver lib/checkout-draft.ts) — así sobreviven a un "atrás" del navegador
+  // desde MercadoPago, que remonta este componente de cero. Los `setState`
+  // van incondicionales (con `?? default`) en vez de adentro de un `if`: el
+  // lint de React (`react-hooks/set-state-in-effect`) deja pasar llamadas a
+  // `setState` directas en el cuerpo de un efecto, pero marca error si están
+  // anidadas en una rama condicional. `draftHydrated` evita que el efecto de
+  // guardado de más abajo pise este mismo borrador con los valores default
+  // del primer render, antes de que esta carga corra.
+  const [draftHydrated, setDraftHydrated] = useState(false);
+  const draftLoadedRef = useRef(false);
+  useEffect(() => {
+    if (draftLoadedRef.current) return;
+    draftLoadedRef.current = true;
+    const draft = loadCheckoutDraft(brandSlug);
+    setGuestEmail(draft?.guestEmail ?? "");
+    setAddress(draft?.address ?? EMPTY_ADDRESS);
+    setShippingEstimate(draft?.shippingEstimate ?? null);
+    setPaymentChannel(draft?.paymentChannel ?? "mercadopago");
+    setDraftHydrated(true);
+  }, [brandSlug]);
+  useEffect(() => {
+    if (!draftHydrated) return;
+    saveCheckoutDraft(brandSlug, { guestEmail, address, shippingEstimate, paymentChannel });
+  }, [draftHydrated, brandSlug, guestEmail, address, shippingEstimate, paymentChannel]);
   // Mismo orden de operaciones que `payments/services/transfer_discount.py`:
   // el % de transferencia se aplica sobre `total` (ya con el descuento por
   // cantidad del carrito aplicado), ANTES de sumar el envío.
@@ -375,7 +401,10 @@ export function CartPageContent() {
               Volver a la tienda
             </Link>
             <button
-              onClick={clearCart}
+              onClick={() => {
+                clearCart();
+                clearCheckoutDraft(brandSlug);
+              }}
               className="text-sm text-muted-foreground hover:text-destructive transition-colors"
             >
               Vaciar todo
@@ -519,7 +548,7 @@ export function CartPageContent() {
                     }
                   >
                     <CreditCard className="w-4 h-4 shrink-0" />
-                    <span className="text-sm font-semibold">MercadoPago</span>
+                    <span className="text-sm font-semibold">Tarjeta o efectivo (MercadoPago)</span>
                   </button>
                   <button
                     type="button"
