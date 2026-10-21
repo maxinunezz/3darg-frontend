@@ -79,7 +79,7 @@ export function CartUpsellCarousel({ brandSlug, className, orientation = "horizo
             const href = productHref(brandSlug, product.slug);
             return (
               <div key={product.id} className="border border-border rounded-xl p-3 flex gap-3 bg-card">
-                <Link href={href} className="w-16 h-16 shrink-0 bg-muted rounded-xl overflow-hidden relative block">
+                <Link href={href} className="w-14 h-14 shrink-0 bg-muted rounded-xl overflow-hidden relative block">
                   {img ? (
                     <Image src={img} alt={product.name} fill unoptimized className="object-cover" />
                   ) : (
@@ -95,8 +95,15 @@ export function CartUpsellCarousel({ brandSlug, className, orientation = "horizo
                       {product.category.parent_name ?? product.category.name}
                     </p>
                   )}
+                  {/* Antes `min-w-0` dejaba que el precio se achicara por debajo de su
+                      contenido en columnas angostas (ver `w-56` del sidebar en
+                      cart-page-content.tsx/site/cart-content.tsx) y el texto terminaba
+                      desbordando visualmente su propia caja, comiéndose el `gap-4` de
+                      abajo — por eso el espacio no se notaba aunque el gap estuviera
+                      bien puesto. `truncate` fuerza que, si no entra, corte con "…" en
+                      vez de pisar el botón. */}
                   <div className="flex items-center justify-between gap-4 mt-1">
-                    <div className="min-w-0">
+                    <div className="truncate">
                       <ProductPrice product={product} size="sm" />
                     </div>
                     <button

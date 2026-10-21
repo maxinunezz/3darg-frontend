@@ -378,7 +378,7 @@ export function CartPageContent() {
             de sugerencias de la derecha, a la izquierda del rectángulo del
             carrito — reemplaza al viejo `WholesaleTierJourney` que estaba
             acá. Devuelve `null` solo si la marca no tiene `cart_discount_config`. */}
-        <CartDiscountProgress vertical className="w-full lg:w-56 shrink-0" />
+        <CartDiscountProgress vertical className="w-full lg:w-64 shrink-0" />
 
         {/* flex-1 min-w-0 vive en este wrapper (no en la tarjeta de abajo)
             para que `FreeShippingProgress` quede exactamente del mismo ancho
@@ -633,7 +633,7 @@ export function CartPageContent() {
         <CartUpsellCarousel
           brandSlug={brandSlug}
           orientation="vertical"
-          className="w-full lg:w-56 shrink-0 border border-border rounded-2xl bg-card p-4"
+          className="w-full lg:w-64 shrink-0 border border-border rounded-2xl bg-card p-4"
         />
       </div>
 
