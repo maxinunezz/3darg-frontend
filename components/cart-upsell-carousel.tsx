@@ -2,10 +2,12 @@
 
 import { useMemo } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Plus } from "lucide-react";
 import { useGetFeaturedProducts } from "@/api/useGetFeaturedProducts";
 import { useCart } from "@/contexts/CartContext";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
+import { productHref } from "@/lib/brand-context";
 import { ProductPrice } from "@/components/product-price";
 import {
   Carousel,
@@ -74,23 +76,26 @@ export function CartUpsellCarousel({ brandSlug, className, orientation = "horizo
         <div className="flex flex-col gap-3">
           {candidates.map((product) => {
             const img = cloudinaryUrl(resolveMediaUrl(product.images?.[0]?.image ?? null), 150);
+            const href = productHref(brandSlug, product.slug);
             return (
               <div key={product.id} className="border border-border rounded-xl p-3 flex gap-3 bg-card">
-                <div className="w-16 h-16 shrink-0 bg-muted rounded-xl overflow-hidden relative">
+                <Link href={href} className="w-16 h-16 shrink-0 bg-muted rounded-xl overflow-hidden relative block">
                   {img ? (
                     <Image src={img} alt={product.name} fill unoptimized className="object-cover" />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-2xl">📦</div>
                   )}
-                </div>
+                </Link>
                 <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
-                  <p className="text-sm font-semibold line-clamp-1">{product.name}</p>
+                  <Link href={href} className="text-sm font-semibold line-clamp-1 hover:underline">
+                    {product.name}
+                  </Link>
                   {product.category && (
                     <p className="text-xs text-muted-foreground uppercase tracking-wide line-clamp-1">
                       {product.category.parent_name ?? product.category.name}
                     </p>
                   )}
-                  <div className="flex items-center justify-between gap-2 mt-1">
+                  <div className="flex items-center justify-between gap-4 mt-1">
                     <div className="min-w-0">
                       <ProductPrice product={product} size="sm" />
                     </div>
@@ -120,10 +125,11 @@ export function CartUpsellCarousel({ brandSlug, className, orientation = "horizo
         <CarouselContent className="-ml-2">
           {candidates.map((product) => {
             const img = cloudinaryUrl(resolveMediaUrl(product.images?.[0]?.image ?? null), 150);
+            const href = productHref(brandSlug, product.slug);
             return (
               <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 pl-2">
                 <div className="border border-border rounded-xl p-2 flex flex-col gap-1.5 h-full bg-card">
-                  <div className="aspect-square bg-muted rounded-lg overflow-hidden relative">
+                  <Link href={href} className="aspect-square bg-muted rounded-lg overflow-hidden relative block">
                     {img ? (
                       <Image
                         src={img}
@@ -135,16 +141,18 @@ export function CartUpsellCarousel({ brandSlug, className, orientation = "horizo
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center text-xl">📦</div>
                     )}
-                  </div>
+                  </Link>
                   <div className="flex-1">
-                    <p className="text-xs font-semibold line-clamp-2">{product.name}</p>
+                    <Link href={href} className="text-xs font-semibold line-clamp-2 hover:underline">
+                      {product.name}
+                    </Link>
                     {product.category && (
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide line-clamp-1">
                         {product.category.parent_name ?? product.category.name}
                       </p>
                     )}
                   </div>
-                  <div className="flex items-center justify-between gap-1">
+                  <div className="flex items-center justify-between gap-3">
                     <ProductPrice product={product} size="sm" />
                     <button
                       onClick={() => addItem(product)}

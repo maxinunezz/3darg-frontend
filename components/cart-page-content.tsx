@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useBrandNamespace } from "@/lib/brand-context";
+import { productHref, useBrandNamespace } from "@/lib/brand-context";
 import type { CartItem } from "@/contexts/CartContext";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { variantLabel } from "@/lib/product-variant";
@@ -394,9 +394,10 @@ export function CartPageContent() {
               const { product, variant, quantity } = item;
               const unit = getUnitPrice(item);
               const listPrice = Number(variant?.price ?? product.price);
+              const href = productHref(brandSlug, product.slug);
               return (
                 <div key={`${product.id}:${variant?.id ?? ""}`} className="flex gap-4 p-4">
-                  <div className="w-16 h-16 bg-muted rounded-xl overflow-hidden shrink-0 relative">
+                  <Link href={href} className="w-16 h-16 bg-muted rounded-xl overflow-hidden shrink-0 relative block">
                     {product.images?.[0]?.image ? (
                       <Image
                         src={cloudinaryUrl(resolveMediaUrl(product.images[0].image), 150)!}
@@ -408,9 +409,11 @@ export function CartPageContent() {
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center text-xl">📦</div>
                     )}
-                  </div>
+                  </Link>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-base truncate">{product.name}</p>
+                    <Link href={href} className="font-semibold text-base truncate block hover:underline">
+                      {product.name}
+                    </Link>
                     {product.category && (
                       <p className="text-sm text-muted-foreground">{product.category.name}</p>
                     )}

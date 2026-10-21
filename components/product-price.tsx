@@ -1,7 +1,12 @@
 import type { ProductType, ProductVariantType } from "@/types/product";
 
 function fmt(n: number) {
-  return `$ ${Number(n).toLocaleString("es-AR")}`;
+  // Espacio NO-breaking ( ) entre "$" y el número: en contenedores
+  // angostos (ej. la columna vertical de `CartUpsellCarousel`) un espacio
+  // normal es un punto de corte válido para el browser y el precio se
+  // partía en dos líneas ("$" arriba, "12.345" abajo). El NBSP obliga a que
+  // viajen siempre juntos.
+  return `$ ${Number(n).toLocaleString("es-AR")}`;
 }
 
 interface Props {

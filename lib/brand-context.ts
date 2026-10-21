@@ -49,3 +49,19 @@ export function useBrandNamespace(): string {
   const pathname = usePathname();
   return useMemo(() => getBrandNamespace(pathname ?? ""), [pathname]);
 }
+
+/**
+ * URL de detalle de producto, brand-aware — mismo criterio que
+ * `getBrandNamespace()` pero a la inversa (namespace → URL en vez de
+ * URL → namespace): la marca madre vive bajo `/product/<slug>` (sin
+ * prefijo, ver `ROOT_STATIC_SEGMENTS`/`app/(main)/product/`), cualquier
+ * sub-marca bajo `/<brandSlug>/product/<slug>` (`app/[brand]/product/`).
+ * Usar siempre esto en vez de armar el href a mano para no repetir el if
+ * en cada componente que linkea a un producto desde una vista que no sabe
+ * de antemano en qué espacio de marca está (ej. carrito, carrusel de
+ * sugerencias).
+ */
+export function productHref(brandSlug: string, productSlug: string): string {
+  if (brandSlug === ROOT_BRAND_SLUG) return `/product/${productSlug}`;
+  return `/${brandSlug}/product/${productSlug}`;
+}

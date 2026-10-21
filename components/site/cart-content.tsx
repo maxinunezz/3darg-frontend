@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Trash2, ShoppingBag, CreditCard, Landmark, Loader2, Clock, Minus, Plus } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useBrandNamespace } from "@/lib/brand-context";
+import { productHref, useBrandNamespace } from "@/lib/brand-context";
 import type { CartItem } from "@/contexts/CartContext";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { variantLabel } from "@/lib/product-variant";
@@ -399,17 +399,20 @@ export function SiteCartContent() {
               const { product, variant, quantity } = item;
               const unit = getUnitPrice(item);
               const img = cloudinaryUrl(resolveMediaUrl(product.images?.[0]?.image), 150);
+              const href = productHref(brandSlug, product.slug);
               return (
                 <div key={`${product.id}:${variant?.id ?? ""}`} className="flex gap-4 p-4 items-center">
-                  <div className="relative w-16 h-16 shrink-0 rounded-[var(--radius-lg)] overflow-hidden bg-[var(--surface-inset)]">
+                  <Link href={href} className="relative w-16 h-16 shrink-0 rounded-[var(--radius-lg)] overflow-hidden bg-[var(--surface-inset)] block">
                     {img ? (
                       <Image src={img} alt={product.name} fill unoptimized className="object-contain p-1.5" />
                     ) : (
                       <ImageSlot className="absolute inset-0" />
                     )}
-                  </div>
+                  </Link>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-base truncate text-[var(--text-strong)]">{product.name}</p>
+                    <Link href={href} className="font-bold text-base truncate text-[var(--text-strong)] block hover:underline">
+                      {product.name}
+                    </Link>
                     <p className="font-mono text-xs text-[var(--text-faint)] uppercase tracking-[var(--tracking-mono)]">
                       {[brandSlug, product.category?.name, variant ? variantLabel(variant) : null].filter(Boolean).join(" · ")}
                     </p>
