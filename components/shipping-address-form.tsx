@@ -197,21 +197,23 @@ export function ShippingAddressForm({
           Código postal
           <RequiredDot />
         </span>
-        <input
-          type="text"
-          inputMode="numeric"
-          value={value.postalCode}
-          onChange={(e) => set("postalCode", e.target.value)}
-          placeholder="Ej: 1000"
-          className={inputClassName}
-        />
-        <button
-          type="button"
-          onClick={() => window.open(CORREO_ARGENTINO_CP_URL, "_blank")}
-          className="text-[11px] text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors text-left"
-        >
-          No sé mi código postal
-        </button>
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            inputMode="numeric"
+            value={value.postalCode}
+            onChange={(e) => set("postalCode", e.target.value)}
+            placeholder="Ej: 1000"
+            className={`${inputClassName} flex-1 min-w-0`}
+          />
+          <button
+            type="button"
+            onClick={() => window.open(CORREO_ARGENTINO_CP_URL, "_blank")}
+            className="text-[11px] font-bold text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors text-left shrink-0"
+          >
+            No sé mi código postal
+          </button>
+        </div>
       </label>
     </div>
   );
