@@ -101,6 +101,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!res.ok) throw new Error("Refresh failed");
       const data = await res.json();
       localStorage.setItem(accessKey(ns), data.access);
+      // El backend tiene ROTATE_REFRESH_TOKENS + BLACKLIST_AFTER_ROTATION
+      // (ver config/settings.py del backend): cada refresh invalida el
+      // refresh token usado y devuelve uno nuevo. Si no lo persistimos acá,
+      // el próximo refresh (scheduled o al abrir una pestaña nueva) reusa el
+      // viejo ya blacklisteado, falla, y termina deslogueando silenciosamente
+      // (bug real detectado: el carrito "se reseteaba" al abrir una pestaña
+      // nueva porque esto pasaba a tratar la sesión como invitado).
+      if (data.refresh) localStorage.setItem(refreshKey(ns), data.refresh);
       setToken(data.access);
       scheduleRefresh(data.access);
       return data.access;
