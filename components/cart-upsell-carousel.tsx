@@ -27,9 +27,13 @@ interface Props {
 
 /**
  * Sugiere productos de la misma marca para cruzar el próximo tramo de
- * `Brand.cart_discount_config` — solo se muestra si queda un próximo tramo
- * (`discountProgress.next_tier_discount_percent`) y hay al menos un producto
- * disponible que todavía no está en el carrito.
+ * `Brand.cart_discount_config` — se muestra mientras haya al menos un
+ * producto disponible que todavía no está en el carrito. Si queda un
+ * próximo tramo (`discountProgress.next_tier_discount_percent`), el título
+ * invita a alcanzarlo; si ya se llegó al tramo más alto (no hay próximo
+ * tramo que ofrecer), el título cambia a una invitación genérica a seguir
+ * comprando en vez de desaparecer — el carrito ya no tiene % que prometer,
+ * pero seguir sugiriendo productos sigue teniendo sentido.
  */
 export function CartUpsellCarousel({ brandSlug, className, orientation = "horizontal" }: Props) {
   const { items, addItem, discountProgress } = useCart();
@@ -54,13 +58,18 @@ export function CartUpsellCarousel({ brandSlug, className, orientation = "horizo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableKey]);
 
-  if (next_tier_discount_percent == null || loading || candidates.length === 0) return null;
+  if (loading || candidates.length === 0) return null;
+
+  const title =
+    next_tier_discount_percent != null
+      ? `Sumá uno de estos y llegá al ${next_tier_discount_percent}% OFF`
+      : "¡Para seguir sumando!";
 
   if (orientation === "vertical") {
     return (
       <div className={className}>
         <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-3">
-          Sumá uno de estos y llegá al {next_tier_discount_percent}% OFF
+          {title}
         </p>
         <div className="flex flex-col gap-3">
           {candidates.map((product) => {
@@ -105,7 +114,7 @@ export function CartUpsellCarousel({ brandSlug, className, orientation = "horizo
   return (
     <div className={className}>
       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
-        Sumá uno de estos y llegá al {next_tier_discount_percent}% OFF
+        {title}
       </p>
       <Carousel opts={{ align: "start" }} className="group">
         <CarouselContent className="-ml-2">
