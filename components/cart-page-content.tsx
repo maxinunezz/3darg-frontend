@@ -12,7 +12,6 @@ import { RequiredDot } from "@/components/shipping-address-form";
 import { type ShippingAddress, isShippingAddressComplete } from "@/types/shipping";
 import { CartDiscountProgress } from "@/components/cart-discount-progress";
 import { CartUpsellCarousel } from "@/components/cart-upsell-carousel";
-import { WholesaleTierJourney } from "@/components/lumy/wholesale-tier-journey";
 import { useTransferDiscountPercent } from "@/lib/useTransferDiscountPercent";
 import { useTransferAvailable } from "@/lib/useTransferAvailable";
 import type { PaymentChannel, TransferCheckoutResponse } from "@/types/payment";
@@ -131,7 +130,7 @@ async function createTransferCheckout(
 // ver lib/brand-context.ts), así que no hace falta agrupar/mostrar por marca
 // como antes: se muestran directamente los items y un solo botón de pago.
 export function CartPageContent() {
-  const { items, subtotal, total, discountPercent, discountAmount, discountProgress, clearCart, removeItem, updateQuantity, getUnitPrice } = useCart();
+  const { items, subtotal, total, discountPercent, discountAmount, clearCart, removeItem, updateQuantity, getUnitPrice } = useCart();
   const { user, token, isAuthenticated } = useAuth();
   const brandSlug = useBrandNamespace();
   const router = useRouter();
@@ -259,18 +258,6 @@ export function CartPageContent() {
       )}
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
-        {/* Mapa de tramos de descuento (todos los escalones, no solo el
-            próximo como `CartDiscountProgress`) — mismo ancho que la columna
-            de sugerencias de la derecha, a la izquierda del rectángulo del
-            carrito. */}
-        {discountProgress.tiers.length > 0 && (
-          <WholesaleTierJourney
-            tiers={discountProgress.tiers}
-            compact
-            className="w-full lg:w-56 shrink-0"
-          />
-        )}
-
         <div className="border border-border rounded-2xl overflow-hidden bg-card mb-8 flex-1 min-w-0">
           {/* Más de ~4 productos no debe seguir agrandando el alto de la
               tarjeta — a partir de ahí se vuelve scrolleable (mouse/touch/

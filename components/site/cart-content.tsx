@@ -16,7 +16,6 @@ import { RequiredDot, RequiredFieldsNote } from "@/components/shipping-address-f
 import { type ShippingAddress, isShippingAddressComplete } from "@/types/shipping";
 import { CartDiscountProgress } from "@/components/cart-discount-progress";
 import { CartUpsellCarousel } from "@/components/cart-upsell-carousel";
-import { WholesaleTierJourney } from "@/components/lumy/wholesale-tier-journey";
 import { QuantityStepper } from "@/components/site/commerce";
 import { ImageSlot, SpecLabel, buttonClass } from "@/components/site/core";
 import { useTransferDiscountPercent } from "@/lib/useTransferDiscountPercent";
@@ -134,7 +133,7 @@ async function createTransferCheckout(
 
 /** Carrito de la marca madre 3DARG — misma lógica de CartContext/checkout que el resto del sitio, capa visual del handoff. */
 export function SiteCartContent() {
-  const { items, subtotal, total, discountPercent, discountAmount, discountProgress, clearCart, removeItem, updateQuantity, getUnitPrice } = useCart();
+  const { items, subtotal, total, discountPercent, discountAmount, clearCart, removeItem, updateQuantity, getUnitPrice } = useCart();
   const { user, token, isAuthenticated } = useAuth();
   const brandSlug = useBrandNamespace();
   const router = useRouter();
@@ -252,18 +251,6 @@ export function SiteCartContent() {
       )}
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
-        {/* Mapa de tramos de descuento (todos los escalones, no solo el
-            próximo como `CartDiscountProgress`) — mismo ancho que la columna
-            de sugerencias de la derecha, a la izquierda del rectángulo del
-            carrito. */}
-        {discountProgress.tiers.length > 0 && (
-          <WholesaleTierJourney
-            tiers={discountProgress.tiers}
-            compact
-            className="w-full lg:w-56 shrink-0"
-          />
-        )}
-
         <div className="border border-[var(--border-hairline)] rounded-[var(--radius-2xl)] overflow-hidden flex-1 min-w-0">
           <div className="px-5 py-3 bg-[var(--surface-inset)] border-b border-[var(--border-hairline)] flex items-center justify-between">
             <span className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)]">{brandSlug}</span>
