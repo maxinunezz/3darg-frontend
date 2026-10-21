@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Trash2, ShoppingBag, CreditCard, Landmark, Loader2, Clock } from "lucide-react";
+import { Trash2, ShoppingBag, CreditCard, Landmark, Loader2, Clock, Minus, Plus } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBrandNamespace } from "@/lib/brand-context";
@@ -17,7 +17,6 @@ import { type ShippingAddress, isShippingAddressComplete } from "@/types/shippin
 import { CartDiscountProgress } from "@/components/cart-discount-progress";
 import { FreeShippingProgress } from "@/components/free-shipping-progress";
 import { CartUpsellCarousel } from "@/components/cart-upsell-carousel";
-import { QuantityStepper } from "@/components/site/commerce";
 import { ImageSlot, SpecLabel, buttonClass } from "@/components/site/core";
 import { useTransferDiscountPercent } from "@/lib/useTransferDiscountPercent";
 import { useTransferAvailable } from "@/lib/useTransferAvailable";
@@ -52,6 +51,71 @@ function fmt(n: number) {
   // decimales cuando el número los tiene, y quedaba inconsistente al lado
   // de Descuento/Envío/Total que sí traen centavos.
   return "$ " + Number(n).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// Variante editable de `QuantityStepper` (`components/site/commerce.tsx`),
+// mismo estilo "ink" ("sm") pero con un input de texto en vez de un `<span>`
+// fijo — mismo pedido/patrón que `CartQuantityInput` en
+// `components/cart-page-content.tsx` (ver comentario ahí: texto libre
+// desacoplado de `value` mientras se tipea, se confirma al perder foco o
+// Enter, sin tope de stock). Se define acá en vez de tocar `commerce.tsx`
+// porque ese archivo es server-compatible a propósito (sin "use client", se
+// usa también desde páginas server como `app/(main)/shop/page.tsx`) —
+// agregarle hooks rompería esos usos.
+function CartQuantityStepper({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+  const [draft, setDraft] = useState(String(value));
+  const [lastSynced, setLastSynced] = useState(value);
+  if (value !== lastSynced) {
+    setLastSynced(value);
+    setDraft(String(value));
+  }
+
+  function commit(raw: string) {
+    const parsed = parseInt(raw, 10);
+    const next = Number.isNaN(parsed) ? 1 : Math.max(1, parsed);
+    onChange(next);
+    setDraft(String(next));
+  }
+
+  return (
+    <div className="inline-flex items-center border border-[var(--border-hairline)] rounded-[var(--radius-md)] overflow-hidden bg-[var(--surface-card)]">
+      <button
+        type="button"
+        aria-label="Restar"
+        onClick={() => onChange(Math.max(1, value - 1))}
+        className="grid place-items-center h-[30px] w-[30px] bg-transparent cursor-pointer text-[var(--text-body)] hover:bg-[var(--surface-inset)] transition-colors"
+      >
+        <Minus size={12} strokeWidth={1.5} />
+      </button>
+      <input
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        value={draft}
+        onChange={(e) => {
+          const val = e.target.value;
+          if (val === "" || /^[0-9]+$/.test(val)) setDraft(val);
+        }}
+        onBlur={() => commit(draft)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            commit(draft);
+            e.currentTarget.blur();
+          }
+        }}
+        aria-label="Cantidad"
+        className="min-w-[30px] text-center font-mono font-bold text-xs tabular-nums bg-transparent focus:outline-none"
+      />
+      <button
+        type="button"
+        aria-label="Sumar"
+        onClick={() => onChange(value + 1)}
+        className="grid place-items-center h-[30px] w-[30px] bg-transparent cursor-pointer text-[var(--text-body)] hover:bg-[var(--surface-inset)] transition-colors"
+      >
+        <Plus size={12} strokeWidth={1.5} />
+      </button>
+    </div>
+  );
 }
 
 // Mismo contrato de entrada para los dos canales (ver
@@ -350,7 +414,7 @@ export function SiteCartContent() {
                       {[brandSlug, product.category?.name, variant ? variantLabel(variant) : null].filter(Boolean).join(" · ")}
                     </p>
                   </div>
-                  <QuantityStepper size="sm" value={quantity} onChange={(n) => updateQuantity(product.id, n, variant?.id ?? null)} />
+                  <CartQuantityStepper value={quantity} onChange={(n) => updateQuantity(product.id, n, variant?.id ?? null)} />
                   <span className="font-mono text-base font-bold tabular-nums w-24 text-right shrink-0">{fmt(unit * quantity)}</span>
                   <button onClick={() => removeItem(product.id, variant?.id ?? null)} aria-label="Eliminar" className="text-[var(--text-faint)] hover:text-[var(--signal-error)] transition-colors shrink-0">
                     <Trash2 size={16} strokeWidth={1.5} />

@@ -33,6 +33,55 @@ function fmt(n: number) {
   return "$ " + Number(n).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// Input de cantidad editable a mano, mismo patrón que el selector de
+// cantidad de la vista de producto (ver `AddToCartButton`): texto libre
+// desacoplado de `quantity` mientras se tipea (para poder borrar el campo
+// sin que se "autocorrija" en cada tecla), se confirma recién al perder foco
+// o apretar Enter. Sin tope de stock — mismo criterio que el resto del
+// carrito/selector de producto (el stock es información interna, nunca un
+// límite para el comprador).
+function CartQuantityInput({ quantity, onCommit }: { quantity: number; onCommit: (q: number) => void }) {
+  const [draft, setDraft] = useState(String(quantity));
+  // Resetear durante el render (no en un efecto) ante un cambio de
+  // `quantity` que vino de afuera (botones +/-) — mismo patrón que
+  // `AddToCartButton`/`product-detail.tsx` usan para resincronizar.
+  const [lastSynced, setLastSynced] = useState(quantity);
+  if (quantity !== lastSynced) {
+    setLastSynced(quantity);
+    setDraft(String(quantity));
+  }
+
+  function commit(raw: string) {
+    const parsed = parseInt(raw, 10);
+    const next = Number.isNaN(parsed) ? 1 : Math.max(1, parsed);
+    onCommit(next);
+    setDraft(String(next));
+  }
+
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      value={draft}
+      onChange={(e) => {
+        const val = e.target.value;
+        // Solo dígitos (o vacío, para poder borrar y tipear de cero).
+        if (val === "" || /^[0-9]+$/.test(val)) setDraft(val);
+      }}
+      onBlur={() => commit(draft)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          commit(draft);
+          e.currentTarget.blur();
+        }
+      }}
+      className="px-2 py-1 w-10 font-medium text-center text-base bg-transparent focus:outline-none"
+      aria-label="Cantidad"
+    />
+  );
+}
+
 const EMPTY_ADDRESS: ShippingAddress = {
   fullName: "",
   phone: "",
@@ -393,9 +442,10 @@ export function CartPageContent() {
                       >
                         <Minus className="w-3.5 h-3.5" />
                       </button>
-                      <span className="px-2.5 py-1 font-medium min-w-[2rem] text-center text-base">
-                        {quantity}
-                      </span>
+                      <CartQuantityInput
+                        quantity={quantity}
+                        onCommit={(q) => updateQuantity(product.id, q, variant?.id ?? null)}
+                      />
                       <button
                         onClick={() => updateQuantity(product.id, quantity + 1, variant?.id ?? null)}
                         className="px-2 py-1 hover:bg-muted transition-colors"
