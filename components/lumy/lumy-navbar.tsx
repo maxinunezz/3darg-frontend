@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingBag, User, Menu, X } from "lucide-react";
+import { ShoppingBag, User, Menu, X, Search, Receipt } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import type { BrandType } from "@/types/brands";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
@@ -102,6 +102,23 @@ export function LumyNavbar({ brand }: LumyNavbarProps) {
         </div>
 
         <div className="lm-nav__actions">
+          {/* Buscar pedido / subir comprobante sin cuenta — ver `/my-order`
+              (`payments/views.py::OrderLookupAPIView`) y
+              `components/transfer-receipt-upload.tsx`. */}
+          <Link
+            href={`/my-order?brand=${brand.slug}`}
+            className="lm-iconbtn lm-iconbtn--md hidden sm:inline-flex"
+            aria-label="Mi pedido"
+          >
+            <Search size={18} strokeWidth={1.6} />
+          </Link>
+          <Link
+            href={`/my-order?brand=${brand.slug}&intent=receipt`}
+            className="lm-iconbtn lm-iconbtn--md hidden sm:inline-flex"
+            aria-label="Subir comprobante"
+          >
+            <Receipt size={18} strokeWidth={1.6} />
+          </Link>
           {/* Carrito y compra no requieren cuenta — el checkout acepta invitado. */}
           <button
             onClick={() => router.push(`${base}/cart`)}
@@ -142,6 +159,15 @@ export function LumyNavbar({ brand }: LumyNavbarProps) {
               {l.label}
             </Link>
           ))}
+          <Link href={`/my-order?brand=${brand.slug}`} onClick={() => setOpen(false)}>
+            Mi pedido
+          </Link>
+          <Link
+            href={`/my-order?brand=${brand.slug}&intent=receipt`}
+            onClick={() => setOpen(false)}
+          >
+            Subir comprobante
+          </Link>
         </div>
       )}
     </nav>

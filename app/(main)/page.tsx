@@ -9,6 +9,7 @@ import { SectionHeading } from "@/components/site/layout";
 import { FeatureCard, CategoryTile } from "@/components/site/commerce";
 import { getCmsPage, getSection, getSectionImage } from "@/lib/cms";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
+import { PendingOrderBanner } from "@/components/pending-order-banner";
 
 export const metadata: Metadata = {
   title: "3DARG | Impresión 3D en Argentina",
@@ -140,6 +141,7 @@ export default async function Home() {
 
   return (
     <>
+      <PendingOrderBanner brand="3darg" />
       {/* ── HERO ──────────────────────────────────────────────────────── */}
       <section className="theme-ink relative overflow-hidden">
         <div

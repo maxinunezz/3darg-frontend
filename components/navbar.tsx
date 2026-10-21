@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { ShoppingCart, User, LogOut, Menu, X } from "lucide-react";
+import { ShoppingCart, User, LogOut, Menu, X, Search, Receipt } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -107,6 +107,23 @@ export const Navbar = () => {
               <span className="hidden sm:inline">Ingresar</span>
             </button>
           )}
+          {/* Buscar pedido / subir comprobante sin cuenta — ver `/my-order`
+              (`payments/views.py::OrderLookupAPIView`) y
+              `components/transfer-receipt-upload.tsx`. */}
+          <Link
+            href="/my-order?brand=3darg"
+            className="hidden sm:flex items-center gap-1.5 font-mono text-[11px] tracking-[var(--tracking-label)] uppercase text-[var(--text-muted)] hover:text-[var(--text-strong)] transition-colors"
+          >
+            <Search size={17} strokeWidth={1.5} />
+            Mi pedido
+          </Link>
+          <Link
+            href="/my-order?brand=3darg&intent=receipt"
+            className="hidden sm:flex items-center gap-1.5 font-mono text-[11px] tracking-[var(--tracking-label)] uppercase text-[var(--text-muted)] hover:text-[var(--text-strong)] transition-colors"
+          >
+            <Receipt size={17} strokeWidth={1.5} />
+            Comprobante
+          </Link>
           {/* Carrito y compra no requieren cuenta — el checkout acepta invitado. */}
           <IconButton
             tone="bare"
@@ -152,6 +169,22 @@ export const Navbar = () => {
               </Link>
             )
           )}
+          <div className="border-t border-[var(--border-hairline)] pt-4 flex flex-col gap-4">
+            <Link
+              href="/my-order?brand=3darg"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2 font-mono text-xs tracking-[var(--tracking-label)] uppercase text-[var(--text-body)]"
+            >
+              <Search size={16} strokeWidth={1.5} /> Mi pedido
+            </Link>
+            <Link
+              href="/my-order?brand=3darg&intent=receipt"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2 font-mono text-xs tracking-[var(--tracking-label)] uppercase text-[var(--text-body)]"
+            >
+              <Receipt size={16} strokeWidth={1.5} /> Subir comprobante
+            </Link>
+          </div>
         </div>
       )}
     </header>

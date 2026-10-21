@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingCart, ChevronDown, User, LayoutDashboard, LogOut, Menu, X } from "lucide-react";
+import { ShoppingCart, ChevronDown, User, LayoutDashboard, LogOut, Menu, X, Search, Receipt } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import type { BrandType } from "@/types/brands";
@@ -158,6 +158,24 @@ export function BrandNavbar({ brand }: BrandNavbarProps) {
               </Link>
             )}
 
+            {/* Buscar pedido / subir comprobante sin cuenta — ver `/my-order`
+                (`payments/views.py::OrderLookupAPIView`) y
+                `components/transfer-receipt-upload.tsx`. */}
+            <Link
+              href={`/my-order?brand=${brand.slug}`}
+              className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Search className="w-4 h-4" />
+              <span className="hidden lg:inline text-xs">Mi pedido</span>
+            </Link>
+            <Link
+              href={`/my-order?brand=${brand.slug}&intent=receipt`}
+              className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Receipt className="w-4 h-4" />
+              <span className="hidden lg:inline text-xs">Comprobante</span>
+            </Link>
+
             {/* Carrito y compra no requieren cuenta — el checkout acepta invitado. */}
             {hasShop && (
               <button
@@ -215,6 +233,21 @@ export function BrandNavbar({ brand }: BrandNavbarProps) {
               Instagram
             </a>
           )}
+
+          <Link
+            href={`/my-order?brand=${brand.slug}`}
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center gap-2 hover:text-primary transition-colors"
+          >
+            <Search className="w-4 h-4" /> Mi pedido
+          </Link>
+          <Link
+            href={`/my-order?brand=${brand.slug}&intent=receipt`}
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center gap-2 hover:text-primary transition-colors"
+          >
+            <Receipt className="w-4 h-4" /> Subir comprobante
+          </Link>
 
           <Link
             href="/"

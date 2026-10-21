@@ -10,6 +10,7 @@ import { NewsletterForm } from "@/components/newsletter-form";
 import { CommunityAuthCTAs } from "@/components/community-auth-ctas";
 import { PrintGymHome } from "@/components/printgym/printgym-home";
 import { LumyHome } from "@/components/lumy/lumy-home";
+import { PendingOrderBanner } from "@/components/pending-order-banner";
 import type { Metadata } from "next";
 
 export async function generateMetadata({
@@ -463,13 +464,19 @@ export default async function BrandPage({
 
   if (brand.slug === "printgym") {
     return (
-      <PrintGymHome brand={brand} featured={featured} allProducts={allProducts} categories={categories} />
+      <>
+        <PendingOrderBanner brand={brand.slug} />
+        <PrintGymHome brand={brand} featured={featured} allProducts={allProducts} categories={categories} />
+      </>
     );
   }
 
   if (brand.slug === "lumy") {
     return (
-      <LumyHome brand={brand} featured={featured} allProducts={allProducts} categories={categories} />
+      <>
+        <PendingOrderBanner brand={brand.slug} />
+        <LumyHome brand={brand} featured={featured} allProducts={allProducts} categories={categories} />
+      </>
     );
   }
 
@@ -485,6 +492,7 @@ export default async function BrandPage({
 
   return (
     <div>
+      <PendingOrderBanner brand={brand.slug} />
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       {show("hero") && (
         <section className="relative overflow-hidden min-h-[92vh] flex items-center justify-center">

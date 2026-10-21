@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, User, Menu, X } from "lucide-react";
+import { ShoppingCart, User, Menu, X, Search, Receipt } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { BrandType } from "@/types/brands";
@@ -90,6 +90,24 @@ export function PrintGymNavbar({ brand }: PrintGymNavbarProps) {
               Ingresar
             </Link>
           )}
+          {/* Buscar pedido / subir comprobante sin cuenta — ver `/my-order`
+              (`payments/views.py::OrderLookupAPIView`) y
+              `components/transfer-receipt-upload.tsx`. */}
+          <Link
+            href={`/my-order?brand=${brand.slug}`}
+            aria-label="Mi pedido"
+            className="hidden sm:inline-flex items-center"
+          >
+            <Search className="w-5 h-5" strokeWidth={1.4} />
+          </Link>
+          <Link
+            href={`/my-order?brand=${brand.slug}&intent=receipt`}
+            aria-label="Subir comprobante"
+            className="hidden sm:inline-flex items-center"
+          >
+            <Receipt className="w-5 h-5" strokeWidth={1.4} />
+          </Link>
+
           {/* Carrito y compra no requieren cuenta — el checkout acepta invitado. */}
           <button
             onClick={() => router.push(`${base}/cart`)}
@@ -143,6 +161,15 @@ export function PrintGymNavbar({ brand }: PrintGymNavbarProps) {
                 </Link>
               );
             })}
+            <Link href={`/my-order?brand=${brand.slug}`} onClick={() => setMobileOpen(false)}>
+              Mi pedido
+            </Link>
+            <Link
+              href={`/my-order?brand=${brand.slug}&intent=receipt`}
+              onClick={() => setMobileOpen(false)}
+            >
+              Subir comprobante
+            </Link>
           </div>
         </div>
       )}

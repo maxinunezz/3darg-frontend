@@ -26,3 +26,32 @@ export type TransferCheckoutResponse = {
   expires_in_hours: number;
   bank: TransferBankDetails;
 };
+
+// Respuesta compartida de `POST /api/payments/orders/<id>/reconcile/` y
+// `POST /api/payments/orders/lookup/` (ver `payments/views.py::_reconcile_and_serialize`
+// en el backend — las dos vistas devuelven exactamente el mismo shape, para
+// poder reusar el mismo componente de UI, ver `components/order-status-card.tsx`).
+// Los campos de `bank`/`reference`/etc. solo vienen cuando
+// `payment_channel === "transfer"`, por eso son opcionales acá.
+export type OrderStatusData = {
+  order_id: string;
+  status: string; // PENDING | PAID | REJECTED | CANCELLED | DRAFT
+  status_display: string;
+  payment_channel: string;
+  total_amount: string;
+  currency: string;
+  items: { title: string; qty: number; unit_price: string }[];
+  // Solo presentes para `payment_channel === "transfer"`.
+  reference?: string;
+  transfer_discount_percent?: number;
+  expires_in_hours?: number;
+  created_at?: string;
+  bank?: TransferBankDetails;
+  has_receipt?: boolean;
+  receipt_uploaded_at?: string | null;
+  // El comprador ya lo escribió él mismo al comprar — el backend lo
+  // devuelve para poder mostrárselo de vuelta (ej. el aviso de "pedido
+  // pendiente, buscalo con este código y este email", ver
+  // `PendingOrderBanner`) sin pedírselo de nuevo ni mandarlo por query string.
+  customer_email?: string;
+};
