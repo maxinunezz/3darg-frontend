@@ -15,7 +15,6 @@ import { ProductPrice } from "@/components/product-price";
 import { TransferDiscountBadge } from "@/components/transfer-discount-badge";
 import { RelatedByTheme } from "@/components/related-by-theme";
 import { ProductDiscountTease } from "@/components/product-discount-tease";
-import { ProductPromoCarousel } from "@/components/product-promo-carousel";
 
 interface Props {
   brand: BrandType;
@@ -193,10 +192,9 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
   // AddToCartButton) — se levanta acá para que ProductDiscountTease pueda
   // recalcular en vivo qué descuento correspondería al confirmar la compra.
   const [qty, setQty] = useState(1);
-  // Umbrales de envío gratis por modalidad (mismo dato que lee
-  // `ProductPromoCarousel` más abajo, ver `Brand.shipping_config`) — acá solo
-  // para el texto estático del cartel de "trust signals", sin barra de
-  // progreso ni reactividad al subtotal.
+  // Umbrales de envío gratis por modalidad (ver `Brand.shipping_config`) —
+  // acá solo para el texto estático del cartel de "trust signals", sin barra
+  // de progreso ni reactividad al subtotal.
   const sucursalFreeShippingThreshold = brand.shipping_config?.free_shipping_threshold_sucursal;
   const domicilioFreeShippingThreshold = brand.shipping_config?.free_shipping_threshold_domicilio;
   const hasFreeShippingInfo = Boolean(sucursalFreeShippingThreshold || domicilioFreeShippingThreshold);
@@ -367,7 +365,6 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
                 </button>
               </>
             )}
-            <ProductPromoCarousel brand={brand} product={product} qty={qty} variant={effectiveVariant} />
           </div>
           {images.length > 1 && (
             // grid-cols-5: las miniaturas quedan un poco más chicas (20% del
