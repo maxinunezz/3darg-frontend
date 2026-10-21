@@ -12,6 +12,19 @@ type User = {
   phone: string;
   date_joined: string;
   has_usable_password: boolean;
+  // Dirección de envío preferida (ver `users/models.py::User` en el backend)
+  // — todos opcionales, `""` si el usuario nunca la cargó desde "Mis datos"
+  // (`account-settings-content.tsx`). Consumidos por `shipping-estimator.tsx`
+  // para autocompletar el selector de envío del carrito.
+  shipping_modality: "" | "sucursal" | "domicilio";
+  shipping_province: string;
+  shipping_agency_id: string;
+  shipping_street: string;
+  shipping_street_number: string;
+  shipping_floor: string;
+  shipping_department: string;
+  shipping_city: string;
+  shipping_postal_code: string;
 };
 
 export type UpdateProfileInput = Partial<{
@@ -20,6 +33,15 @@ export type UpdateProfileInput = Partial<{
   email: string;
   phone: string;
   current_password: string;
+  shipping_modality: "" | "sucursal" | "domicilio";
+  shipping_province: string;
+  shipping_agency_id: string;
+  shipping_street: string;
+  shipping_street_number: string;
+  shipping_floor: string;
+  shipping_department: string;
+  shipping_city: string;
+  shipping_postal_code: string;
 }>;
 
 interface AuthContextType {

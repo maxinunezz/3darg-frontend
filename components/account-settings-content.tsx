@@ -7,11 +7,27 @@ import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { useAuth } from "@/contexts/AuthContext";
 import { sanitizePhone } from "@/lib/phone";
-import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, Loader2 } from "lucide-react";
+import { apiUrl } from "@/lib/api";
+import { AR_PROVINCES, type ShippingAddress, type ShippingModality } from "@/types/shipping";
+import { ShippingAddressForm, RequiredDot } from "@/components/shipping-address-form";
+import { type Agency, agencyIdOf, agencyLabel } from "@/components/shipping-estimator";
 
 const inputCls =
   "w-full border border-input rounded-xl px-4 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring transition-shadow";
 const labelCls = "block text-sm font-medium mb-1.5";
+
+const EMPTY_SHIPPING_ADDRESS: ShippingAddress = {
+  fullName: "",
+  phone: "",
+  street: "",
+  streetNumber: "",
+  floor: "",
+  department: "",
+  city: "",
+  province: "",
+  postalCode: "",
+};
 
 function PasswordInput({
   value,
@@ -80,6 +96,24 @@ export function AccountSettingsContent({
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState(false);
 
+  // Dirección de envío preferida ("Mis datos" → autocompletar el carrito, ver
+  // `shipping-estimator.tsx`). Nombre/Apellido/Teléfono se muestran también
+  // acá (no solo en "Datos personales" de arriba) para que este form alcance
+  // por sí solo para dejar la preferencia completa, sin obligar a guardar
+  // los dos bloques — pero reusan literalmente `firstName`/`lastName`/`phone`
+  // (mismo estado de React, no una copia), así que editar uno actualiza el
+  // otro al toque y no hay forma de que queden desincronizados.
+  // `shippingAddress.fullName`/`.phone` (de `ShippingAddressForm`) siguen sin
+  // usarse — por eso `showContactFields={false}` más abajo.
+  const [shippingModality, setShippingModality] = useState<ShippingModality | "">("");
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>(EMPTY_SHIPPING_ADDRESS);
+  const [shippingAgencyId, setShippingAgencyId] = useState("");
+  const [agencies, setAgencies] = useState<Agency[]>([]);
+  const [agenciesLoading, setAgenciesLoading] = useState(false);
+  const [shippingSaving, setShippingSaving] = useState(false);
+  const [shippingError, setShippingError] = useState("");
+  const [shippingSuccess, setShippingSuccess] = useState(false);
+
   useEffect(() => {
     if (authLoading) return;
     if (!isAuthenticated) {
@@ -91,8 +125,58 @@ export function AccountSettingsContent({
       setLastName(user.last_name ?? "");
       setEmail(user.email ?? "");
       setPhone(sanitizePhone(user.phone));
+      setShippingModality(user.shipping_modality || "");
+      setShippingAddress({
+        fullName: "",
+        phone: "",
+        street: user.shipping_street || "",
+        streetNumber: user.shipping_street_number || "",
+        floor: user.shipping_floor || "",
+        department: user.shipping_department || "",
+        city: user.shipping_city || "",
+        province: user.shipping_province || "",
+        postalCode: user.shipping_postal_code || "",
+      });
+      setShippingAgencyId(user.shipping_agency_id || "");
     }
   }, [authLoading, isAuthenticated, user, router, loginHref]);
+
+  // Lista real de sucursales de la provincia elegida — mismo endpoint y
+  // mismo criterio que `shipping-estimator.tsx`, pero sin el guard
+  // condicional "if (cond) { setAgencies([]); return; }" que dispara el lint
+  // `react-hooks/set-state-in-effect` (ya es un error conocido, dejado a
+  // propósito en ese archivo en otra sesión): acá `province` sale de un
+  // ternario ANTES del único `return` del guard, y ese guard no llama a
+  // ningún `setState` — así el efecto queda lint-clean desde el vamos.
+  useEffect(() => {
+    const province = shippingModality === "sucursal" ? shippingAddress.province : "";
+    if (!province) return;
+    let cancelled = false;
+    setAgenciesLoading(true);
+    fetch(apiUrl(`/shipping/agencies/?province=${encodeURIComponent(province)}`))
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => {
+        if (cancelled) return;
+        setAgencies(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setAgencies([]);
+      })
+      .finally(() => {
+        if (!cancelled) setAgenciesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [shippingModality, shippingAddress.province]);
+
+  // Si la sucursal guardada quedó obsoleta (cambió de provincia, o la lista
+  // recién cargó) cae a la primera disponible — mismo criterio que
+  // `shipping-estimator.tsx`.
+  useEffect(() => {
+    if (!agencies.length) return;
+    setShippingAgencyId((prev) => (prev && agencies.some((a) => agencyIdOf(a) === prev) ? prev : agencyIdOf(agencies[0])));
+  }, [agencies]);
 
   if (authLoading || !isAuthenticated || !user) return null;
 
@@ -117,6 +201,36 @@ export function AccountSettingsContent({
       setProfileError(err instanceof Error ? err.message : "No se pudieron guardar los cambios");
     } finally {
       setProfileSaving(false);
+    }
+  }
+
+  async function handleShippingSubmit(e: FormEvent) {
+    e.preventDefault();
+    setShippingError("");
+    setShippingSuccess(false);
+    setShippingSaving(true);
+    try {
+      const isDomicilio = shippingModality === "domicilio";
+      const isSucursal = shippingModality === "sucursal";
+      await updateProfile({
+        first_name: firstName,
+        last_name: lastName,
+        phone,
+        shipping_modality: shippingModality,
+        shipping_province: shippingAddress.province,
+        shipping_agency_id: isSucursal ? shippingAgencyId : "",
+        shipping_street: isDomicilio ? shippingAddress.street : "",
+        shipping_street_number: isDomicilio ? shippingAddress.streetNumber : "",
+        shipping_floor: isDomicilio ? shippingAddress.floor ?? "" : "",
+        shipping_department: isDomicilio ? shippingAddress.department ?? "" : "",
+        shipping_city: isDomicilio ? shippingAddress.city : "",
+        shipping_postal_code: isDomicilio ? shippingAddress.postalCode : "",
+      });
+      setShippingSuccess(true);
+    } catch (err: unknown) {
+      setShippingError(err instanceof Error ? err.message : "No se pudo guardar la dirección");
+    } finally {
+      setShippingSaving(false);
     }
   }
 
@@ -217,6 +331,114 @@ export function AccountSettingsContent({
           className="w-full bg-primary text-primary-foreground py-3 rounded-full font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {profileSaving ? "Guardando..." : "Guardar cambios"}
+        </button>
+      </form>
+
+      {/* ── DIRECCIÓN DE ENVÍO PREFERIDA ──────────────────────────────── */}
+      <form onSubmit={handleShippingSubmit} className="space-y-4 mb-12 border border-border rounded-2xl p-6 bg-card">
+        <h2 className="font-semibold text-lg mb-2">Dirección de envío preferida</h2>
+        <p className="text-sm text-muted-foreground -mt-2">
+          Guardala una vez y se autocompleta sola la próxima vez que compres.
+        </p>
+
+        <div className="flex flex-col gap-2">
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="radio"
+              checked={shippingModality === "sucursal"}
+              onChange={() => setShippingModality("sucursal")}
+              className="accent-primary"
+            />
+            Retirar en sucursal
+          </label>
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="radio"
+              checked={shippingModality === "domicilio"}
+              onChange={() => setShippingModality("domicilio")}
+              className="accent-primary"
+            />
+            Envío a domicilio
+          </label>
+        </div>
+
+        {shippingModality === "sucursal" && (
+          <div className="grid grid-cols-2 gap-3">
+            <label className="grid gap-1.5 min-w-0">
+              <span className={labelCls}>
+                Provincia
+                <RequiredDot />
+              </span>
+              <select
+                value={shippingAddress.province}
+                onChange={(e) => {
+                  setShippingAddress((prev) => ({ ...prev, province: e.target.value }));
+                  setShippingAgencyId("");
+                }}
+                className={inputCls}
+              >
+                <option value="">Elegí tu provincia</option>
+                {AR_PROVINCES.map((p) => (
+                  <option key={p.code} value={p.code}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="grid gap-1.5 min-w-0">
+              <span className={labelCls}>
+                Sucursal
+                <RequiredDot />
+              </span>
+              {!shippingAddress.province ? (
+                <span className="text-[11px] text-muted-foreground self-center">Elegí la provincia primero.</span>
+              ) : agenciesLoading ? (
+                <span className="text-[11px] text-muted-foreground flex items-center gap-1.5 self-center">
+                  <Loader2 className="w-3 h-3 animate-spin" /> Buscando sucursales...
+                </span>
+              ) : agencies.length ? (
+                <select
+                  value={shippingAgencyId}
+                  onChange={(e) => setShippingAgencyId(e.target.value)}
+                  className={inputCls}
+                >
+                  {agencies.map((a) => (
+                    <option key={agencyIdOf(a)} value={agencyIdOf(a)}>
+                      {agencyLabel(a)}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span className="text-[11px] text-muted-foreground self-center">
+                  Todavía no hay sucursales disponibles online.
+                </span>
+              )}
+            </label>
+          </div>
+        )}
+
+        {shippingModality === "domicilio" && (
+          <ShippingAddressForm
+            value={shippingAddress}
+            onChange={setShippingAddress}
+            labelClassName={labelCls}
+            inputClassName={inputCls}
+            showContactFields={false}
+          />
+        )}
+
+        {shippingError && <p className="text-xs text-destructive mb-2">{shippingError}</p>}
+        {shippingSuccess && (
+          <p className="text-xs text-green-600 mb-2">Tu dirección de envío se guardó correctamente.</p>
+        )}
+
+        <button
+          type="submit"
+          disabled={shippingSaving || !shippingModality}
+          className="w-full bg-primary text-primary-foreground py-3 rounded-full font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {shippingSaving ? "Guardando..." : "Guardar dirección"}
         </button>
       </form>
 

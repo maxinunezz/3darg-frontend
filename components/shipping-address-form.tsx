@@ -15,6 +15,12 @@ interface ShippingAddressFormProps {
   className?: string;
   labelClassName?: string;
   inputClassName?: string;
+  /** `false` oculta "Nombre y apellido"/"Teléfono" — los usa
+   * `account-settings-content.tsx` ("Mis datos"), donde esos dos campos ya
+   * se editan arriba en el form de "Datos personales" y repetirlos acá
+   * confundiría (¿cuál de los dos guarda?). Default `true` (comportamiento
+   * de siempre, usado por el checkout del carrito). */
+  showContactFields?: boolean;
 }
 
 // Exportadas para que `ShippingEstimator` pueda usar la misma estética default
@@ -77,6 +83,7 @@ export function ShippingAddressForm({
   className,
   labelClassName = DEFAULT_LABEL_CLS,
   inputClassName = DEFAULT_INPUT_CLS,
+  showContactFields = true,
 }: ShippingAddressFormProps) {
   function set<K extends keyof ShippingAddress>(key: K, v: ShippingAddress[K]) {
     onChange({ ...value, [key]: v });
@@ -84,33 +91,37 @@ export function ShippingAddressForm({
 
   return (
     <div className={className ?? "grid grid-cols-2 gap-3"}>
-      <label className="grid gap-1.5 col-span-2">
-        <span className={labelClassName}>
-          Nombre y apellido
-          <RequiredDot />
-        </span>
-        <input
-          type="text"
-          value={value.fullName}
-          onChange={(e) => set("fullName", e.target.value)}
-          placeholder="Nombre y apellido de quien recibe"
-          className={inputClassName}
-        />
-      </label>
+      {showContactFields && (
+        <>
+          <label className="grid gap-1.5 col-span-2">
+            <span className={labelClassName}>
+              Nombre y apellido
+              <RequiredDot />
+            </span>
+            <input
+              type="text"
+              value={value.fullName}
+              onChange={(e) => set("fullName", e.target.value)}
+              placeholder="Nombre y apellido de quien recibe"
+              className={inputClassName}
+            />
+          </label>
 
-      <label className="grid gap-1.5 col-span-2">
-        <span className={labelClassName}>
-          Teléfono
-          <RequiredDot />
-        </span>
-        <PhoneInput
-          international
-          defaultCountry="AR"
-          value={value.phone || undefined}
-          onChange={(v) => set("phone", v ?? "")}
-          placeholder="Tu número de teléfono"
-        />
-      </label>
+          <label className="grid gap-1.5 col-span-2">
+            <span className={labelClassName}>
+              Teléfono
+              <RequiredDot />
+            </span>
+            <PhoneInput
+              international
+              defaultCountry="AR"
+              value={value.phone || undefined}
+              onChange={(v) => set("phone", v ?? "")}
+              placeholder="Tu número de teléfono"
+            />
+          </label>
+        </>
+      )}
 
       <label className="grid gap-1.5 col-span-2 sm:col-span-1">
         <span className={labelClassName}>

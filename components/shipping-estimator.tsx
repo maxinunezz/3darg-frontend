@@ -37,7 +37,11 @@ type ShippingMethod = {
 // Argentino, confirmada contra la doc oficial) — `code` es el identificador
 // real (no `agencyId`/`id`), y la dirección va anidada bajo
 // `location.address`, no como un campo plano `address`.
-type Agency = {
+// Exportado (junto con `agencyIdOf`/`agencyLabel` más abajo) para que
+// `account-settings-content.tsx` pueda reusar el mismo mini-selector de
+// sucursal al guardar la dirección preferida en "Mis datos", sin duplicar
+// el tipo ni el armado del label.
+export type Agency = {
   code: string;
   name?: string;
   manager?: string;
@@ -136,13 +140,13 @@ function agencyAddressLabel(a: Agency): string {
   return [street, addr.city].filter(Boolean).join(", ");
 }
 
-function agencyLabel(a: Agency): string {
+export function agencyLabel(a: Agency): string {
   const name = a.name || "Sucursal";
   const address = agencyAddressLabel(a);
   return address ? `${name} — ${address}` : name;
 }
 
-function agencyIdOf(a: Agency): string {
+export function agencyIdOf(a: Agency): string {
   return String(a.code ?? "");
 }
 
@@ -253,19 +257,40 @@ export function ShippingEstimator({
 
   // Si hay sesión iniciada, autocompleta nombre/teléfono con los datos
   // guardados en "Mis datos" (una sola vez, y solo si el campo todavía está
-  // vacío — no pisa lo que el comprador ya haya escrito a mano).
+  // vacío — no pisa lo que el comprador ya haya escrito a mano). También
+  // precarga la dirección de envío preferida (`user.shipping_*`, cargada
+  // desde `account-settings-content.tsx` → "Dirección de envío preferida")
+  // — a diferencia de nombre/teléfono, la provincia/sucursal guardada SÍ
+  // pisa lo que haya puesto la geolocalización por IP (no un `prev || valor`):
+  // es una preferencia explícita del comprador, más confiable que una
+  // aproximación por IP, y puede llegar después de que el efecto de `/api/geo`
+  // ya haya escrito algo (ese fetch es same-origin y suele resolver antes
+  // que el `fetchMe` de la sesión) — sin este override, la carrera la podía
+  // ganar el dato más débil solo por llegar primero.
   useEffect(() => {
     if (!user || prefillAppliedRef.current) return;
     prefillAppliedRef.current = true;
     const fullName = `${user.first_name} ${user.last_name}`.trim();
     const phone = sanitizePhone(user.phone);
-    if (!fullName && !phone) return;
+    const savedModality: ShippingModality | "" =
+      user.shipping_modality === "domicilio" || user.shipping_modality === "sucursal" ? user.shipping_modality : "";
     setSucursalFullName((prev) => prev || fullName);
     setSucursalPhone((prev) => prev || phone);
+    setSucursalProvince((prev) => (user.shipping_province ? user.shipping_province : prev));
+    setSucursalAgencyId((prev) => (user.shipping_agency_id ? user.shipping_agency_id : prev));
+    setGeoDetectedProvince((prev) => (user.shipping_province ? false : prev));
+    setModality((prev) => (savedModality ? savedModality : prev));
     setDomicilioAddress((prev) => ({
       ...prev,
       fullName: prev.fullName || fullName,
       phone: prev.phone || phone,
+      street: prev.street || user.shipping_street || "",
+      streetNumber: prev.streetNumber || user.shipping_street_number || "",
+      floor: prev.floor || user.shipping_floor || "",
+      department: prev.department || user.shipping_department || "",
+      city: prev.city || user.shipping_city || "",
+      province: prev.province || user.shipping_province || "",
+      postalCode: prev.postalCode || user.shipping_postal_code || "",
     }));
   }, [user]);
 
