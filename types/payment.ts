@@ -54,4 +54,12 @@ export type OrderStatusData = {
   // pendiente, buscalo con este código y este email", ver
   // `PendingOrderBanner`) sin pedírselo de nuevo ni mandarlo por query string.
   customer_email?: string;
+  // Último estado de tracking de Correo Argentino (ver
+  // `correo_argentino.py::last_tracking_status()` en el backend) — SOLO
+  // viene con datos si `status === "PAID"` y el pedido es de Correo
+  // Argentino. `null`/`undefined` en cualquier otro caso (pedido no
+  // confirmado, no es de Correo Argentino, o la consulta de tracking
+  // falló/no devolvió eventos todavía) — nunca bloquea mostrar el resto
+  // de la pantalla de "tu pedido".
+  shipping_status?: string | null;
 };

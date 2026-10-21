@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, CheckCircle, Clock, XCircle, Copy, Check } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, XCircle, Copy, Check, Truck } from "lucide-react";
 import type { OrderStatusData } from "@/types/payment";
 import { TransferReceiptUpload } from "@/components/transfer-receipt-upload";
 
@@ -158,6 +158,22 @@ export function OrderStatusCard({
       {header.icon}
       <h1 className="text-3xl font-bold mb-2">{header.title}</h1>
       <p className="text-gray-600 mb-8">{header.text}</p>
+
+      {/* Estado de envío de Correo Argentino — solo para pedidos ya
+          confirmados (check verde de arriba) y únicamente si el backend
+          encontró un estado real (`shipping_status`, ver
+          `_reconcile_and_serialize` en el backend). Pedido explícito del
+          dueño: NO se muestra en /profile ni /[brand]/profile, solo acá
+          (pantalla "tu pedido"). */}
+      {order.status === "PAID" && order.shipping_status && (
+        <div className="border border-green-200 bg-green-50 rounded-2xl p-5 text-left mb-6 flex items-start gap-3">
+          <Truck className="w-6 h-6 text-green-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Estado del envío</p>
+            <p className="font-semibold text-black">{order.shipping_status}</p>
+          </div>
+        </div>
+      )}
 
       {isPendingTransfer && order.bank && (
         <div className="border border-gray-200 rounded-2xl p-5 bg-white text-left mb-6 space-y-1 divide-y divide-gray-200">
