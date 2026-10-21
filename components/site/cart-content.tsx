@@ -585,11 +585,11 @@ export function SiteCartContent() {
                 </>
               ) : paymentChannel === "transfer" ? (
                 <>
-                  <Landmark size={16} strokeWidth={1.5} /> Continuar por transferencia
+                  <Landmark size={16} strokeWidth={1.5} /> Transferir
                 </>
               ) : (
                 <>
-                  <CreditCard size={16} strokeWidth={1.5} /> Finalizar compra
+                  <CreditCard size={16} strokeWidth={1.5} /> Pagar
                 </>
               )}
             </button>

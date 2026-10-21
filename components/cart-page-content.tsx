@@ -617,9 +617,9 @@ export function CartPageContent() {
                   {paymentChannel === "transfer" ? "Generando pedido..." : "Redirigiendo..."}
                 </>
               ) : paymentChannel === "transfer" ? (
-                <>Continuar por transferencia</>
+                <>Transferir</>
               ) : (
-                <>Pagar con MercadoPago</>
+                <>Pagar</>
               )}
             </button>
           </div>
