@@ -28,7 +28,9 @@ type ShippingMethod = {
   modality: string;
   label: string;
   price: number;
-  delivery_days: number | null;
+  // Ya viene formateado desde el backend (`quote.py::_delivery_days_label()`),
+  // ej. "2 a 5 días hábiles" — no es un número suelto, no agregarle sufijo acá.
+  delivery_days: string | null;
   is_fallback: boolean;
 };
 
@@ -135,16 +137,24 @@ function agencyIdOf(a: Agency): string {
   return String(a.code ?? "");
 }
 
+function agencyPostalCodeOf(a: Agency): string {
+  return a.location?.address?.postalCode ?? "";
+}
+
+// CP mínimo para considerarlo "completo" antes de recotizar en vivo — evita
+// pegarle a la API real de Correo Argentino con un CP a medio tipear (ej.
+// "10" mientras el comprador todavía está escribiendo "1000"). Los CP
+// argentinos son de al menos 4 caracteres (numérico de 4 dígitos o CPA
+// alfanumérico de 8).
+const MIN_POSTAL_CODE_LENGTH = 4;
+
 /**
  * Selector de método de envío del carrito — dos modalidades, ambas Correo
- * Argentino (ver `3darg-backend/CLAUDE.md` → "Envíos"), cotizadas apenas
- * carga el carrito contra `POST /api/shipping/calculate/` **sin mandar
- * `postal_code`** (este componente no le pide CP al comprador en ningún
- * momento, ni en sucursal ni en domicilio) — por eso, en la práctica,
- * siempre resuelve con la tabla de respaldo de `quote.py`, nunca con la
- * cotización en vivo contra `/rates` (esa sí se intenta del lado del
- * backend cuando SE conoce un CP, ej. desde el admin o una integración
- * futura, pero no desde este flujo):
+ * Argentino (ver `3darg-backend/CLAUDE.md` → "Envíos"), cotizadas contra
+ * `POST /api/shipping/calculate/` apenas carga el carrito y recotizadas en
+ * vivo en cuanto se conoce un CP real de destino (`effectivePostalCode`,
+ * más abajo) — sin que el comprador tenga que completar nada extra a
+ * propósito, el CP sale solo de datos que ya está dando en el flujo normal:
  *
  * - **"Retirar en sucursal"** (default, desplegado): se autodetecta la
  *   provincia del comprador por geolocalización IP (`GET /api/geo`, headers
@@ -154,11 +164,19 @@ function agencyIdOf(a: Agency): string {
  *   ver `3darg-backend/CLAUDE.md`). Solo pide nombre y teléfono — la API real
  *   de Correo Argentino (API MiCorreo) solo exige el código de la sucursal
  *   elegida (`shipping.agency`) para esta modalidad, no la dirección
- *   completa del comprador. Si la geolocalización no detecta nada (dev
- *   local, VPN, etc.) o no hay sucursales todavía, el comprador puede elegir
- *   la provincia a mano.
+ *   completa del comprador. El CP de esa sucursal (ya viene en la respuesta
+ *   de `/agencies/`) es el que se usa para cotizar en vivo — no se le pide
+ *   CP al comprador en esta modalidad. Si la geolocalización no detecta nada
+ *   (dev local, VPN, etc.) o no hay sucursales todavía, el comprador puede
+ *   elegir la provincia a mano.
  * - **"Envío a domicilio"**: al elegirla, se despliega el `<ShippingAddressForm>`
- *   completo (dirección real del comprador).
+ *   completo (dirección real del comprador) — en cuanto el CP tipeado tiene
+ *   `MIN_POSTAL_CODE_LENGTH` caracteres, se recotiza en vivo con ese CP real
+ *   (debounced 400ms, para no pegarle a la API real en cada tecla).
+ *
+ * Antes de tener un CP (recién entrando, sin provincia/sucursal/CP elegidos
+ * todavía) sigue cayendo a la tabla de respaldo (`tariff.py`), igual que
+ * siempre — nunca se deja un precio sin mostrar.
  *
  * Mientras la provincia activa sea la autodetectada por IP (no tocada a mano
  * todavía), se muestra un banner tipo Mercado Libre — "Te estamos mostrando
@@ -296,6 +314,25 @@ export function ShippingEstimator({
   const domicilioMethod = methods.find((m) => m.modality === "domicilio");
   const activeMethod = modality === "sucursal" ? sucursalMethod : domicilioMethod;
 
+  // CP real de destino para cotizar EN VIVO contra `/rates` (ver
+  // `3darg-backend/CLAUDE.md` → "Envíos"), según la modalidad activa — es el
+  // único dato que le faltaba a este componente para dejar de resolver
+  // siempre con la tabla de respaldo (`tariff.py`), que cobra lo mismo en
+  // las dos modalidades sin importar a dónde va el pedido:
+  // - "domicilio": el CP que el comprador tipeó en `<ShippingAddressForm>`
+  //   (mismo campo que ya se manda al backend al confirmar el pago).
+  // - "sucursal": el CP de la sucursal elegida (`GET /agencies/`, ya viene
+  //   en la respuesta real de Correo Argentino) — no se le pide CP al
+  //   comprador en esta modalidad, pero la sucursal sí tiene uno propio que
+  //   representa fielmente el destino real del envío.
+  const selectedAgency = agencies.find((a) => agencyIdOf(a) === sucursalAgencyId);
+  const agencyPostalCode = selectedAgency ? agencyPostalCodeOf(selectedAgency) : "";
+  const domicilioPostalCode =
+    domicilioAddress.postalCode.trim().length >= MIN_POSTAL_CODE_LENGTH
+      ? domicilioAddress.postalCode.trim()
+      : "";
+  const effectivePostalCode = modality === "domicilio" ? domicilioPostalCode : agencyPostalCode;
+
   // Geolocalización IP (headers de Vercel, no-op en dev local) — solo intenta
   // una vez, para preseleccionar la provincia del comprador sin pedirle nada.
   useEffect(() => {
@@ -319,10 +356,25 @@ export function ShippingEstimator({
     };
   }, []);
 
-  // Cotización 100% local — no depende de CP ni de ninguna dirección, se
-  // calcula una sola vez apenas hay items (y se recalcula si cambia el
-  // carrito), sin esperar a que el comprador complete nada.
-  async function handleCalculate() {
+  // Guarda el ID de la última llamada a `handleCalculate()` disparada — la
+  // cotización EN VIVO (con CP real) tarda más que la de la tabla de
+  // respaldo (sin CP, no pega contra la API real de Correo Argentino), así
+  // que sin este guard una respuesta "vieja" que llega FUERA DE ORDEN (ej.
+  // el fetch inicial sin CP, lento por la razón que sea, resolviendo después
+  // del fetch con CP ya tipeado) pisa el estado con el precio de respaldo y
+  // da la sensación de que "no pasa nada" al tipear el CP — bug real
+  // encontrado en vivo: los logs del backend mostraban cotizaciones en vivo
+  // exitosas (CP presente) intercaladas con respuestas de respaldo (CP
+  // vacío) sin ningún patrón, consistente con esta carrera.
+  const requestIdRef = useRef(0);
+
+  // Cotiza contra el backend — en cuanto se conoce un CP real de destino
+  // (`effectivePostalCode`, ver más arriba), el backend intenta primero la
+  // cotización EN VIVO contra `/rates` antes de caer a la tabla de respaldo
+  // (`quote.py`); sin CP sigue funcionando igual que antes (tabla de
+  // respaldo, apenas carga el carrito, sin pedirle nada al comprador).
+  async function handleCalculate(postalCode: string) {
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     setError("");
     try {
@@ -332,18 +384,23 @@ export function ShippingEstimator({
         body: JSON.stringify({
           items: items.map(({ product, quantity }) => ({ product_id: product.id, quantity })),
           declared_value: subtotal,
+          postal_code: postalCode,
         }),
       });
       if (!res.ok) throw new Error("No se pudo calcular el envío");
       const data = await res.json();
+      // Si en el medio se disparó una llamada más nueva (CP/carrito distinto),
+      // esta respuesta ya está obsoleta — ignorarla en vez de pisar el estado.
+      if (requestIdRef.current !== requestId) return;
       const returnedMethods: ShippingMethod[] = data.methods ?? [];
       if (!returnedMethods.length) throw new Error("No hay métodos de envío disponibles.");
       setMethods(returnedMethods);
     } catch (e) {
+      if (requestIdRef.current !== requestId) return;
       setError(e instanceof Error ? e.message : "Error al calcular el envío");
       setMethods([]);
     } finally {
-      setLoading(false);
+      if (requestIdRef.current === requestId) setLoading(false);
     }
   }
 
@@ -352,10 +409,17 @@ export function ShippingEstimator({
       setMethods([]);
       return;
     }
-    handleCalculate();
-    // Solo recalcula por cambios de carrito, no por el resto del estado.
+    // Debounce: `effectivePostalCode` cambia con cada tecla que el
+    // comprador tipea en el CP de domicilio — sin esto, cada tecla
+    // dispararía un request real contra la API de Correo Argentino.
+    const timer = setTimeout(() => {
+      handleCalculate(effectivePostalCode);
+    }, 400);
+    return () => clearTimeout(timer);
+    // Recalcula por cambios de carrito o del CP real de destino (domicilio
+    // tipeado, o sucursal elegida) — no por el resto del estado del form.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items.length, subtotal]);
+  }, [items.length, subtotal, effectivePostalCode]);
 
   // Lista real de sucursales de la provincia elegida (detectada por IP o a
   // mano) — al traerlas, preselecciona la primera como aproximación de "la
@@ -408,13 +472,13 @@ export function ShippingEstimator({
       return;
     }
     onEstimateChange?.({
-      postalCode: "",
+      postalCode: effectivePostalCode,
       cost: freeShippingActive ? 0 : activeMethod.price,
       methodId: activeMethod.id,
       agencyId: modality === "sucursal" ? sucursalAgencyId || undefined : undefined,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeMethod, freeShippingActive, modality, sucursalAgencyId]);
+  }, [activeMethod, freeShippingActive, modality, sucursalAgencyId, effectivePostalCode]);
 
   // Avisa al padre la dirección completa según la modalidad activa.
   useEffect(() => {
@@ -428,14 +492,17 @@ export function ShippingEstimator({
         department: "",
         city: "",
         province: sucursalProvince,
-        postalCode: "",
+        // CP real de la sucursal elegida (no uno tipeado por el comprador)
+        // — así el pedido queda con el mismo destino que se usó para
+        // cotizar en vivo, en vez de guardar siempre vacío.
+        postalCode: agencyPostalCode,
         agencyId: sucursalAgencyId,
       });
     } else {
       onAddressChange?.(domicilioAddress);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modality, sucursalFullName, sucursalPhone, sucursalProvince, sucursalAgencyId, domicilioAddress]);
+  }, [modality, sucursalFullName, sucursalPhone, sucursalProvince, sucursalAgencyId, domicilioAddress, agencyPostalCode]);
 
   return (
     <div className={className}>
@@ -535,7 +602,7 @@ export function ShippingEstimator({
           <p className="text-xs text-destructive mb-1.5">{error}</p>
           <button
             type="button"
-            onClick={handleCalculate}
+            onClick={() => handleCalculate(effectivePostalCode)}
             className="text-xs font-medium underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
           >
             Reintentar
@@ -572,7 +639,9 @@ export function ShippingEstimator({
                     </span>
                   </span>
                 </span>
-                {!sucursalFreeShippingActive && <span className="font-semibold shrink-0">{fmt(sucursalMethod.price)}</span>}
+                <span className="font-semibold shrink-0">
+                  {sucursalFreeShippingActive ? "¡Tenés envío gratis!" : fmt(sucursalMethod.price)}
+                </span>
               </label>
 
               {modality === "sucursal" && (
@@ -688,11 +757,13 @@ export function ShippingEstimator({
                     Envío a domicilio
                     <span className="block text-[11px] text-muted-foreground font-normal">
                       {domicilioMethod.carrier}
-                      {domicilioMethod.delivery_days ? ` · llega en ${domicilioMethod.delivery_days} día(s)` : ""}
+                      {domicilioMethod.delivery_days ? ` · llega en ${domicilioMethod.delivery_days}` : ""}
                     </span>
                   </span>
                 </span>
-                {!domicilioFreeShippingActive && <span className="font-semibold shrink-0">{fmt(domicilioMethod.price)}</span>}
+                <span className="font-semibold shrink-0">
+                  {domicilioFreeShippingActive ? "¡Tenés envío gratis!" : fmt(domicilioMethod.price)}
+                </span>
               </label>
 
               {modality === "domicilio" && (
