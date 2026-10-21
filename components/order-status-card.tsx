@@ -144,7 +144,7 @@ export function OrderStatusCard({ order }: { order: OrderStatusData }) {
           </p>
           <CopyField
             label="Usá esta referencia en el concepto/motivo de la transferencia"
-            value={order.reference}
+            value={order.reference ?? ""}
           />
           {/* El mismo código sirve después para encontrar el pedido sin cuenta
               en /my-order (ver OrderLookupAPIView) — se aclara acá para que
