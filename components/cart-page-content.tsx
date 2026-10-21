@@ -11,6 +11,7 @@ import { ShippingEstimator, type ShippingEstimate } from "@/components/shipping-
 import { RequiredDot } from "@/components/shipping-address-form";
 import { type ShippingAddress, isShippingAddressComplete } from "@/types/shipping";
 import { CartDiscountProgress } from "@/components/cart-discount-progress";
+import { FreeShippingProgress } from "@/components/free-shipping-progress";
 import { CartUpsellCarousel } from "@/components/cart-upsell-carousel";
 import { useTransferDiscountPercent } from "@/lib/useTransferDiscountPercent";
 import { useTransferAvailable } from "@/lib/useTransferAvailable";
@@ -264,7 +265,15 @@ export function CartPageContent() {
             acá. Devuelve `null` solo si la marca no tiene `cart_discount_config`. */}
         <CartDiscountProgress vertical className="w-full lg:w-56 shrink-0" />
 
-        <div className="border border-border rounded-2xl overflow-hidden bg-card mb-8 flex-1 min-w-0">
+        {/* flex-1 min-w-0 vive en este wrapper (no en la tarjeta de abajo)
+            para que `FreeShippingProgress` quede exactamente del mismo ancho
+            que la tarjeta del carrito, en vez de estirarse por las 3
+            columnas (riel + carrito + sugerencias) como al principio —
+            pedido del dueño: "quiero que sea de ese tamaño el cartel". */}
+        <div className="flex-1 min-w-0 w-full">
+          <FreeShippingProgress subtotal={total} className="mb-4 p-3 border border-border rounded-2xl bg-card" />
+
+          <div className="border border-border rounded-2xl overflow-hidden bg-card mb-8">
           {/* Más de ~4 productos no debe seguir agrandando el alto de la
               tarjeta — a partir de ahí se vuelve scrolleable (mouse/touch/
               scrollbar) dentro de una altura fija en vez de empujar el resto
@@ -470,6 +479,8 @@ export function CartPageContent() {
             </button>
           </div>
         </div>
+        </div>
+        {/* ^ cierra el wrapper flex-1 min-w-0 que agrupa FreeShippingProgress + la tarjeta del carrito */}
 
         {/* Afuera del rectángulo de checkout a propósito — es una sugerencia
             adicional, no parte del resumen de compra (ver feedback: quedaba

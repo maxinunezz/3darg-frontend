@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { apiUrl } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBrandNamespace } from "@/lib/brand-context";
 import { sanitizePhone } from "@/lib/phone";
-import { tierBarPercent, CheckpointBar } from "@/components/checkpoint-bar";
 import type { CartItem } from "@/contexts/CartContext";
 import type { BrandType } from "@/types/brands";
 import { AR_PROVINCES, type ShippingAddress, type ShippingModality } from "@/types/shipping";
@@ -191,15 +190,13 @@ const MIN_POSTAL_CODE_LENGTH = 4;
  * componente es ahora el único dueño de la dirección, el carrito ya no
  * renderiza su propio `<ShippingAddressForm>` fijo).
  *
- * Si la marca actual tiene `Brand.shipping_config.free_shipping_threshold_sucursal`/
- * `_domicilio` cargado, muestra una barra de progreso con AMBOS checkpoints
- * juntos (no solo el de la modalidad tildada — pedido del dueño: mostrar
- * solo el umbral de "domicilio", normalmente el más caro de los dos, hacía
- * sentir la distancia al envío gratis más grande de lo necesario). El copy
- * lidera con el avance ya logrado ("Llevás $X de $Y") en vez de con lo que
- * falta, y si todavía falta más del 75% del camino al primer checkpoint no
- * muestra ningún monto en pesos (solo la barra) para no pegar con un número
- * grande antes de tiempo — ver `SOFT_COPY_THRESHOLD_PERCENT` más abajo.
+ * Sigue leyendo `Brand.shipping_config.free_shipping_threshold_sucursal`/
+ * `_domicilio` (`thresholdSucursal`/`thresholdDomicilio`) para resolver
+ * `freeShippingActive` y cobrar $0 en el método correspondiente — pero la
+ * barra de progreso VISUAL hacia ese envío gratis ya no se renderiza acá:
+ * se movió a `<FreeShippingProgress>` (pedido del dueño: que se vea arriba
+ * del todo del carrito, antes del listado de productos, no acá abajo mezclada
+ * con la elección de método/dirección).
  */
 export function ShippingEstimator({
   items,
@@ -284,31 +281,6 @@ export function ShippingEstimator({
   const sucursalFreeShippingActive = thresholdSucursal != null && subtotal >= thresholdSucursal;
   const domicilioFreeShippingActive = thresholdDomicilio != null && subtotal >= thresholdDomicilio;
   const freeShippingActive = modality === "sucursal" ? sucursalFreeShippingActive : domicilioFreeShippingActive;
-
-  // Checkpoints de envío gratis — SIEMPRE los dos juntos (ordenados por
-  // monto, sucursal normalmente primero por ser más barata) en vez de solo
-  // el de la modalidad tildada: así el comprador ve de entrada cuál es el
-  // umbral más cercano, no el más lejano, sin importar qué radio tenga
-  // elegido todavía (pedido del dueño: mostrar solo "domicilio" hacía sentir
-  // la distancia más grande de lo necesario).
-  const shippingCheckpoints = [
-    thresholdSucursal != null ? { modality: "sucursal" as ShippingModality, amount: thresholdSucursal } : null,
-    thresholdDomicilio != null ? { modality: "domicilio" as ShippingModality, amount: thresholdDomicilio } : null,
-  ]
-    .filter((c): c is { modality: ShippingModality; amount: number } => c != null)
-    .sort((a, b) => a.amount - b.amount);
-  const checkpointAmounts = shippingCheckpoints.map((c) => c.amount);
-  const { currentIdx: checkpointIdx } = shippingCheckpoints.length
-    ? tierBarPercent(checkpointAmounts, subtotal)
-    : { currentIdx: -1 };
-  const nextCheckpoint = checkpointIdx + 1 < shippingCheckpoints.length ? shippingCheckpoints[checkpointIdx + 1] : null;
-  // % respecto del PRÓXIMO checkpoint (no del tramo), para poder decidir si
-  // todavía es "muy pronto" para mostrar el monto exacto (ver bloque de abajo).
-  const percentToNextCheckpoint = nextCheckpoint ? Math.min(100, Math.round((subtotal / nextCheckpoint.amount) * 100)) : 100;
-  // Por debajo de este % no mostramos el monto en pesos todavía — recién se
-  // "gana el derecho" a verlo cuando ya hizo un tercio del camino; antes de
-  // eso, un número grande solo comunica lejanía, la barra ya alcanza.
-  const SOFT_COPY_THRESHOLD_PERCENT = 25;
 
   const sucursalMethod = methods.find((m) => m.modality === "sucursal");
   const domicilioMethod = methods.find((m) => m.modality === "domicilio");
@@ -527,67 +499,6 @@ export function ShippingEstimator({
               Cerrar
             </button>
           </div>
-        </div>
-      )}
-
-      {shippingCheckpoints.length > 0 && (
-        <div className="mb-3 text-sm">
-          {!nextCheckpoint ? (
-            // Ya cruzó el último checkpoint (el más caro de los dos, si hay
-            // dos cargados) — envío gratis para cualquier modalidad.
-            <span className="inline-flex items-center gap-1.5 text-emerald-600 font-semibold">
-              <CheckCircle2 className="w-3.5 h-3.5" /> ¡Felicitaciones! Tu pedido ya tiene envío gratis
-              {shippingCheckpoints.length > 1
-                ? " a sucursal y a domicilio"
-                : modality === "sucursal"
-                  ? " a sucursal"
-                  : " a domicilio"}
-              .
-            </span>
-          ) : checkpointIdx >= 0 ? (
-            // Ya alcanzó el primer checkpoint (normalmente sucursal) pero
-            // todavía no el siguiente — se refuerza el logro ya conseguido
-            // antes de pedirle que sume más.
-            <span className="text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5 text-emerald-600 font-semibold">
-                <CheckCircle2 className="w-3.5 h-3.5" /> ¡Ya tenés envío gratis a {shippingCheckpoints[checkpointIdx].modality}!
-              </span>{" "}
-              Sumá <strong className="text-foreground">{fmt(nextCheckpoint.amount - subtotal)}</strong> más (
-              {percentToNextCheckpoint}%) para que también sea gratis a {nextCheckpoint.modality}.
-            </span>
-          ) : percentToNextCheckpoint < SOFT_COPY_THRESHOLD_PERCENT ? (
-            // Todavía falta mucho para el primer checkpoint — un monto
-            // grande acá solo comunica lejanía; la barra ya muestra el
-            // avance real, no hace falta golpear con el número todavía.
-            <span className="text-muted-foreground">Sumá productos a tu pedido y acercate al envío gratis.</span>
-          ) : (
-            // Ya pasó el tercio del camino — ahí sí tiene sentido mostrar el
-            // monto, liderando con lo que ya lleva en vez de con lo que falta.
-            <span className="text-muted-foreground">
-              Llevás <strong className="text-foreground">{fmt(subtotal)}</strong> de {fmt(nextCheckpoint.amount)} (
-              {percentToNextCheckpoint}%) — sumá{" "}
-              <strong className="text-foreground">{fmt(nextCheckpoint.amount - subtotal)}</strong> más para el envío
-              gratis a {nextCheckpoint.modality}.
-            </span>
-          )}
-
-          <CheckpointBar
-            sortedValues={checkpointAmounts}
-            previewValue={subtotal}
-            labelFor={(value, reached) => {
-              const checkpoint = shippingCheckpoints.find((c) => c.amount === value)!;
-              return (
-                <>
-                  <span
-                    className={`text-xs font-bold max-w-[6rem] ${reached ? "text-primary" : "text-muted-foreground"}`}
-                  >
-                    Gratis a {checkpoint.modality}
-                  </span>
-                  <span className="text-[11px] font-bold text-muted-foreground whitespace-nowrap">{fmt(value)}</span>
-                </>
-              );
-            }}
-          />
         </div>
       )}
 

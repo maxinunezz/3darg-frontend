@@ -15,6 +15,7 @@ import { ShippingEstimator, type ShippingEstimate } from "@/components/shipping-
 import { RequiredDot, RequiredFieldsNote } from "@/components/shipping-address-form";
 import { type ShippingAddress, isShippingAddressComplete } from "@/types/shipping";
 import { CartDiscountProgress } from "@/components/cart-discount-progress";
+import { FreeShippingProgress } from "@/components/free-shipping-progress";
 import { CartUpsellCarousel } from "@/components/cart-upsell-carousel";
 import { QuantityStepper } from "@/components/site/commerce";
 import { ImageSlot, SpecLabel, buttonClass } from "@/components/site/core";
@@ -257,7 +258,19 @@ export function SiteCartContent() {
             acá. Devuelve `null` solo si la marca no tiene `cart_discount_config`. */}
         <CartDiscountProgress vertical className="w-full lg:w-56 shrink-0" />
 
-        <div className="border border-[var(--border-hairline)] rounded-[var(--radius-2xl)] overflow-hidden flex-1 min-w-0">
+        {/* flex-1 min-w-0 vive en este wrapper (no en la tarjeta de abajo)
+            para que `FreeShippingProgress` quede exactamente del mismo ancho
+            que la tarjeta del carrito, en vez de estirarse por las 3
+            columnas (riel + carrito + sugerencias) como al principio —
+            pedido del dueño: "quiero que sea de ese tamaño el cartel". */}
+        <div className="flex-1 min-w-0 w-full">
+          <FreeShippingProgress
+            subtotal={total}
+            className="mb-4 p-3 border border-[var(--border-hairline)] rounded-[var(--radius-2xl)]"
+            labelClassName={`${INK_LABEL_CLS} block mb-1`}
+          />
+
+          <div className="border border-[var(--border-hairline)] rounded-[var(--radius-2xl)] overflow-hidden">
           <div className="px-5 py-3 bg-[var(--surface-inset)] border-b border-[var(--border-hairline)] flex items-center justify-between">
             <span className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)]">{brandSlug}</span>
             <span className="font-mono text-[11px] text-[var(--text-muted)]">{itemCount} ítem{itemCount !== 1 ? "s" : ""}</span>
@@ -432,6 +445,8 @@ export function SiteCartContent() {
             </button>
           </div>
         </div>
+        </div>
+        {/* ^ cierra el wrapper flex-1 min-w-0 que agrupa FreeShippingProgress + la tarjeta del carrito */}
 
         {/* Afuera de la tarjeta de checkout a propósito — es una sugerencia
             adicional, no parte del resumen de compra. */}
