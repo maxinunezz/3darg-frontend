@@ -67,8 +67,14 @@ export default function ProfilePage() {
     fetch(`${API}/orders/`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((r) => r.json())
-      .then((data) => setOrders(data.results ?? data))
+      // El endpoint SIEMPRE devuelve `{results: [...]}` (paginado) en un 200 —
+      // pero un token vencido/inválido responde 401 con `{"detail": "..."}`,
+      // que `fetch` no rechaza solo (eso ocurre solo ante errores de red). Sin
+      // este chequeo, `data.results ?? data` caía al objeto de error entero
+      // (sin `results`), y el `.filter()` de más abajo explotaba en runtime
+      // ("orders.filter is not a function") en vez de mostrar "sin pedidos".
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`orders ${r.status}`))))
+      .then((data) => setOrders(Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : []))
       .catch(() => setOrders([]))
       .finally(() => setLoadingOrders(false));
   }, [authLoading, isAuthenticated, token, router]);
