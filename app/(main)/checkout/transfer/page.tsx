@@ -6,6 +6,7 @@ import { clearBrandCart } from "@/lib/clear-brand-cart";
 import Link from "next/link";
 import { CheckCircle, Clock, XCircle, Loader2, Copy, Check } from "lucide-react";
 import type { TransferBankDetails } from "@/types/payment";
+import { TransferReceiptUpload } from "@/components/transfer-receipt-upload";
 
 // Respuesta de `POST /api/payments/orders/<id>/reconcile/` para un pedido de
 // canal "transfer" — superset de los campos que ya devuelve para MercadoPago
@@ -25,6 +26,11 @@ type ReconciledTransferOrder = {
   expires_in_hours: number;
   created_at: string;
   bank: TransferBankDetails;
+  // Solo presentes para `payment_channel === "transfer"` — ver
+  // `payments/views.py::OrderReconcileAPIView`. Permiten que esta página sea
+  // recargable sin perder si el comprador ya subió un comprobante.
+  has_receipt: boolean;
+  receipt_uploaded_at: string | null;
 };
 
 const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
@@ -212,6 +218,14 @@ function CheckoutTransferContent() {
                 <CopyField label="Titular" value={order.bank.holder_name} copyable={false} />
                 <CopyField label="CUIT/CUIL" value={order.bank.cuit} copyable={false} />
               </div>
+            )}
+
+            {isPending && order.order_id && (
+              <TransferReceiptUpload
+                orderId={order.order_id}
+                initialHasReceipt={order.has_receipt}
+                initialUploadedAt={order.receipt_uploaded_at}
+              />
             )}
 
             {isPending && (
