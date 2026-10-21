@@ -258,6 +258,12 @@ export function CartPageContent() {
       )}
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
+        {/* Riel vertical de tramos de descuento, mismo ancho que la columna
+            de sugerencias de la derecha, a la izquierda del rectángulo del
+            carrito — reemplaza al viejo `WholesaleTierJourney` que estaba
+            acá. Devuelve `null` solo si la marca no tiene `cart_discount_config`. */}
+        <CartDiscountProgress vertical className="w-full lg:w-56 shrink-0" />
+
         <div className="border border-border rounded-2xl overflow-hidden bg-card mb-8 flex-1 min-w-0">
           {/* Más de ~4 productos no debe seguir agrandando el alto de la
               tarjeta — a partir de ahí se vuelve scrolleable (mouse/touch/
@@ -335,9 +341,6 @@ export function CartPageContent() {
           </div>
 
           <div className="px-4 py-4 border-t border-border bg-muted/20">
-            <div className="mb-4">
-              <CartDiscountProgress />
-            </div>
             <div className="mb-4">
               <label className="block text-sm font-bold uppercase tracking-widest text-muted-foreground mb-2">
                 Envío

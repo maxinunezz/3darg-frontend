@@ -251,6 +251,12 @@ export function SiteCartContent() {
       )}
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
+        {/* Riel vertical de tramos de descuento, mismo ancho que la columna
+            de sugerencias de la derecha, a la izquierda del rectángulo del
+            carrito — reemplaza al viejo `WholesaleTierJourney` que estaba
+            acá. Devuelve `null` solo si la marca no tiene `cart_discount_config`. */}
+        <CartDiscountProgress vertical className="w-full lg:w-56 shrink-0" />
+
         <div className="border border-[var(--border-hairline)] rounded-[var(--radius-2xl)] overflow-hidden flex-1 min-w-0">
           <div className="px-5 py-3 bg-[var(--surface-inset)] border-b border-[var(--border-hairline)] flex items-center justify-between">
             <span className="font-mono text-[11px] uppercase tracking-[var(--tracking-label)]">{brandSlug}</span>
@@ -292,9 +298,6 @@ export function SiteCartContent() {
           </div>
 
           <div className="p-4 border-t border-[var(--border-hairline)]">
-            <div className="mb-4">
-              <CartDiscountProgress />
-            </div>
             <div className="mb-4">
               <span className={`${INK_LABEL_CLS} block mb-2`}>Envío</span>
               <ShippingEstimator
