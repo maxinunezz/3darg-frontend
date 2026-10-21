@@ -56,10 +56,13 @@
 
 :root {
   --radius: 0.625rem;
-  /* Light mode: gris muy sutil, no blanco puro — más industrial */
+  /* Light mode: gris muy sutil, no blanco puro — más industrial.
+     --card sí es blanco puro a pedido explícito del dueño (antes
+     oklch(0.995 0 0), casi imperceptible pero no 100% blanco) — ver cards
+     de "Mis datos" (account-settings-content.tsx). */
   --background: oklch(0.97 0.002 240);
   --foreground: oklch(0.15 0.008 240);
-  --card: oklch(0.995 0 0);
+  --card: oklch(1 0 0);
   --card-foreground: oklch(0.15 0.008 240);
   --popover: oklch(0.995 0 0);
   --popover-foreground: oklch(0.15 0.008 240);

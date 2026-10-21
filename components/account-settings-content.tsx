@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, FormEvent } from "react";
+import { useEffect, useRef, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import PhoneInput from "react-phone-number-input";
@@ -97,14 +97,13 @@ export function AccountSettingsContent({
   const [passwordSuccess, setPasswordSuccess] = useState(false);
 
   // Dirección de envío preferida ("Mis datos" → autocompletar el carrito, ver
-  // `shipping-estimator.tsx`). Nombre/Apellido/Teléfono se muestran también
-  // acá (no solo en "Datos personales" de arriba) para que este form alcance
-  // por sí solo para dejar la preferencia completa, sin obligar a guardar
-  // los dos bloques — pero reusan literalmente `firstName`/`lastName`/`phone`
-  // (mismo estado de React, no una copia), así que editar uno actualiza el
-  // otro al toque y no hay forma de que queden desincronizados.
-  // `shippingAddress.fullName`/`.phone` (de `ShippingAddressForm`) siguen sin
-  // usarse — por eso `showContactFields={false}` más abajo.
+  // `shipping-estimator.tsx`). Nombre/Apellido/Teléfono NO se repiten en este
+  // form — ya se editan arriba en "Datos personales"; `handleShippingSubmit`
+  // igual los manda en el `updateProfile()` (lee `firstName`/`lastName`/
+  // `phone`, el mismo estado de ese form) para que guardar acá no pise esos
+  // valores con algo vacío. `shippingAddress.fullName`/`.phone` (de
+  // `ShippingAddressForm`) siguen sin usarse — por eso `showContactFields={false}`
+  // más abajo.
   const [shippingModality, setShippingModality] = useState<ShippingModality | "">("");
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>(EMPTY_SHIPPING_ADDRESS);
   const [shippingAgencyId, setShippingAgencyId] = useState("");
@@ -114,43 +113,66 @@ export function AccountSettingsContent({
   const [shippingError, setShippingError] = useState("");
   const [shippingSuccess, setShippingSuccess] = useState(false);
 
+  // `hydratedRef`: guarda SOLO una vez los datos de `user` en el estado local
+  // editable de los forms (nombre/apellido/email/teléfono/envío) — no en cada
+  // cambio de `user` (que acá solo cambia cuando ESTE mismo componente llama
+  // `updateProfile()`, con los mismos valores que ya se acaban de mandar, así
+  // que no hace falta volver a sincronizar). Antes esto vivía en un
+  // `if (user) { setXxx(...) }` sin guard: el lint `react-hooks/set-state-in-effect`
+  // no mira si el `setState` está anidado en un `if` — lo que exime a un
+  // `setState` dentro de un efecto es que el `if`/`branch` que lo controla
+  // compare contra un valor derivado de un `ref.current` (confirmado leyendo
+  // `validateNoSetStateInEffects`/`createControlDominators` en
+  // `eslint-plugin-react-hooks`), como hace `cart-page-content.tsx` con
+  // `draftLoadedRef`. Por eso el fix es este guard, no solo "aplanar el if".
+  const hydratedRef = useRef(false);
+
   useEffect(() => {
     if (authLoading) return;
     if (!isAuthenticated) {
       router.push(loginHref);
       return;
     }
-    if (user) {
-      setFirstName(user.first_name ?? "");
-      setLastName(user.last_name ?? "");
-      setEmail(user.email ?? "");
-      setPhone(sanitizePhone(user.phone));
-      setShippingModality(user.shipping_modality || "");
-      setShippingAddress({
-        fullName: "",
-        phone: "",
-        street: user.shipping_street || "",
-        streetNumber: user.shipping_street_number || "",
-        floor: user.shipping_floor || "",
-        department: user.shipping_department || "",
-        city: user.shipping_city || "",
-        province: user.shipping_province || "",
-        postalCode: user.shipping_postal_code || "",
-      });
-      setShippingAgencyId(user.shipping_agency_id || "");
-    }
+    if (!user) return;
+    if (hydratedRef.current) return;
+    hydratedRef.current = true;
+    setFirstName(user.first_name ?? "");
+    setLastName(user.last_name ?? "");
+    setEmail(user.email ?? "");
+    setPhone(sanitizePhone(user.phone));
+    setShippingModality(user.shipping_modality || "");
+    setShippingAddress({
+      fullName: "",
+      phone: "",
+      street: user.shipping_street || "",
+      streetNumber: user.shipping_street_number || "",
+      floor: user.shipping_floor || "",
+      department: user.shipping_department || "",
+      city: user.shipping_city || "",
+      province: user.shipping_province || "",
+      postalCode: user.shipping_postal_code || "",
+    });
+    setShippingAgencyId(user.shipping_agency_id || "");
   }, [authLoading, isAuthenticated, user, router, loginHref]);
 
   // Lista real de sucursales de la provincia elegida — mismo endpoint y
-  // mismo criterio que `shipping-estimator.tsx`, pero sin el guard
-  // condicional "if (cond) { setAgencies([]); return; }" que dispara el lint
-  // `react-hooks/set-state-in-effect` (ya es un error conocido, dejado a
-  // propósito en ese archivo en otra sesión): acá `province` sale de un
-  // ternario ANTES del único `return` del guard, y ese guard no llama a
-  // ningún `setState` — así el efecto queda lint-clean desde el vamos.
+  // mismo criterio que `shipping-estimator.tsx`. `agenciesRequestRef` evita
+  // una segunda llamada a `setAgenciesLoading(true)`/fetch para la MISMA
+  // provincia (ej. doble invocación de efectos en React Strict Mode al
+  // montar) y, de paso, es lo que deja el `setState` de más abajo exento del
+  // lint `react-hooks/set-state-in-effect` — ese lint exime un `setState`
+  // dentro de un efecto cuando el `if`/`branch` que lo controla compara
+  // contra un valor leído de un `ref.current` (ver comentario de
+  // `hydratedRef` más arriba); un guard contra una variable común
+  // (`if (!province) return`, como estaba antes) no alcanza aunque el
+  // `setState` quede "sin anidar".
+  const agenciesRequestRef = useRef<string | null>(null);
+
   useEffect(() => {
     const province = shippingModality === "sucursal" ? shippingAddress.province : "";
     if (!province) return;
+    if (agenciesRequestRef.current === province) return;
+    agenciesRequestRef.current = province;
     let cancelled = false;
     setAgenciesLoading(true);
     fetch(apiUrl(`/shipping/agencies/?province=${encodeURIComponent(province)}`))
@@ -170,13 +192,19 @@ export function AccountSettingsContent({
     };
   }, [shippingModality, shippingAddress.province]);
 
-  // Si la sucursal guardada quedó obsoleta (cambió de provincia, o la lista
-  // recién cargó) cae a la primera disponible — mismo criterio que
-  // `shipping-estimator.tsx`.
-  useEffect(() => {
-    if (!agencies.length) return;
-    setShippingAgencyId((prev) => (prev && agencies.some((a) => agencyIdOf(a) === prev) ? prev : agencyIdOf(agencies[0])));
-  }, [agencies]);
+  // Si la sucursal guardada (`shippingAgencyId`) quedó obsoleta (cambió de
+  // provincia, o la lista recién cargó) cae a la primera disponible — mismo
+  // criterio que `shipping-estimator.tsx`, pero calculado durante el render
+  // en vez de sincronizado con un efecto: no hay ningún sistema externo que
+  // sincronizar acá, es puro estado derivado de `shippingAgencyId` +
+  // `agencies` ("you might not need an effect"), así que directamente evita
+  // el lint `react-hooks/set-state-in-effect` en vez de dejarlo a propósito.
+  const effectiveAgencyId =
+    shippingAgencyId && agencies.some((a) => agencyIdOf(a) === shippingAgencyId)
+      ? shippingAgencyId
+      : agencies[0]
+        ? agencyIdOf(agencies[0])
+        : "";
 
   if (authLoading || !isAuthenticated || !user) return null;
 
@@ -218,7 +246,7 @@ export function AccountSettingsContent({
         phone,
         shipping_modality: shippingModality,
         shipping_province: shippingAddress.province,
-        shipping_agency_id: isSucursal ? shippingAgencyId : "",
+        shipping_agency_id: isSucursal ? effectiveAgencyId : "",
         shipping_street: isDomicilio ? shippingAddress.street : "",
         shipping_street_number: isDomicilio ? shippingAddress.streetNumber : "",
         shipping_floor: isDomicilio ? shippingAddress.floor ?? "" : "",
@@ -341,23 +369,37 @@ export function AccountSettingsContent({
           Guardala una vez y se autocompleta sola la próxima vez que compres.
         </p>
 
+        {/* `appearance-none` + aro/punto propios en vez de `accent-primary` —
+            mismo fix que `shipping-estimator.tsx` (radios de modalidad del
+            carrito): con solo `accent-primary` el radio nativo sin
+            seleccionar se dibuja relleno de negro en Chrome/Linux. */}
         <div className="flex flex-col gap-2">
           <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <input
-              type="radio"
-              checked={shippingModality === "sucursal"}
-              onChange={() => setShippingModality("sucursal")}
-              className="accent-primary"
-            />
+            <span className="relative w-4 h-4 shrink-0 inline-flex items-center justify-center">
+              <input
+                type="radio"
+                checked={shippingModality === "sucursal"}
+                onChange={() => setShippingModality("sucursal")}
+                className="appearance-none w-4 h-4 rounded-full border-2 border-primary bg-white cursor-pointer"
+              />
+              {shippingModality === "sucursal" && (
+                <span className="absolute w-2 h-2 rounded-full bg-amber-400 pointer-events-none" />
+              )}
+            </span>
             Retirar en sucursal
           </label>
           <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <input
-              type="radio"
-              checked={shippingModality === "domicilio"}
-              onChange={() => setShippingModality("domicilio")}
-              className="accent-primary"
-            />
+            <span className="relative w-4 h-4 shrink-0 inline-flex items-center justify-center">
+              <input
+                type="radio"
+                checked={shippingModality === "domicilio"}
+                onChange={() => setShippingModality("domicilio")}
+                className="appearance-none w-4 h-4 rounded-full border-2 border-primary bg-white cursor-pointer"
+              />
+              {shippingModality === "domicilio" && (
+                <span className="absolute w-2 h-2 rounded-full bg-amber-400 pointer-events-none" />
+              )}
+            </span>
             Envío a domicilio
           </label>
         </div>
@@ -399,7 +441,7 @@ export function AccountSettingsContent({
                 </span>
               ) : agencies.length ? (
                 <select
-                  value={shippingAgencyId}
+                  value={effectiveAgencyId}
                   onChange={(e) => setShippingAgencyId(e.target.value)}
                   className={inputCls}
                 >
