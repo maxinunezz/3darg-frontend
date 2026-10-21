@@ -467,6 +467,7 @@ export function SiteCartContent() {
                 subtotal={total}
                 onEstimateChange={setShippingEstimate}
                 onAddressChange={setAddress}
+                initialAddress={draftHydrated ? address : undefined}
                 labelClassName={INK_LABEL_CLS}
                 inputClassName={INK_INPUT_CLS}
                 noteClassName="font-mono text-[11px] text-[var(--text-faint)] mb-2"

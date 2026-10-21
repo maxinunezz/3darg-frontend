@@ -95,6 +95,16 @@ interface ShippingEstimatorProps {
    * fijo de arriba del carrito: ahora este componente es el único dueño de
    * la dirección del comprador. */
   onAddressChange?: (address: ShippingAddress) => void;
+  /** Dirección a restaurar (ver `lib/checkout-draft.ts`) — este componente es
+   * dueño de su propio estado interno (modalidad, campos de sucursal/
+   * domicilio), así que restaurar `address` en el carrito NO alcanza para
+   * que esta UI la muestre: sin esta prop, el componente monta con sus
+   * propios defaults vacíos y los pisa de nuevo vía `onAddressChange` antes
+   * de que el comprador llegue a ver nada. `undefined` = el carrito todavía
+   * no terminó de leer `sessionStorage` (esperar); una dirección (aunque
+   * esté vacía) = ya hidrató, aplicar si corresponde. Ver efecto
+   * `draftRestoreAppliedRef` más abajo. */
+  initialAddress?: ShippingAddress;
   className?: string;
   /** Clases de label/input — mismo criterio que `ShippingAddressForm`, para
    * que 3DARG (`site/cart-content.tsx`) pueda pasar su estética "ink". */
@@ -203,6 +213,7 @@ export function ShippingEstimator({
   subtotal,
   onEstimateChange,
   onAddressChange,
+  initialAddress,
   className,
   labelClassName = DEFAULT_LABEL_CLS,
   inputClassName = DEFAULT_INPUT_CLS,
@@ -257,6 +268,38 @@ export function ShippingEstimator({
       phone: prev.phone || phone,
     }));
   }, [user]);
+
+  // Restaura la dirección de un borrador de checkout (ver
+  // `lib/checkout-draft.ts`) — el carrito la lee de `sessionStorage` en un
+  // efecto propio y recién la pasa acá una vez lista, así que `initialAddress`
+  // llega en `undefined` mientras eso todavía no pasó. El guard de más abajo
+  // deja la restauración pendiente hasta ese momento y la aplica una sola vez
+  // (no pisa lo que el comprador ya haya tocado a mano después). Si la
+  // dirección restaurada viene vacía (carrito sin borrador real), `isSucursal`
+  // e `isDomicilio` quedan los dos en `false` y cada `setState` de abajo
+  // devuelve `prev` tal cual — no hace falta distinguir ese caso aparte.
+  // Los `setState` van incondicionales (con `(prev) => cond ? valor : prev`
+  // en vez de adentro de un `if`) por la misma razón que en
+  // cart-page-content.tsx/site/cart-content.tsx: el lint de React
+  // (`react-hooks/set-state-in-effect`) marca error si están anidados en una
+  // rama condicional. Corre DESPUÉS del prefill de "Mis datos" (mismo orden
+  // de declaración) a propósito: un borrador real del comprador es más
+  // específico que el autocompletado genérico de su perfil, así que puede
+  // pisarlo sin problema.
+  const draftRestoreAppliedRef = useRef(false);
+  useEffect(() => {
+    if (draftRestoreAppliedRef.current || initialAddress === undefined) return;
+    draftRestoreAppliedRef.current = true;
+    const isSucursal = !!initialAddress.agencyId;
+    const isDomicilio = !isSucursal && !!initialAddress.street;
+    setModality((prev) => (isSucursal ? "sucursal" : isDomicilio ? "domicilio" : prev));
+    setSucursalFullName((prev) => (isSucursal ? initialAddress.fullName : prev));
+    setSucursalPhone((prev) => (isSucursal ? initialAddress.phone : prev));
+    setSucursalProvince((prev) => (isSucursal ? initialAddress.province : prev));
+    setSucursalAgencyId((prev) => (isSucursal ? (initialAddress.agencyId ?? prev) : prev));
+    setGeoDetectedProvince((prev) => (isSucursal ? false : prev));
+    setDomicilioAddress((prev) => (isDomicilio ? initialAddress : prev));
+  }, [initialAddress]);
 
   useEffect(() => {
     let cancelled = false;

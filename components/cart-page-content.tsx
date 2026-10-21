@@ -503,6 +503,7 @@ export function CartPageContent() {
                 subtotal={total}
                 onEstimateChange={setShippingEstimate}
                 onAddressChange={setAddress}
+                initialAddress={draftHydrated ? address : undefined}
               />
             </div>
             {!isAuthenticated && (
