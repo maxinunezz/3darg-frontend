@@ -41,10 +41,36 @@ export function AddToCartButton({
     if (qtyProp == null) setQtyState(next);
   };
 
+  // Texto libre del input de cantidad — desacoplado de `qty` para poder
+  // dejar el campo momentáneamente vacío mientras el usuario escribe (si
+  // se sincronizara 1 a 1 con `qty`, un valor inválido se "autocorregiría"
+  // en cada tecla y no se podría borrar el campo para tipear uno nuevo).
+  // Se sincroniza con `qty` cuando cambia desde afuera (+/-, cambio de
+  // talle, reset tras agregar al carrito).
+  const [qtyDraft, setQtyDraft] = useState(String(qty));
+  // Resetear durante el render (no en un efecto) ante un cambio de `qty`
+  // que vino de afuera — mismo patrón que `product-detail.tsx` usa para
+  // resetear `qty` al cambiar de talle/producto.
+  const [lastSyncedQty, setLastSyncedQty] = useState(qty);
+  if (qty !== lastSyncedQty) {
+    setLastSyncedQty(qty);
+    setQtyDraft(String(qty));
+  }
+
+  function commitQtyDraft(raw: string) {
+    const parsed = parseInt(raw, 10);
+    const next = Number.isNaN(parsed) ? 1 : Math.min(stockCap, Math.max(1, parsed));
+    setQty(() => next);
+    setQtyDraft(String(next));
+  }
+
   function handleAdd() {
     addItem(product, qty, variant ?? null);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
+    // Pedido del dueño: que el stepper no quede "congelado" en la cantidad
+    // recién comprada — vuelve a 1 para la próxima carga.
+    setQty(() => 1);
   }
 
   return (
@@ -59,7 +85,26 @@ export function AddToCartButton({
           >
             −
           </button>
-          <span className="px-4 py-2 text-sm font-semibold min-w-[3rem] text-center">{qty}</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={qtyDraft}
+            onChange={(e) => {
+              const val = e.target.value;
+              // Solo dígitos (o vacío, para poder borrar y tipear de cero).
+              if (val === "" || /^[0-9]+$/.test(val)) setQtyDraft(val);
+            }}
+            onBlur={() => commitQtyDraft(qtyDraft)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                commitQtyDraft(qtyDraft);
+                e.currentTarget.blur();
+              }
+            }}
+            className="w-12 px-1 py-2 text-sm font-semibold text-center bg-transparent focus:outline-none"
+            aria-label="Cantidad"
+          />
           <button
             onClick={() => setQty((q) => Math.min(stockCap, q + 1))}
             className="px-3 py-2 hover:bg-muted transition-colors text-lg leading-none"
