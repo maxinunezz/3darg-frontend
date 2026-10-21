@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingBag, User, Menu, X, Search, Receipt } from "lucide-react";
+import { ShoppingBag, User, Menu, X, Truck, FileText } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import type { BrandType } from "@/types/brands";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
@@ -102,38 +102,56 @@ export function LumyNavbar({ brand }: LumyNavbarProps) {
         </div>
 
         <div className="lm-nav__actions">
+          {/* Carrito y compra no requieren cuenta — el checkout acepta invitado.
+              `.lm-iconbtn` ya es position:relative, alcanza con "group" acá
+              para la leyenda al hover (mismo patrón que 3DARG, colores Lumy). */}
+          <button
+            onClick={() => router.push(`${base}/cart`)}
+            className="lm-iconbtn lm-iconbtn--md group"
+            aria-label="Carrito"
+          >
+            <ShoppingBag size={18} strokeWidth={1.6} />
+            {count > 0 && <span className="lm-iconbtn__badge">{count > 9 ? "9+" : count}</span>}
+            <span className="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded border border-[var(--rose-200)] bg-white px-2 py-1 font-sans text-[10px] font-semibold uppercase tracking-wide text-[var(--ink-900)] opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100">
+              Carrito
+            </span>
+          </button>
           {/* Buscar pedido / subir comprobante sin cuenta — ver `/my-order`
               (`payments/views.py::OrderLookupAPIView`) y
               `components/transfer-receipt-upload.tsx`. */}
           <Link
             href={`/my-order?brand=${brand.slug}`}
-            className="lm-iconbtn lm-iconbtn--md hidden sm:inline-flex"
+            className="lm-iconbtn lm-iconbtn--md hidden sm:inline-flex group"
             aria-label="Mi pedido"
           >
-            <Search size={18} strokeWidth={1.6} />
+            <Truck size={18} strokeWidth={1.6} />
+            <span className="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded border border-[var(--rose-200)] bg-white px-2 py-1 font-sans text-[10px] font-semibold uppercase tracking-wide text-[var(--ink-900)] opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100">
+              Mi pedido
+            </span>
           </Link>
           <Link
             href={`/my-order?brand=${brand.slug}&intent=receipt`}
-            className="lm-iconbtn lm-iconbtn--md hidden sm:inline-flex"
+            className="lm-iconbtn lm-iconbtn--md hidden sm:inline-flex group"
             aria-label="Subir comprobante"
           >
-            <Receipt size={18} strokeWidth={1.6} />
+            <FileText size={18} strokeWidth={1.6} />
+            <span className="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded border border-[var(--rose-200)] bg-white px-2 py-1 font-sans text-[10px] font-semibold uppercase tracking-wide text-[var(--ink-900)] opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100">
+              Comprobante
+            </span>
           </Link>
-          {/* Carrito y compra no requieren cuenta — el checkout acepta invitado. */}
-          <button
-            onClick={() => router.push(`${base}/cart`)}
-            className="lm-iconbtn lm-iconbtn--md"
-            aria-label="Carrito"
-          >
-            <ShoppingBag size={18} strokeWidth={1.6} />
-            {count > 0 && <span className="lm-iconbtn__badge">{count > 9 ? "9+" : count}</span>}
-          </button>
           {isAuthenticated ? (
             <Link href={`${base}/profile`} className="lm-iconbtn lm-iconbtn--md" aria-label="Mi cuenta">
               <User size={18} strokeWidth={1.6} />
             </Link>
           ) : (
-            <Link className="lm-btn lm-btn--primary lm-btn--lg" href={`${base}/auth/login`}>
+            // Mismo criterio que el navbar de 3DARG: solo texto (sin ícono),
+            // en negrita y subrayado — acá en el color coral de marca
+            // (--rose-600, el mismo que usa "Mayoristas" vía lm-nav__link--accent)
+            // en vez del gris muted genérico de 3DARG.
+            <Link
+              href={`${base}/auth/login`}
+              className="lm-nav__link lm-nav__link--accent font-bold! underline! underline-offset-4!"
+            >
               Ingresar
             </Link>
           )}
@@ -159,14 +177,19 @@ export function LumyNavbar({ brand }: LumyNavbarProps) {
               {l.label}
             </Link>
           ))}
-          <Link href={`/my-order?brand=${brand.slug}`} onClick={() => setOpen(false)}>
-            Mi pedido
+          <Link
+            href={`/my-order?brand=${brand.slug}`}
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2"
+          >
+            <Truck size={16} strokeWidth={1.6} /> Mi pedido
           </Link>
           <Link
             href={`/my-order?brand=${brand.slug}&intent=receipt`}
             onClick={() => setOpen(false)}
+            className="flex items-center gap-2"
           >
-            Subir comprobante
+            <FileText size={16} strokeWidth={1.6} /> Subir comprobante
           </Link>
         </div>
       )}

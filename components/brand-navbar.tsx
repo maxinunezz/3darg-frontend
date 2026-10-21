@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingCart, ChevronDown, User, LayoutDashboard, LogOut, Menu, X, Search, Receipt } from "lucide-react";
+import { ShoppingCart, ChevronDown, User, LayoutDashboard, LogOut, Menu, X, Truck, FileText } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import type { BrandType } from "@/types/brands";
@@ -112,7 +112,23 @@ export function BrandNavbar({ brand }: BrandNavbarProps) {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-5">
+            {/* Carrito y compra no requieren cuenta — el checkout acepta invitado. */}
+            {hasShop && (
+              <button
+                onClick={() => router.push(`/${brand.slug}/cart`)}
+                className="relative text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Carrito"
+              >
+                <ShoppingCart className="w-5 h-5" strokeWidth={1.5} />
+                {count > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
+                    {count > 9 ? "9+" : count}
+                  </span>
+                )}
+              </button>
+            )}
+
             {/* Auth button */}
             {isAuthenticated ? (
               <div className="relative" ref={accountRef}>
@@ -165,32 +181,17 @@ export function BrandNavbar({ brand }: BrandNavbarProps) {
               href={`/my-order?brand=${brand.slug}`}
               className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              <Search className="w-4 h-4" />
+              <Truck className="w-4 h-4" />
               <span className="hidden lg:inline text-xs">Mi pedido</span>
             </Link>
             <Link
               href={`/my-order?brand=${brand.slug}&intent=receipt`}
               className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              <Receipt className="w-4 h-4" />
+              <FileText className="w-4 h-4" />
               <span className="hidden lg:inline text-xs">Comprobante</span>
             </Link>
 
-            {/* Carrito y compra no requieren cuenta — el checkout acepta invitado. */}
-            {hasShop && (
-              <button
-                onClick={() => router.push(`/${brand.slug}/cart`)}
-                className="relative text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Carrito"
-              >
-                <ShoppingCart className="w-5 h-5" strokeWidth={1.5} />
-                {count > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
-                    {count > 9 ? "9+" : count}
-                  </span>
-                )}
-              </button>
-            )}
             <ToggleTheme />
 
             <button
@@ -239,14 +240,14 @@ export function BrandNavbar({ brand }: BrandNavbarProps) {
             onClick={() => setMobileOpen(false)}
             className="flex items-center gap-2 hover:text-primary transition-colors"
           >
-            <Search className="w-4 h-4" /> Mi pedido
+            <Truck className="w-4 h-4" /> Mi pedido
           </Link>
           <Link
             href={`/my-order?brand=${brand.slug}&intent=receipt`}
             onClick={() => setMobileOpen(false)}
             className="flex items-center gap-2 hover:text-primary transition-colors"
           >
-            <Receipt className="w-4 h-4" /> Subir comprobante
+            <FileText className="w-4 h-4" /> Subir comprobante
           </Link>
 
           <Link

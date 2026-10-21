@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, User, Menu, X, Search, Receipt } from "lucide-react";
+import { ShoppingCart, User, Menu, X, Truck, FileText } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { BrandType } from "@/types/brands";
@@ -80,7 +80,24 @@ export function PrintGymNavbar({ brand }: PrintGymNavbarProps) {
           })}
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
+          {/* Carrito y compra no requieren cuenta — el checkout acepta invitado. */}
+          <button
+            onClick={() => router.push(`${base}/cart`)}
+            className="relative flex items-center"
+            aria-label="Carrito"
+          >
+            <ShoppingCart className="w-5 h-5" strokeWidth={1.4} />
+            {count > 0 && (
+              <span
+                className="absolute -top-2 -right-2 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none"
+                style={{ background: "var(--pg-red)", color: "#fff" }}
+              >
+                {count > 9 ? "9+" : count}
+              </span>
+            )}
+          </button>
+
           {isAuthenticated ? (
             <Link href={`${base}/profile`} aria-label="Mi cuenta" className="flex items-center">
               <User className="w-5 h-5" strokeWidth={1.4} />
@@ -98,32 +115,15 @@ export function PrintGymNavbar({ brand }: PrintGymNavbarProps) {
             aria-label="Mi pedido"
             className="hidden sm:inline-flex items-center"
           >
-            <Search className="w-5 h-5" strokeWidth={1.4} />
+            <Truck className="w-5 h-5" strokeWidth={1.4} />
           </Link>
           <Link
             href={`/my-order?brand=${brand.slug}&intent=receipt`}
             aria-label="Subir comprobante"
             className="hidden sm:inline-flex items-center"
           >
-            <Receipt className="w-5 h-5" strokeWidth={1.4} />
+            <FileText className="w-5 h-5" strokeWidth={1.4} />
           </Link>
-
-          {/* Carrito y compra no requieren cuenta — el checkout acepta invitado. */}
-          <button
-            onClick={() => router.push(`${base}/cart`)}
-            className="relative flex items-center"
-            aria-label="Carrito"
-          >
-            <ShoppingCart className="w-5 h-5" strokeWidth={1.4} />
-            {count > 0 && (
-              <span
-                className="absolute -top-2 -right-2 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none"
-                style={{ background: "var(--pg-red)", color: "#fff" }}
-              >
-                {count > 9 ? "9+" : count}
-              </span>
-            )}
-          </button>
 
           <button
             type="button"
@@ -161,14 +161,19 @@ export function PrintGymNavbar({ brand }: PrintGymNavbarProps) {
                 </Link>
               );
             })}
-            <Link href={`/my-order?brand=${brand.slug}`} onClick={() => setMobileOpen(false)}>
-              Mi pedido
+            <Link
+              href={`/my-order?brand=${brand.slug}`}
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2"
+            >
+              <Truck className="w-4 h-4" strokeWidth={1.6} /> Mi pedido
             </Link>
             <Link
               href={`/my-order?brand=${brand.slug}&intent=receipt`}
               onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2"
             >
-              Subir comprobante
+              <FileText className="w-4 h-4" strokeWidth={1.6} /> Subir comprobante
             </Link>
           </div>
         </div>
