@@ -15,6 +15,7 @@ import { WhatsappCommunityWidget } from "@/components/whatsapp-community-widget"
 import { BrandThemeInjector } from "@/components/brand-theme-injector";
 import { useBrand } from "@/lib/useBrand";
 import { BRAND_AWARE_PATHS, ROOT_BRAND_SLUG } from "@/lib/brand-context";
+import { lmDisplay, lmSans, pgDisplay, pgBody, pgMono } from "@/lib/brand-fonts";
 
 interface MainChromeProps {
   children: ReactNode;
@@ -93,26 +94,42 @@ function MainChromeInner({ children, footerData, footerLogo, brand3darg }: MainC
     ) : null;
 
   if (brandSlug === "lumy") {
+    // El wrapper `.site-lumy` (+ variables de fuente) es OBLIGATORIO acá:
+    // todo el CSS de `LumyNavbar`/`LumyFooter` (`.lm-nav`, `.lm-btn`, etc.,
+    // ver app/site-lumy.css) está scopeado como `.site-lumy .lm-*` — sin un
+    // ancestro con esa clase esas reglas no matchean nada y el navbar/footer
+    // se renderizan sin ningún estilo (texto plano pegado, sin flex, sin
+    // tipografía Lumy). `app/[brand]/layout.tsx` ya pone este mismo wrapper
+    // alrededor de navbar+contenido+footer para las rutas `/lumy/...`; acá
+    // hacía falta exactamente lo mismo para que /my-order y /checkout/* con
+    // `?brand=lumy` no muestren un navbar roto encima de un contenido que sí
+    // está bien estilado (ese `site-lumy` interno lo pone cada página, ver
+    // `lib/brand-ui-classes.ts`, pero no alcanzaba al navbar/footer).
     return (
-      <>
+      <div className={`site-lumy min-h-screen flex flex-col ${lmDisplay.variable} ${lmSans.variable}`}>
         {themeInjector}
         <LumyNavbar brand={fetchedBrand} />
         {children}
         <LumyFooter brand={fetchedBrand} />
         <WhatsappCommunityWidget brand={fetchedBrand} />
-      </>
+      </div>
     );
   }
 
   if (brandSlug === "printgym") {
+    // Mismo motivo que el bloque de Lumy de arriba: `.site-printgym .pg-*`
+    // en app/site-printgym.css necesita este wrapper para que
+    // PrintGymNavbar/PrintGymFooter no se rendericen sin estilos.
     return (
-      <>
+      <div
+        className={`site-printgym min-h-screen flex flex-col ${pgDisplay.variable} ${pgBody.variable} ${pgMono.variable}`}
+      >
         {themeInjector}
         <PrintGymNavbar brand={fetchedBrand} />
         {children}
         <PrintGymFooter brand={fetchedBrand} />
         <WhatsappCommunityWidget brand={fetchedBrand} />
-      </>
+      </div>
     );
   }
 
