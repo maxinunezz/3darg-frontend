@@ -5,10 +5,12 @@
    SCOPEADOS bajo .site-lumy para no pisar el :root global que usan las
    demás sub-marcas vía Brand.theme.
    Fuente de verdad: Lumy Design System/{tokens/,components/components.css,styles.css}
-   Las fuentes (Instrument Serif / Urbanist / Yellowtail) NO se cargan acá
-   con @import de Google Fonts: se cargan con next/font/google en
-   app/[brand]/layout.tsx, exponiendo --font-lm-display/--font-lm-sans/
-   --font-lm-script. Este archivo solo consume esas variables.
+   Las fuentes (Instrument Serif / Urbanist) NO se cargan acá con @import de
+   Google Fonts: se cargan con next/font/google en app/[brand]/layout.tsx,
+   exponiendo --font-lm-display/--font-lm-sans. Este archivo solo consume
+   esas variables. El acento "script" (antes Yellowtail, una tercera familia
+   aparte) ahora es la itálica de Instrument Serif (--font-display), para no
+   sumar un tercer registro tipográfico a la marca.
    ───────────────────────────────────────────────────────────────────────── */
 
 .site-lumy {
@@ -74,7 +76,7 @@
   /* ── Typography ── */
   --font-display: var(--font-lm-display), "Instrument Serif", "Iowan Old Style", Georgia, serif;
   --font-sans: var(--font-lm-sans), "Urbanist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-script: var(--font-lm-script), "Yellowtail", "Brush Script MT", cursive;
+  --font-script: var(--font-lm-display), "Instrument Serif", "Iowan Old Style", Georgia, serif;
   --text-display-xl: 5.25rem;
   --text-display-l: 3.75rem;
   --text-display-m: 2.75rem;
@@ -479,7 +481,7 @@
 .site-lumy .lm-sectionhead__title { font-family: var(--font-display); font-size: var(--text-display-m); line-height: var(--leading-display); letter-spacing: var(--tracking-display); color: var(--text-heading); }
 .site-lumy .lm-sectionhead__title em { font-style: italic; color: var(--rose-600); }
 .site-lumy .lm-sectionhead__sub { max-width: 52ch; color: var(--text-body); font-size: var(--text-body-m); }
-.site-lumy .lm-script { font-family: var(--font-script); font-weight: 400; letter-spacing: 0; color: var(--rose-600); }
+.site-lumy .lm-script { font-family: var(--font-script); font-style: italic; font-weight: 400; letter-spacing: 0; color: var(--rose-600); }
 
 /* ── Product card ───────────────────────────────────────── */
 .site-lumy .lm-product { display: flex; flex-direction: column; background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; transition: box-shadow var(--duration-slow) var(--ease-standard), transform var(--duration-slow) var(--ease-standard), border-color var(--duration-slow) var(--ease-standard); }

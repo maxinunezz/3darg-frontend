@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import localFont from "next/font/local";
-import { Space_Grotesk, JetBrains_Mono, Instrument_Serif, Urbanist, Yellowtail } from "next/font/google";
+import { Space_Grotesk, JetBrains_Mono, Instrument_Serif, Urbanist } from "next/font/google";
 import { BrandNavbar } from "@/components/brand-navbar";
 import { BrandThemeInjector } from "@/components/brand-theme-injector";
 import { PrintGymNavbar } from "@/components/printgym/printgym-navbar";
@@ -45,12 +45,6 @@ const lmSans = Urbanist({
   variable: "--font-lm-sans",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
-});
-
-const lmScript = Yellowtail({
-  variable: "--font-lm-script",
-  subsets: ["latin"],
-  weight: ["400"],
 });
 
 export async function generateMetadata({
@@ -111,7 +105,7 @@ export default async function BrandLayout({
   if (isLumy) {
     return (
       <div
-        className={`site-lumy min-h-screen flex flex-col ${lmDisplay.variable} ${lmSans.variable} ${lmScript.variable}`}
+        className={`site-lumy min-h-screen flex flex-col ${lmDisplay.variable} ${lmSans.variable}`}
       >
         {brand.theme && Object.keys(brand.theme).length > 0 && (
           <BrandThemeInjector theme={brand.theme} slug={brand.slug} />
