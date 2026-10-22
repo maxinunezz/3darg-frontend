@@ -50,11 +50,26 @@ export type ShippingAddress = {
 // igual exige `shippingData.address` completa, pero esa parte se aproxima en el
 // backend con la dirección de la sucursal (ver `correo_argentino.py`,
 // `_agency_address_fallback()`). "domicilio" sigue exigiendo la dirección real
-// completa del comprador.
-export type ShippingModality = "sucursal" | "domicilio";
+// completa del comprador. "local" es retiro gratis en el local del dueño
+// (método `local_retiro` del backend, ver `shipping/services/quote.py`) — solo
+// exige nombre+teléfono de contacto, la dirección que se muestra es la fija
+// del local (no la del comprador).
+export type ShippingModality = "sucursal" | "domicilio" | "local";
+
+// Deriva la modalidad a partir del `methodId` que devuelve el backend
+// (`{carrier}_{modality}`, ver `select_methods()` en `quote.py`). Centralizado
+// acá para no repetir el mismo `endsWith` en cada componente que consume el
+// selector de envío (`cart-page-content.tsx`, `site/cart-content.tsx`).
+export function modalityFromMethodId(methodId: string | null | undefined): ShippingModality {
+  if (methodId?.endsWith("_sucursal")) return "sucursal";
+  if (methodId?.endsWith("_retiro")) return "local";
+  return "domicilio";
+}
 
 export function isShippingAddressComplete(address: ShippingAddress, modality: ShippingModality): boolean {
-  if (!address.fullName.trim() || !address.phone.trim() || !address.province.trim()) return false;
+  if (!address.fullName.trim() || !address.phone.trim()) return false;
+  if (modality === "local") return true;
+  if (!address.province.trim()) return false;
   if (modality === "sucursal") return !!address.agencyId?.trim();
   return (
     !!address.street.trim() &&

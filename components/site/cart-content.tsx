@@ -13,7 +13,7 @@ import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { variantLabel } from "@/lib/product-variant";
 import { ShippingEstimator, type ShippingEstimate } from "@/components/shipping-estimator";
 import { RequiredDot, RequiredFieldsNote } from "@/components/shipping-address-form";
-import { type ShippingAddress, isShippingAddressComplete } from "@/types/shipping";
+import { type ShippingAddress, isShippingAddressComplete, modalityFromMethodId } from "@/types/shipping";
 import { CartDiscountProgress } from "@/components/cart-discount-progress";
 import { FreeShippingProgress } from "@/components/free-shipping-progress";
 import { CartUpsellCarousel } from "@/components/cart-upsell-carousel";
@@ -265,9 +265,9 @@ export function SiteCartContent() {
 
   const itemCount = items.reduce((s, i) => s + i.quantity, 0);
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail);
-  const requiresAgency = !!shippingEstimate?.methodId?.endsWith("_sucursal");
-  const addressComplete = isShippingAddressComplete(address, requiresAgency ? "sucursal" : "domicilio");
-  // El backend ahora EXIGE un `shipping_method_id` real (uno de los dos que
+  const shippingModality = modalityFromMethodId(shippingEstimate?.methodId);
+  const addressComplete = isShippingAddressComplete(address, shippingModality);
+  // El backend ahora EXIGE un `shipping_method_id` real (uno de los tres que
   // siempre devuelve el selector) — si la cotización todavía está cargando o
   // falló, `shippingEstimate` queda en `null` y el checkout pegaría con un id
   // vacío, que el backend ya rechaza con 400. Antes esto no se chequeaba acá,
@@ -286,9 +286,11 @@ export function SiteCartContent() {
     }
     if (!addressComplete) {
       setCheckoutError(
-        requiresAgency
+        shippingModality === "sucursal"
           ? "Completá tu dirección y elegí una sucursal para retirar tu pedido."
-          : "Completá tu dirección de envío para continuar con la compra."
+          : shippingModality === "local"
+            ? "Completá tu nombre y teléfono para retirar en el local."
+            : "Completá tu dirección de envío para continuar con la compra."
       );
       return;
     }

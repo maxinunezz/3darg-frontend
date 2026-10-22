@@ -104,7 +104,12 @@ export function AccountSettingsContent({
   // valores con algo vacío. `shippingAddress.fullName`/`.phone` (de
   // `ShippingAddressForm`) siguen sin usarse — por eso `showContactFields={false}`
   // más abajo.
-  const [shippingModality, setShippingModality] = useState<ShippingModality | "">("");
+  // Nota: la preferencia guardada acá es solo sucursal/domicilio — "local"
+  // (retiro gratis en el local del dueño) no es una dirección que tenga
+  // sentido "guardar como preferida" (es siempre la misma, fija), así que
+  // este estado usa un tipo más angosto que `ShippingModality` a propósito,
+  // igual que `AuthContext.shipping_modality`.
+  const [shippingModality, setShippingModality] = useState<Exclude<ShippingModality, "local"> | "">("");
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>(EMPTY_SHIPPING_ADDRESS);
   const [shippingAgencyId, setShippingAgencyId] = useState("");
   const [agencies, setAgencies] = useState<Agency[]>([]);

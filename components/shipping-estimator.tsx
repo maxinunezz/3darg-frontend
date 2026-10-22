@@ -31,6 +31,20 @@ type ShippingMethod = {
   // ej. "2 a 5 días hábiles" — no es un número suelto, no agregarle sufijo acá.
   delivery_days: string | null;
   is_fallback: boolean;
+  // Solo viene en el método de retiro local (`local_retiro`, modality
+  // "retiro") — dirección fija del local del dueño, reusada de
+  // `CORREO_ARGENTINO_SENDER_*` en el backend (ver
+  // `shipping/services/quote.py::local_pickup_address()`). Es informativa
+  // (adónde tiene que ir el comprador a retirar), no la dirección del
+  // comprador.
+  address?: {
+    name?: string;
+    street?: string;
+    street_number?: string;
+    city?: string;
+    province?: string;
+    postal_code?: string;
+  };
 };
 
 // Forma real de `GET /api/shipping/agencies/` (API MiCorreo de Correo
@@ -162,12 +176,14 @@ function agencyPostalCodeOf(a: Agency): string {
 const MIN_POSTAL_CODE_LENGTH = 4;
 
 /**
- * Selector de método de envío del carrito — dos modalidades, ambas Correo
- * Argentino (ver `3darg-backend/CLAUDE.md` → "Envíos"), cotizadas contra
- * `POST /api/shipping/calculate/` apenas carga el carrito y recotizadas en
- * vivo en cuanto se conoce un CP real de destino (`effectivePostalCode`,
- * más abajo) — sin que el comprador tenga que completar nada extra a
- * propósito, el CP sale solo de datos que ya está dando en el flujo normal:
+ * Selector de método de envío del carrito — tres modalidades, cotizadas
+ * contra `POST /api/shipping/calculate/` apenas carga el carrito. Las dos
+ * primeras son Correo Argentino (ver `3darg-backend/CLAUDE.md` → "Envíos") y
+ * se recotizan en vivo en cuanto se conoce un CP real de destino
+ * (`effectivePostalCode`, más abajo) — sin que el comprador tenga que
+ * completar nada extra a propósito, el CP sale solo de datos que ya está
+ * dando en el flujo normal. La tercera (`local_retiro`) es retiro gratis en
+ * el local del dueño, sin courier de por medio — ver más abajo:
  *
  * - **"Retirar en sucursal"** (default, desplegado): se autodetecta la
  *   provincia del comprador por geolocalización IP (`GET /api/geo`, headers
@@ -186,6 +202,11 @@ const MIN_POSTAL_CODE_LENGTH = 4;
  *   completo (dirección real del comprador) — en cuanto el CP tipeado tiene
  *   `MIN_POSTAL_CODE_LENGTH` caracteres, se recotiza en vivo con ese CP real
  *   (debounced 400ms, para no pegarle a la API real en cada tecla).
+ * - **"Retirar en el local"**: siempre $0, sin cotización (el backend la
+ *   agrega siempre con `price: 0` en `select_methods()`, ver `quote.py`).
+ *   Solo pide nombre y teléfono de quien retira — la dirección que se
+ *   muestra es la fija del local del dueño (`localMethod.address`, reusa
+ *   `CORREO_ARGENTINO_SENDER_*` del backend), no la del comprador.
  *
  * Antes de tener un CP (recién entrando, sin provincia/sucursal/CP elegidos
  * todavía) sigue cayendo a la tabla de respaldo (`tariff.py`), igual que
@@ -255,6 +276,14 @@ export function ShippingEstimator({
   // Modalidad "domicilio" — dirección completa, vía el form reusado.
   const [domicilioAddress, setDomicilioAddress] = useState<ShippingAddress>(EMPTY_DOMICILIO_ADDRESS);
 
+  // Modalidad "local" — retiro gratis en el local del dueño (método
+  // `local_retiro` del backend). Solo pide contacto: la dirección que se
+  // muestra es la fija del local (`localMethod.address`, más abajo), no la
+  // del comprador. Mismo criterio "simplicidad por sobre DRY" que
+  // sucursal/domicilio — estado propio aunque se solape con nombre/teléfono.
+  const [localFullName, setLocalFullName] = useState("");
+  const [localPhone, setLocalPhone] = useState("");
+
   // Si hay sesión iniciada, autocompleta nombre/teléfono con los datos
   // guardados en "Mis datos" (una sola vez, y solo si el campo todavía está
   // vacío — no pisa lo que el comprador ya haya escrito a mano). También
@@ -276,6 +305,8 @@ export function ShippingEstimator({
       user.shipping_modality === "domicilio" || user.shipping_modality === "sucursal" ? user.shipping_modality : "";
     setSucursalFullName((prev) => prev || fullName);
     setSucursalPhone((prev) => prev || phone);
+    setLocalFullName((prev) => prev || fullName);
+    setLocalPhone((prev) => prev || phone);
     setSucursalProvince((prev) => (user.shipping_province ? user.shipping_province : prev));
     setSucursalAgencyId((prev) => (user.shipping_agency_id ? user.shipping_agency_id : prev));
     setGeoDetectedProvince((prev) => (user.shipping_province ? false : prev));
@@ -317,13 +348,20 @@ export function ShippingEstimator({
     draftRestoreAppliedRef.current = true;
     const isSucursal = !!initialAddress.agencyId;
     const isDomicilio = !isSucursal && !!initialAddress.street;
-    setModality((prev) => (isSucursal ? "sucursal" : isDomicilio ? "domicilio" : prev));
+    // "local" no tiene ningún campo propio que lo distinga sin ambigüedad
+    // (agencyId/street vacíos son también el estado de un borrador vacío) —
+    // se infiere por descarte: ni sucursal ni domicilio, pero sí hay un
+    // nombre guardado (un borrador realmente vacío tiene `fullName: ""`).
+    const isLocal = !isSucursal && !isDomicilio && !!initialAddress.fullName;
+    setModality((prev) => (isSucursal ? "sucursal" : isDomicilio ? "domicilio" : isLocal ? "local" : prev));
     setSucursalFullName((prev) => (isSucursal ? initialAddress.fullName : prev));
     setSucursalPhone((prev) => (isSucursal ? initialAddress.phone : prev));
     setSucursalProvince((prev) => (isSucursal ? initialAddress.province : prev));
     setSucursalAgencyId((prev) => (isSucursal ? (initialAddress.agencyId ?? prev) : prev));
     setGeoDetectedProvince((prev) => (isSucursal ? false : prev));
     setDomicilioAddress((prev) => (isDomicilio ? initialAddress : prev));
+    setLocalFullName((prev) => (isLocal ? initialAddress.fullName : prev));
+    setLocalPhone((prev) => (isLocal ? initialAddress.phone : prev));
   }, [initialAddress]);
 
   useEffect(() => {
@@ -348,11 +386,16 @@ export function ShippingEstimator({
 
   const sucursalFreeShippingActive = thresholdSucursal != null && subtotal >= thresholdSucursal;
   const domicilioFreeShippingActive = thresholdDomicilio != null && subtotal >= thresholdDomicilio;
-  const freeShippingActive = modality === "sucursal" ? sucursalFreeShippingActive : domicilioFreeShippingActive;
+  // "local" ya es gratis siempre (el backend lo manda con `price: 0`, ver
+  // `select_methods()`) — no depende de ningún umbral de envío gratis por
+  // marca, así que no hace falta un "thresholdLocal" aparte.
+  const freeShippingActive =
+    modality === "sucursal" ? sucursalFreeShippingActive : modality === "local" ? false : domicilioFreeShippingActive;
 
   const sucursalMethod = methods.find((m) => m.modality === "sucursal");
   const domicilioMethod = methods.find((m) => m.modality === "domicilio");
-  const activeMethod = modality === "sucursal" ? sucursalMethod : domicilioMethod;
+  const localMethod = methods.find((m) => m.modality === "retiro");
+  const activeMethod = modality === "sucursal" ? sucursalMethod : modality === "local" ? localMethod : domicilioMethod;
 
   // CP real de destino para cotizar EN VIVO contra `/rates` (ver
   // `3darg-backend/CLAUDE.md` → "Envíos"), según la modalidad activa — es el
@@ -538,11 +581,37 @@ export function ShippingEstimator({
         postalCode: agencyPostalCode,
         agencyId: sucursalAgencyId,
       });
+    } else if (modality === "local") {
+      onAddressChange?.({
+        fullName: localFullName,
+        phone: localPhone,
+        street: "",
+        streetNumber: "",
+        floor: "",
+        department: "",
+        city: "",
+        province: "",
+        // CP fijo del local (reusa `CORREO_ARGENTINO_SENDER_ZIP` del lado del
+        // backend, ver `localMethod.address`) — no se le pide nada al
+        // comprador en esta modalidad.
+        postalCode: localMethod?.address?.postal_code ?? "",
+      });
     } else {
       onAddressChange?.(domicilioAddress);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modality, sucursalFullName, sucursalPhone, sucursalProvince, sucursalAgencyId, domicilioAddress, agencyPostalCode]);
+  }, [
+    modality,
+    sucursalFullName,
+    sucursalPhone,
+    sucursalProvince,
+    sucursalAgencyId,
+    domicilioAddress,
+    agencyPostalCode,
+    localFullName,
+    localPhone,
+    localMethod,
+  ]);
 
   return (
     <div className={className}>
@@ -753,6 +822,67 @@ export function ShippingEstimator({
                     labelClassName={labelClassName}
                     inputClassName={inputClassName}
                   />
+                </div>
+              )}
+            </div>
+          )}
+
+          {localMethod && (
+            <div className={`rounded-xl border ${modality === "local" ? "border-primary" : "border-border"}`}>
+              <label className="flex items-center justify-between gap-3 p-3 cursor-pointer text-sm">
+                <span className="flex items-center gap-2">
+                  <span className="relative w-4 h-4 shrink-0 inline-flex items-center justify-center">
+                    <input
+                      type="radio"
+                      checked={modality === "local"}
+                      onChange={() => setModality("local")}
+                      className="appearance-none w-4 h-4 rounded-full border-2 border-primary bg-white cursor-pointer"
+                    />
+                    {modality === "local" && (
+                      <span className="absolute w-2 h-2 rounded-full bg-amber-400 pointer-events-none" />
+                    )}
+                  </span>
+                  <span>Retirar en el local</span>
+                </span>
+                <span className="font-semibold shrink-0">Gratis</span>
+              </label>
+
+              {modality === "local" && (
+                <div className="px-3 pb-3 grid grid-cols-2 gap-3">
+                  {localMethod.address && (
+                    <p className="col-span-2 text-sm font-bold">
+                      Retirás en{" "}
+                      {[localMethod.address.street, localMethod.address.street_number].filter(Boolean).join(" ")}
+                      {localMethod.address.city ? `, ${localMethod.address.city}` : ""}
+                      {localMethod.address.postal_code ? ` (CP ${localMethod.address.postal_code})` : ""}.
+                    </p>
+                  )}
+                  <label className="grid gap-1.5 col-span-2">
+                    <span className={labelClassName}>
+                      Nombre y apellido
+                      <RequiredDot />
+                    </span>
+                    <input
+                      type="text"
+                      value={localFullName}
+                      onChange={(e) => setLocalFullName(e.target.value)}
+                      placeholder="Nombre y apellido de quien retira"
+                      className={inputClassName}
+                    />
+                  </label>
+                  <label className="grid gap-1.5 col-span-2">
+                    <span className={labelClassName}>
+                      Teléfono
+                      <RequiredDot />
+                    </span>
+                    <PhoneInput
+                      international
+                      defaultCountry="AR"
+                      value={localPhone || undefined}
+                      onChange={(v) => setLocalPhone(v ?? "")}
+                      placeholder="Tu número de teléfono"
+                    />
+                  </label>
                 </div>
               )}
             </div>
