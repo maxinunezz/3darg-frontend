@@ -591,7 +591,7 @@ export function CartPageContent() {
             </div>
             {discountAmount > 0 && (
               <div className="flex justify-between items-center text-base text-red-600 mb-1 font-semibold">
-                <span>Descuento ({discountPercent}%)</span>
+                <span>Descuento por cantidad ({discountPercent}%)</span>
                 <span>- {fmt(discountAmount)}</span>
               </div>
             )}
