@@ -16,7 +16,7 @@ type User = {
   // — todos opcionales, `""` si el usuario nunca la cargó desde "Mis datos"
   // (`account-settings-content.tsx`). Consumidos por `shipping-estimator.tsx`
   // para autocompletar el selector de envío del carrito.
-  shipping_modality: "" | "sucursal" | "domicilio";
+  shipping_modality: "" | "sucursal" | "domicilio" | "local";
   shipping_province: string;
   shipping_agency_id: string;
   shipping_street: string;
@@ -33,7 +33,7 @@ export type UpdateProfileInput = Partial<{
   email: string;
   phone: string;
   current_password: string;
-  shipping_modality: "" | "sucursal" | "domicilio";
+  shipping_modality: "" | "sucursal" | "domicilio" | "local";
   shipping_province: string;
   shipping_agency_id: string;
   shipping_street: string;

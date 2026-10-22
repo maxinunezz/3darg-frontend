@@ -296,7 +296,11 @@ export function ShippingEstimator({
     const fullName = `${user.first_name} ${user.last_name}`.trim();
     const phone = sanitizePhone(user.phone);
     const savedModality: ShippingModality | "" =
-      user.shipping_modality === "domicilio" || user.shipping_modality === "sucursal" ? user.shipping_modality : "";
+      user.shipping_modality === "domicilio" ||
+      user.shipping_modality === "sucursal" ||
+      user.shipping_modality === "local"
+        ? user.shipping_modality
+        : "";
     setSucursalFullName((prev) => prev || fullName);
     setSucursalPhone((prev) => prev || phone);
     setLocalFullName((prev) => prev || fullName);
