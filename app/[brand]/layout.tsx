@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
-import localFont from "next/font/local";
-import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
-import { lmDisplay, lmSans } from "@/lib/brand-fonts";
+import { lmDisplay, lmSans, pgDisplay, pgBody, pgMono } from "@/lib/brand-fonts";
 import { BrandNavbar } from "@/components/brand-navbar";
+import { BrandFooter } from "@/components/brand-footer";
 import { BrandThemeInjector } from "@/components/brand-theme-injector";
 import { PrintGymNavbar } from "@/components/printgym/printgym-navbar";
 import { PrintGymFooter } from "@/components/printgym/printgym-footer";
@@ -11,27 +10,6 @@ import { LumyFooter } from "@/components/lumy/lumy-footer";
 import { WhatsappCommunityWidget } from "@/components/whatsapp-community-widget";
 import { getBrandBySlug } from "@/lib/brands";
 import type { Metadata } from "next";
-
-// Fuentes del Print&Gym Design System — self-hosted (display) + Google (body/mono).
-// Variables propias (--font-pg-*) para no acoplar con el sistema de fuentes de 3DARG.
-const pgDisplay = localFont({
-  src: "../../public/fonts/printgym/Spectrashell.otf",
-  variable: "--font-pg-display",
-  weight: "400 900",
-  display: "swap",
-});
-
-const pgBody = Space_Grotesk({
-  variable: "--font-pg-body",
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-});
-
-const pgMono = JetBrains_Mono({
-  variable: "--font-pg-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
-});
 
 export async function generateMetadata({
   params,
@@ -112,44 +90,7 @@ export default async function BrandLayout({
       )}
       <BrandNavbar brand={brand} />
       <main className="flex-grow">{children}</main>
-      <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground space-y-2">
-        <p>
-          © {new Date().getFullYear()} {brand.name} ·{" "}
-          <a href="/" className="underline underline-offset-4 hover:text-foreground transition-colors">
-            Una marca de 3DARG
-          </a>
-        </p>
-        <p className="flex flex-wrap justify-center gap-x-4 gap-y-1">
-          <a
-            href={`/${brand.slug}/legal/terminos`}
-            className="text-xs underline underline-offset-4 hover:text-foreground transition-colors"
-          >
-            Términos y condiciones
-          </a>
-          <a
-            href={`/${brand.slug}/legal/privacidad`}
-            className="text-xs underline underline-offset-4 hover:text-foreground transition-colors"
-          >
-            Privacidad
-          </a>
-          <a
-            href={`/${brand.slug}/legal/envios-y-devoluciones`}
-            className="text-xs underline underline-offset-4 hover:text-foreground transition-colors"
-          >
-            Envíos y devoluciones
-          </a>
-          {/* Botón de arrepentimiento (Resolución 424/2020): link directo al form de
-              contacto, con asunto/mensaje precargados, sin pedir registro previo. */}
-          <a
-            href={`/${brand.slug}/contact?title=${encodeURIComponent("Derecho de arrepentimiento")}&body=${encodeURIComponent(
-              "Quiero ejercer mi derecho de arrepentimiento sobre una compra ya realizada. Mi número de pedido es: ",
-            )}`}
-            className="text-xs underline underline-offset-4 hover:text-foreground transition-colors"
-          >
-            Botón de arrepentimiento
-          </a>
-        </p>
-      </footer>
+      <BrandFooter brand={brand} />
       <WhatsappCommunityWidget brand={brand} />
     </div>
   );

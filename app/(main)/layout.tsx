@@ -1,7 +1,5 @@
 import { Urbanist } from "next/font/google";
-import { Navbar } from "@/components/navbar";
-import { Footer } from "@/components/footer";
-import { WhatsappCommunityWidget } from "@/components/whatsapp-community-widget";
+import { MainChrome } from "@/components/main-chrome";
 import { getCmsPage, getSection, getSectionImage } from "@/lib/cms";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { getBrandBySlug } from "@/lib/brands";
@@ -29,10 +27,9 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
   return (
     <div className={`site-3darg flex flex-col min-h-screen ${urbanist.variable}`}>
-      <Navbar />
-      <main className="flex-grow">{children}</main>
-      <Footer data={footerSection?.data} logoUrl={footerLogo} />
-      {brand && <WhatsappCommunityWidget brand={brand} />}
+      <MainChrome footerData={footerSection?.data} footerLogo={footerLogo} brand3darg={brand}>
+        <main className="flex-grow">{children}</main>
+      </MainChrome>
     </div>
   );
 }

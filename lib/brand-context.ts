@@ -27,6 +27,22 @@ const ROOT_STATIC_SEGMENTS = new Set([
   "terms",
 ]);
 
+// Rutas estáticas de app/(main)/ que son compartidas por TODAS las marcas vía
+// query param `?brand=<slug>` (en vez de vivir bajo app/[brand]/) — el pedido
+// de invitado se busca/crea ahí sin importar desde qué sub-marca vino la
+// compra (ver app/(main)/my-order/, app/(main)/checkout/{transfer,success,
+// pending,failure}/). components/main-chrome.tsx usa esta lista para decidir
+// en qué páginas vale la pena leer `?brand=` y mostrar el Navbar/Footer (y el
+// resto del look) de esa marca en vez del de 3DARG por defecto. Mantener
+// sincronizado con el filesystem real si se agrega/saca alguna de estas rutas.
+export const BRAND_AWARE_PATHS = [
+  "/my-order",
+  "/checkout/transfer",
+  "/checkout/success",
+  "/checkout/pending",
+  "/checkout/failure",
+] as const;
+
 /**
  * Devuelve el "espacio de marca" (namespace) al que pertenece una URL.
  * Es la unidad de aislamiento de sesión/carrito: cada namespace guarda su

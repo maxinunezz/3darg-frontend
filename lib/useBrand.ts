@@ -10,10 +10,20 @@ const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
 // `getBrandBySlug()` de `lib/brands.ts` no sirve acá porque usa
 // `BACKEND_INTERNAL_URL` (solo resuelve dentro de la red de Docker/Railway),
 // y esta página ("use client") corre en el browser.
+//
+// `slug` vacío = no-op (no dispara ningún fetch) — usado por
+// components/main-chrome.tsx, que llama este hook incondicionalmente (regla
+// de hooks) pero solo necesita resolver una marca real en un subconjunto de
+// rutas; sin este guard, CADA página de app/(main)/ terminaría pegándole a
+// GET /brands/ aunque no lo necesite.
 export function useBrand(slug: string): BrandType | null {
   const [brand, setBrand] = useState<BrandType | null>(null);
 
   useEffect(() => {
+    if (!slug) {
+      setBrand(null);
+      return;
+    }
     let active = true;
     fetch(`${API}/brands/`)
       .then((r) => (r.ok ? r.json() : null))

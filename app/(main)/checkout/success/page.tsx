@@ -5,6 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { clearBrandCart } from "@/lib/clear-brand-cart";
 import Link from "next/link";
 import { CheckCircle, Clock, XCircle, Loader2 } from "lucide-react";
+import { BrandThemeInjector } from "@/components/brand-theme-injector";
+import { getBrandUiClasses, brandHomeHref } from "@/lib/brand-ui-classes";
+import { useBrand } from "@/lib/useBrand";
 
 type ReconciledOrder = {
   order_id: string;
@@ -69,8 +72,17 @@ function CheckoutSuccessContent() {
   // saber a qué espacio de marca volver y qué carrito limpiar, igual que
   // `app/(main)/checkout/transfer/page.tsx` (ver `lib/clear-brand-cart.ts`).
   const brand = searchParams.get("brand") || "3darg";
-  const profileHref = brand === "3darg" ? "/profile" : `/${brand}/profile`;
-  const homeHref = brand === "3darg" ? "/" : `/${brand}`;
+  // "Ver mis pedidos" NO manda a `/profile`: esta pantalla puede llegar por
+  // un checkout de invitado sin cuenta, y un pedido de invitado nunca queda
+  // asociado a ningún `User` — ese link siempre terminaba expulsando al
+  // comprador a loguearse sin forma de volver. Mismo fix ya aplicado en
+  // `/checkout/transfer` (ver `payments/views.py::OrderLookupAPIView`).
+  const myOrderHref = `/my-order?brand=${brand}`;
+  const homeHref = brandHomeHref(brand);
+  // Misma adaptación visual que `/my-order` y `/checkout/transfer` — esta
+  // página también vive fuera de `[brand]/layout.tsx`. Ver `lib/brand-ui-classes.ts`.
+  const ui = getBrandUiClasses(brand);
+  const brandData = useBrand(ui.variant === "default" ? "" : brand);
 
   const [order, setOrder] = useState<ReconciledOrder | null>(null);
   const [loading, setLoading] = useState(true);
@@ -98,19 +110,22 @@ function CheckoutSuccessContent() {
   const isPaid = order?.status === "PAID";
 
   return (
-    <div className="min-h-screen w-full bg-white text-black">
+    <div className={`min-h-screen w-full ${ui.wrapperClassName}`}>
+      {ui.needsThemeInjector && brandData?.theme && Object.keys(brandData.theme).length > 0 && (
+        <BrandThemeInjector theme={brandData.theme} slug={brandData.slug} />
+      )}
       <div className="max-w-xl mx-auto px-4 py-24 text-center">
         {loading ? (
           <>
             <Loader2 className="w-16 h-16 mx-auto animate-spin text-gray-400 mb-6" />
-            <h1 className="text-2xl font-bold mb-2">Confirmando tu pago…</h1>
+            <h1 className={`text-2xl font-bold ${ui.mb("mb-2")}`}>Confirmando tu pago…</h1>
             <p className="text-gray-600">Un momento, estamos verificando con MercadoPago.</p>
           </>
         ) : (
           <>
             {header.icon}
-            <h1 className="text-3xl font-bold mb-2">{header.title}</h1>
-            <p className="text-gray-600 mb-8">{header.text}</p>
+            <h1 className={`text-3xl font-bold ${ui.mb("mb-2")}`}>{header.title}</h1>
+            <p className={`text-gray-600 ${ui.mb("mb-8")}`}>{header.text}</p>
 
             {order && (
               <div className="border border-gray-200 rounded-2xl p-5 bg-white text-left mb-8 space-y-3">
@@ -151,16 +166,10 @@ function CheckoutSuccessContent() {
             )}
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link
-                href={profileHref}
-                className="inline-block border border-gray-300 text-black px-6 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors text-sm"
-              >
+              <Link href={myOrderHref} className={ui.linkSecondaryClassName}>
                 Ver mis pedidos
               </Link>
-              <Link
-                href={homeHref}
-                className="inline-block bg-black text-white px-6 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity text-sm"
-              >
+              <Link href={homeHref} className={ui.linkPrimaryClassName}>
                 Seguir comprando
               </Link>
             </div>
