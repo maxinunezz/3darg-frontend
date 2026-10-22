@@ -304,6 +304,12 @@ export function SiteCartContent() {
           address,
           shippingEstimate
         );
+        // Checkout confirmado: el borrador (incluido `guestEmail`) ya cumplió
+        // su propósito (sobrevivir a un "atrás" del navegador a mitad de
+        // compra, ver `lib/checkout-draft.ts`). Si no se limpia acá, un
+        // comprador invitado que hace una segunda compra en la misma pestaña
+        // se encuentra el email de la compra anterior precargado.
+        clearCheckoutDraft(brandSlug);
         router.push(`/checkout/transfer?order_id=${data.order_id}&brand=${brandSlug}`);
         return;
       }
@@ -315,6 +321,7 @@ export function SiteCartContent() {
         address,
         shippingEstimate
       );
+      clearCheckoutDraft(brandSlug);
       window.location.href = USE_SANDBOX ? data.sandbox_init_point : data.init_point;
     } catch (e: unknown) {
       setCheckoutError(
