@@ -8,6 +8,9 @@ import Link from "next/link";
 import { Loader2, XCircle } from "lucide-react";
 import type { OrderStatusData } from "@/types/payment";
 import { OrderStatusCard } from "@/components/order-status-card";
+import { BrandThemeInjector } from "@/components/brand-theme-injector";
+import { lmDisplay, lmSans } from "@/lib/brand-fonts";
+import { useBrand } from "@/lib/useBrand";
 
 const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
 
@@ -47,6 +50,13 @@ function CheckoutTransferContent() {
   // OrderLookupAPIView`) es la alternativa que no depende de tener cuenta.
   const myOrderHref = `/my-order?brand=${brand}`;
   const homeHref = brand === "3darg" ? "/" : `/${brand}`;
+  // Misma adaptación visual que `/my-order` — esta página también vive fuera
+  // de `[brand]/layout.tsx`, así que sin esto un comprador de Lumy ve un
+  // salto brusco a la estética neutra de 3DARG justo en la pantalla de
+  // instrucciones de transferencia (la que de hecho más tráfico real recibe
+  // en este flujo, ver logs).
+  const isLumy = brand === "lumy";
+  const brandData = useBrand(brand);
 
   const [order, setOrder] = useState<OrderStatusData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -100,25 +110,38 @@ function CheckoutTransferContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
+  const secondaryBtnClassName = isLumy
+    ? "lm-btn lm-btn--secondary lm-btn--lg"
+    : "inline-block border border-gray-300 text-black px-6 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors text-sm";
+  const linkBtnClassName = isLumy
+    ? "lm-btn lm-btn--primary lm-btn--lg"
+    : "inline-block bg-black text-white px-6 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity text-sm";
+
   return (
-    <div className="min-h-screen w-full bg-white text-black">
+    <div
+      className={
+        isLumy
+          ? `site-lumy min-h-screen w-full ${lmDisplay.variable} ${lmSans.variable}`
+          : "min-h-screen w-full bg-white text-black"
+      }
+    >
+      {isLumy && brandData?.theme && Object.keys(brandData.theme).length > 0 && (
+        <BrandThemeInjector theme={brandData.theme} slug="lumy" />
+      )}
       <div className="max-w-xl mx-auto px-4 py-24 text-center">
         {loading ? (
           <>
             <Loader2 className="w-16 h-16 mx-auto animate-spin text-gray-400 mb-6" />
-            <h1 className="text-2xl font-bold mb-2">Buscando tu pedido…</h1>
+            <h1 className="text-2xl font-bold mb-2!">Buscando tu pedido…</h1>
           </>
         ) : !order ? (
           <>
             <XCircle className="w-20 h-20 mx-auto text-red-500 mb-6" />
-            <h1 className="text-3xl font-bold mb-2">No encontramos este pedido</h1>
-            <p className="text-gray-600 mb-8">
+            <h1 className="text-3xl font-bold mb-2!">No encontramos este pedido</h1>
+            <p className="text-gray-600 mb-8!">
               Revisá el link que usaste o volvé a generar el pedido desde el carrito.
             </p>
-            <Link
-              href={homeHref}
-              className="inline-block bg-black text-white px-6 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity text-sm"
-            >
+            <Link href={homeHref} className={linkBtnClassName}>
               Volver al inicio
             </Link>
           </>
@@ -134,16 +157,10 @@ function CheckoutTransferContent() {
             />
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link
-                href={myOrderHref}
-                className="inline-block border border-gray-300 text-black px-6 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors text-sm"
-              >
+              <Link href={myOrderHref} className={secondaryBtnClassName}>
                 Ver mis pedidos
               </Link>
-              <Link
-                href={homeHref}
-                className="inline-block bg-black text-white px-6 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity text-sm"
-              >
+              <Link href={homeHref} className={linkBtnClassName}>
                 Seguir comprando
               </Link>
             </div>

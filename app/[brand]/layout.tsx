@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import localFont from "next/font/local";
-import { Space_Grotesk, JetBrains_Mono, Instrument_Serif, Urbanist } from "next/font/google";
+import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import { lmDisplay, lmSans } from "@/lib/brand-fonts";
 import { BrandNavbar } from "@/components/brand-navbar";
 import { BrandThemeInjector } from "@/components/brand-theme-injector";
 import { PrintGymNavbar } from "@/components/printgym/printgym-navbar";
@@ -30,21 +31,6 @@ const pgMono = JetBrains_Mono({
   variable: "--font-pg-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
-});
-
-// Fuentes del Lumy Design System — las tres vía Google Fonts.
-// Variables propias (--font-lm-*) para no acoplar con el sistema de fuentes de 3DARG.
-const lmDisplay = Instrument_Serif({
-  variable: "--font-lm-display",
-  subsets: ["latin"],
-  weight: ["400"],
-  style: ["normal", "italic"],
-});
-
-const lmSans = Urbanist({
-  variable: "--font-lm-sans",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 export async function generateMetadata({
