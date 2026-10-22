@@ -688,7 +688,15 @@ export function ShippingEstimator({
                   </span>
                 </span>
                 <span className="font-semibold shrink-0">
-                  {sucursalFreeShippingActive ? "¡Tenés envío gratis!" : fmt(sucursalMethod.price)}
+                  {sucursalFreeShippingActive ? (
+                    "¡Tenés envío gratis!"
+                  ) : sucursalMethod.is_fallback ? (
+                    <span className="text-[11px] font-normal text-muted-foreground">
+                      {loading ? "Cotizando..." : "Elegí tu sucursal"}
+                    </span>
+                  ) : (
+                    fmt(sucursalMethod.price)
+                  )}
                 </span>
               </label>
 
@@ -810,7 +818,15 @@ export function ShippingEstimator({
                   </span>
                 </span>
                 <span className="font-semibold shrink-0">
-                  {domicilioFreeShippingActive ? "¡Tenés envío gratis!" : fmt(domicilioMethod.price)}
+                  {domicilioFreeShippingActive ? (
+                    "¡Tenés envío gratis!"
+                  ) : domicilioMethod.is_fallback ? (
+                    <span className="text-[11px] font-normal text-muted-foreground">
+                      {loading ? "Cotizando..." : "Completá tu dirección"}
+                    </span>
+                  ) : (
+                    fmt(domicilioMethod.price)
+                  )}
                 </span>
               </label>
 
