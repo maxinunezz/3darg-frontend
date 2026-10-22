@@ -62,7 +62,7 @@ export function RequiredDot() {
  */
 export function RequiredFieldsNote({ className }: { className?: string }) {
   return (
-    <p className={className ?? "text-[11px] text-muted-foreground mb-2"}>
+    <p className={className ?? "text-sm font-bold text-muted-foreground"}>
       Los campos con <RequiredDot /> son obligatorios.
     </p>
   );

@@ -470,7 +470,10 @@ export function SiteCartContent() {
 
           <div className="p-4 border-t border-[var(--border-hairline)]">
             <div className="mb-4">
-              <span className={`${INK_LABEL_CLS} block mb-2`}>Envío</span>
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <span className={INK_LABEL_CLS}>Envío</span>
+                <RequiredFieldsNote className="font-mono text-sm font-bold text-[var(--text-faint)]" />
+              </div>
               <ShippingEstimator
                 items={items}
                 subtotal={total}
@@ -479,7 +482,6 @@ export function SiteCartContent() {
                 initialAddress={draftHydrated ? address : undefined}
                 labelClassName={INK_LABEL_CLS}
                 inputClassName={INK_INPUT_CLS}
-                noteClassName="font-mono text-[11px] text-[var(--text-faint)] mb-2"
               />
             </div>
 
@@ -569,7 +571,7 @@ export function SiteCartContent() {
                   Email para tu compra
                   <RequiredDot />
                 </label>
-                <RequiredFieldsNote className="font-mono text-[11px] text-[var(--text-faint)] mb-2" />
+                <RequiredFieldsNote className="font-mono text-sm font-bold text-[var(--text-faint)] mb-2" />
                 <input
                   type="email"
                   value={guestEmail}

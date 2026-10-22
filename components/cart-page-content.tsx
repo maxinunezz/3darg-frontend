@@ -8,7 +8,7 @@ import type { CartItem } from "@/contexts/CartContext";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { variantLabel } from "@/lib/product-variant";
 import { ShippingEstimator, type ShippingEstimate } from "@/components/shipping-estimator";
-import { RequiredDot } from "@/components/shipping-address-form";
+import { RequiredDot, RequiredFieldsNote } from "@/components/shipping-address-form";
 import { type ShippingAddress, isShippingAddressComplete, modalityFromMethodId } from "@/types/shipping";
 import { CartDiscountProgress } from "@/components/cart-discount-progress";
 import { FreeShippingProgress } from "@/components/free-shipping-progress";
@@ -504,9 +504,12 @@ export function CartPageContent() {
 
           <div className="px-4 py-4 border-t border-border bg-muted/20">
             <div className="mb-4">
-              <label className="block text-sm font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                Envío
-              </label>
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                  Envío
+                </label>
+                <RequiredFieldsNote className="text-sm font-bold text-muted-foreground" />
+              </div>
               <ShippingEstimator
                 items={items}
                 subtotal={total}

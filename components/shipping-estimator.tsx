@@ -16,7 +16,6 @@ import {
   DEFAULT_LABEL_CLS,
   DEFAULT_INPUT_CLS,
   RequiredDot,
-  RequiredFieldsNote,
 } from "@/components/shipping-address-form";
 
 const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
@@ -128,10 +127,6 @@ interface ShippingEstimatorProps {
    * que 3DARG (`site/cart-content.tsx`) pueda pasar su estética "ink". */
   labelClassName?: string;
   inputClassName?: string;
-  /** Clase de la leyenda "Los campos con • son obligatorios" — mismo
-   * criterio que `labelClassName`/`inputClassName`, para que 3DARG pueda
-   * pasar su estética "ink" en vez del default shadcn. */
-  noteClassName?: string;
 }
 
 function flattenBySlug(brands: BrandType[]): Record<string, BrandType> {
@@ -242,7 +237,6 @@ export function ShippingEstimator({
   className,
   labelClassName = DEFAULT_LABEL_CLS,
   inputClassName = DEFAULT_INPUT_CLS,
-  noteClassName,
 }: ShippingEstimatorProps) {
   const brandSlug = useBrandNamespace();
   const { user } = useAuth();
@@ -638,8 +632,6 @@ export function ShippingEstimator({
           </div>
         </div>
       )}
-
-      <RequiredFieldsNote className={noteClassName} />
 
       {loading && !methods.length ? (
         <p className="text-xs text-muted-foreground flex items-center gap-1.5">
