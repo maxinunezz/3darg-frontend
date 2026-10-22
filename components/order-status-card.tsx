@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AlertCircle, CheckCircle, Clock, XCircle, Copy, Check, Truck } from "lucide-react";
 import type { OrderStatusData } from "@/types/payment";
 import { TransferReceiptUpload } from "@/components/transfer-receipt-upload";
+import { getBrandUiClasses, type BrandUiClasses } from "@/lib/brand-ui-classes";
 
 // Extraído de `app/(main)/checkout/transfer/page.tsx` para poder reusar el
 // mismo bloque visual (estado del pedido + datos bancarios + subida de
@@ -81,10 +82,12 @@ function CopyField({
   label,
   value,
   copyable = true,
+  ui,
 }: {
   label: string;
   value: string;
   copyable?: boolean;
+  ui: BrandUiClasses;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -101,14 +104,16 @@ function CopyField({
   return (
     <div className="flex items-center justify-between gap-3 py-2">
       <div className="min-w-0">
-        <p className="text-xs text-gray-500">{label}</p>
-        <p className="font-mono text-sm font-semibold break-all text-black">{value}</p>
+        <p className={`text-xs ${ui.subtleTextClassName}`}>{label}</p>
+        <p className={`font-mono text-sm font-semibold break-all ${ui.variant === "default" ? "text-black" : "text-foreground"}`}>
+          {value}
+        </p>
       </div>
       {copyable && (
         <button
           type="button"
           onClick={handleCopy}
-          className="shrink-0 flex items-center gap-1.5 text-xs font-semibold border border-gray-300 text-black rounded-full px-3 py-1.5 hover:bg-gray-100 transition-colors"
+          className={`shrink-0 flex items-center gap-1.5 text-xs font-semibold border rounded-full px-3 py-1.5 transition-colors ${ui.ghostBtnClassName}`}
         >
           {copied ? (
             <>
@@ -128,6 +133,7 @@ function CopyField({
 export function OrderStatusCard({
   order,
   onReceiptUploaded,
+  ui = getBrandUiClasses("3darg"),
 }: {
   order: OrderStatusData;
   // Ver comentario de `onUploaded` en `TransferReceiptUpload` — sin esto el
@@ -135,6 +141,12 @@ export function OrderStatusCard({
   // entera cuando se sube un comprobante nuevo, porque `order` acá es un
   // prop inmutable que viene de la página padre.
   onReceiptUploaded?: (uploadedAt: string) => void;
+  // Antes de esto el componente SIEMPRE se veía igual (gris/blanco/negro
+  // hardcodeado) sin importar la marca — quedaba pegado encima del fondo
+  // cream/rose de Lumy o del tema de Print&Gym/genéricas como un cuerpo
+  // extraño. Default "3darg" para no romper si algún llamador viejo no lo
+  // pasa (no debería quedar ninguno — ver checkout/transfer y my-order).
+  ui?: BrandUiClasses;
 }) {
   const isPending = order.status === "PENDING" || order.status === "DRAFT";
   // Los datos de banco/referencia/comprobante solo existen para
@@ -153,34 +165,44 @@ export function OrderStatusCard({
         )
       : null;
 
+  // Texto "fuerte" (valores, totales) — en el resto del archivo los
+  // hardcodeados `text-black` solo tenían sentido para 3DARG; en las demás
+  // marcas tienen que seguir el color de texto theme-aware de esa marca.
+  const strongTextClassName = ui.variant === "default" ? "text-black" : "text-foreground";
+
   return (
     <>
       {header.icon}
-      <h1 className="text-3xl font-bold mb-2">{header.title}</h1>
-      <p className="text-gray-600 mb-8">{header.text}</p>
+      <h1 className={`text-3xl font-bold ${ui.mb("mb-2")}`}>{header.title}</h1>
+      <p className={`${ui.mutedTextClassName} ${ui.mb("mb-8")}`}>{header.text}</p>
 
       {/* Estado de envío de Correo Argentino — solo para pedidos ya
           confirmados (check verde de arriba) y únicamente si el backend
           encontró un estado real (`shipping_status`, ver
           `_reconcile_and_serialize` en el backend). Pedido explícito del
           dueño: NO se muestra en /profile ni /[brand]/profile, solo acá
-          (pantalla "tu pedido"). */}
+          (pantalla "tu pedido"). El verde de "shipping ok" y el ámbar de
+          "pendiente" más abajo son estados semánticos universales (éxito/
+          alerta) — a propósito NO se tiñen por marca, a diferencia de las
+          superficies neutras que sí usan `ui.surfaceClassName`. */}
       {order.status === "PAID" && order.shipping_status && (
         <div className="border border-green-200 bg-green-50 rounded-2xl p-5 text-left mb-6 flex items-start gap-3">
           <Truck className="w-6 h-6 text-green-600 shrink-0 mt-0.5" />
           <div>
-            <p className="text-xs text-gray-500 mb-1">Estado del envío</p>
-            <p className="font-semibold text-black">{order.shipping_status}</p>
+            <p className={`text-xs ${ui.subtleTextClassName} mb-1`}>Estado del envío</p>
+            <p className={`font-semibold ${strongTextClassName}`}>{order.shipping_status}</p>
           </div>
         </div>
       )}
 
       {isPendingTransfer && order.bank && (
-        <div className="border border-gray-200 rounded-2xl p-5 bg-white text-left mb-6 space-y-1 divide-y divide-gray-200">
-          <CopyField label="Alias" value={order.bank.alias} />
-          <CopyField label="CBU" value={order.bank.cbu} />
-          <CopyField label="Titular" value={order.bank.holder_name} copyable={false} />
-          <CopyField label="CUIT/CUIL" value={order.bank.cuit} copyable={false} />
+        <div
+          className={`border rounded-2xl p-5 text-left mb-6 space-y-1 divide-y ${ui.surfaceClassName} ${ui.variant === "default" ? "divide-gray-200" : "divide-border"}`}
+        >
+          <CopyField label="Alias" value={order.bank.alias} ui={ui} />
+          <CopyField label="CBU" value={order.bank.cbu} ui={ui} />
+          <CopyField label="Titular" value={order.bank.holder_name} copyable={false} ui={ui} />
+          <CopyField label="CUIT/CUIL" value={order.bank.cuit} copyable={false} ui={ui} />
         </div>
       )}
 
@@ -193,6 +215,7 @@ export function OrderStatusCard({
             initialHasReceipt={order.has_receipt}
             initialUploadedAt={order.receipt_uploaded_at}
             onUploaded={onReceiptUploaded}
+            ui={ui}
           />
         </div>
       )}
@@ -206,6 +229,7 @@ export function OrderStatusCard({
           <CopyField
             label="Usá esta referencia en el concepto/motivo de la transferencia"
             value={order.reference ?? ""}
+            ui={ui}
           />
           {/* El mismo código sirve después para encontrar el pedido sin cuenta
               en /my-order (ver OrderLookupAPIView) — se aclara acá para que
@@ -228,9 +252,9 @@ export function OrderStatusCard({
       )}
 
       {order.items.length > 0 && (
-        <div className="border border-gray-200 rounded-2xl p-5 bg-white text-left mb-8 space-y-3">
+        <div className={`border rounded-2xl p-5 text-left mb-8 space-y-3 ${ui.surfaceClassName}`}>
           <div className="flex justify-between items-center">
-            <p className="text-xs text-gray-500 font-mono">
+            <p className={`text-xs font-mono ${ui.subtleTextClassName}`}>
               #{order.order_id.split("-")[0].toUpperCase()}
             </p>
             <span
@@ -246,7 +270,9 @@ export function OrderStatusCard({
               {order.status_display}
             </span>
           </div>
-          <ul className="text-sm text-gray-600 space-y-1 border-t border-gray-200 pt-3">
+          <ul
+            className={`text-sm space-y-1 border-t pt-3 ${ui.mutedTextClassName} ${ui.variant === "default" ? "border-gray-200" : "border-border"}`}
+          >
             {order.items.map((item, i) => (
               <li key={i} className="flex justify-between">
                 <span>
@@ -258,7 +284,9 @@ export function OrderStatusCard({
               </li>
             ))}
           </ul>
-          <div className="border-t border-gray-200 pt-3 flex justify-between font-bold text-black">
+          <div
+            className={`border-t pt-3 flex justify-between font-bold ${strongTextClassName} ${ui.variant === "default" ? "border-gray-200" : "border-border"}`}
+          >
             <span>Total</span>
             <span>$ {Number(order.total_amount).toLocaleString("es-AR")}</span>
           </div>

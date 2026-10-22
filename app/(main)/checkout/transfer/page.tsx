@@ -141,6 +141,7 @@ function CheckoutTransferContent() {
                   prev ? { ...prev, has_receipt: true, receipt_uploaded_at: uploadedAt } : prev
                 )
               }
+              ui={ui}
             />
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">

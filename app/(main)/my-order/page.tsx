@@ -216,6 +216,7 @@ function MyOrderContent() {
                   prev ? { ...prev, has_receipt: true, receipt_uploaded_at: uploadedAt } : prev
                 )
               }
+              ui={ui}
             />
 
             {isReceiptIntent &&
@@ -223,7 +224,7 @@ function MyOrderContent() {
                 (order.status === "PENDING" || order.status === "DRAFT") &&
                 order.payment_channel === "transfer"
               ) && (
-                <div className="mb-6 text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-xl p-4 text-left">
+                <div className={`mb-6 text-sm rounded-xl p-4 text-left border ${ui.mutedTextClassName} ${ui.surfaceClassName}`}>
                   Este pedido no tiene una transferencia pendiente, así que no hace falta
                   subir ningún comprobante.
                 </div>

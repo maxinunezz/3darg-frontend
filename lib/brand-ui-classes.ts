@@ -47,6 +47,25 @@ export type BrandUiClasses = {
   linkSecondaryClassName: string;
   /** <Link> de texto plano (ej. "Volver al inicio"), sin fondo ni borde. */
   linkTextClassName: string;
+  /**
+   * Superficie de una card/box (border + fondo + texto) usada por
+   * `OrderStatusCard`/`TransferReceiptUpload` — SIN radius/padding/margin,
+   * eso lo agrega cada uso puntual. Reemplaza el `border border-gray-200
+   * bg-white text-black` hardcodeado que esos componentes tenían antes de
+   * volverse brand-aware (se veían siempre iguales sin importar la marca,
+   * ver nota en CLAUDE.md/historial de este archivo).
+   */
+  surfaceClassName: string;
+  /** Texto secundario/mutado (reemplaza `text-gray-600`). */
+  mutedTextClassName: string;
+  /** Texto terciario, labels chicos (reemplaza `text-gray-500`). */
+  subtleTextClassName: string;
+  /** Color de borde para divisores sueltos, ej. `divide-*`/`border-t` (reemplaza `border-gray-200`). */
+  borderClassName: string;
+  /** Botón outline chico, no full width (reemplaza `border-gray-300 text-black hover:bg-gray-100`). */
+  ghostBtnClassName: string;
+  /** Botón sólido chico, no full width (reemplaza `bg-black text-white hover:opacity-90`). */
+  solidBtnSmallClassName: string;
 };
 
 export function getBrandUiClasses(slug: string | null | undefined): BrandUiClasses {
@@ -66,6 +85,16 @@ export function getBrandUiClasses(slug: string | null | undefined): BrandUiClass
         linkPrimaryClassName: "lm-btn lm-btn--primary lm-btn--lg",
         linkSecondaryClassName: "lm-btn lm-btn--secondary lm-btn--lg",
         linkTextClassName: "lm-btn lm-btn--link",
+        // `.site-lumy` redefine --card/--border/--muted-foreground/--primary
+        // (ver app/site-lumy.css) — estos tokens theme-aware alcanzan solos
+        // para heredar la paleta cream/rose/ink de Lumy, sin necesitar clases
+        // .lm-card/.lm-badge dedicadas para esto.
+        surfaceClassName: "border-border bg-card text-card-foreground",
+        mutedTextClassName: "text-muted-foreground",
+        subtleTextClassName: "text-muted-foreground",
+        borderClassName: "border-border",
+        ghostBtnClassName: "border-border text-foreground hover:bg-muted",
+        solidBtnSmallClassName: "bg-primary text-primary-foreground hover:opacity-90",
       };
     case "printgym":
       return {
@@ -81,6 +110,12 @@ export function getBrandUiClasses(slug: string | null | undefined): BrandUiClass
         linkPrimaryClassName: "btn btn-red",
         linkSecondaryClassName: "btn btn-ghost",
         linkTextClassName: "text-sm text-muted-foreground underline hover:text-foreground transition-colors",
+        surfaceClassName: "border-border bg-card text-card-foreground",
+        mutedTextClassName: "text-muted-foreground",
+        subtleTextClassName: "text-muted-foreground",
+        borderClassName: "border-border",
+        ghostBtnClassName: "border-border text-foreground hover:bg-muted",
+        solidBtnSmallClassName: "bg-primary text-primary-foreground hover:opacity-90",
       };
     case "generic":
       return {
@@ -97,6 +132,12 @@ export function getBrandUiClasses(slug: string | null | undefined): BrandUiClass
         linkSecondaryClassName:
           "inline-block border border-border text-foreground px-6 py-3 rounded-full font-semibold hover:bg-muted transition-colors text-sm",
         linkTextClassName: "text-sm text-muted-foreground underline hover:text-foreground transition-colors",
+        surfaceClassName: "border-border bg-card text-card-foreground",
+        mutedTextClassName: "text-muted-foreground",
+        subtleTextClassName: "text-muted-foreground",
+        borderClassName: "border-border",
+        ghostBtnClassName: "border-border text-foreground hover:bg-muted",
+        solidBtnSmallClassName: "bg-primary text-primary-foreground hover:opacity-90",
       };
     case "default":
     default:
@@ -114,6 +155,15 @@ export function getBrandUiClasses(slug: string | null | undefined): BrandUiClass
         linkSecondaryClassName:
           "inline-block border border-gray-300 text-black px-6 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors text-sm",
         linkTextClassName: "text-sm text-gray-500 underline hover:text-black",
+        // Sin cambios de comportamiento acá: son los mismos hardcodeados que
+        // ya tenían `OrderStatusCard`/`TransferReceiptUpload` antes de
+        // volverse brand-aware.
+        surfaceClassName: "border-gray-200 bg-white text-black",
+        mutedTextClassName: "text-gray-600",
+        subtleTextClassName: "text-gray-500",
+        borderClassName: "border-gray-200",
+        ghostBtnClassName: "border-gray-300 text-black hover:bg-gray-100",
+        solidBtnSmallClassName: "bg-black text-white hover:opacity-90",
       };
   }
 }

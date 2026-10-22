@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { CheckCircle, Loader2, FileText, Upload, XCircle } from "lucide-react";
+import { getBrandUiClasses, type BrandUiClasses } from "@/lib/brand-ui-classes";
 
 // Primer `<input type="file">` del proyecto — no hay componente ni patrón
 // reusable previo, se construye de cero. Sube el comprobante de
@@ -47,6 +48,7 @@ export function TransferReceiptUpload({
   initialHasReceipt = false,
   initialUploadedAt = null,
   onUploaded,
+  ui = getBrandUiClasses("3darg"),
 }: {
   orderId: string;
   initialHasReceipt?: boolean;
@@ -60,6 +62,9 @@ export function TransferReceiptUpload({
   // confirmación") — sin esto, subir el comprobante actualiza ESTE bloque
   // pero el encabezado de arriba queda mostrando el estado viejo.
   onUploaded?: (uploadedAt: string) => void;
+  // Ver mismo comentario en `OrderStatusCard` — antes este componente
+  // siempre se veía blanco/negro/gris sin importar la marca.
+  ui?: BrandUiClasses;
 }) {
   // `hasReceipt`/`uploadedAt` reflejan lo que YA hay guardado en el pedido
   // (viene de `reconcile/` al cargar la página, o se actualiza en vivo tras
@@ -179,10 +184,13 @@ export function TransferReceiptUpload({
     );
   }
 
+  const strongTextClassName = ui.variant === "default" ? "text-black" : "text-foreground";
+  const hoverSurfaceClassName = ui.variant === "default" ? "hover:bg-gray-50" : "hover:bg-muted";
+
   return (
-    <div className="border border-gray-200 rounded-2xl p-5 bg-white text-left mb-6">
-      <p className="font-semibold text-black mb-1">Ayudanos a confirmar tu pedido más rápido</p>
-      <p className="text-sm text-gray-600 mb-4">
+    <div className={`border rounded-2xl p-5 text-left mb-6 ${ui.surfaceClassName}`}>
+      <p className={`font-semibold mb-1 ${strongTextClassName}`}>Ayudanos a confirmar tu pedido más rápido</p>
+      <p className={`text-sm mb-4 ${ui.mutedTextClassName}`}>
         Subí una foto o el PDF de tu comprobante de transferencia y te confirmamos el pedido antes.
       </p>
 
@@ -199,14 +207,14 @@ export function TransferReceiptUpload({
       {!file ? (
         <label
           htmlFor={`receipt-input-${orderId}`}
-          className="flex items-center justify-center gap-2 border border-dashed border-gray-300 rounded-xl py-6 cursor-pointer hover:bg-gray-50 transition-colors text-sm font-medium text-gray-600"
+          className={`flex items-center justify-center gap-2 border border-dashed rounded-xl py-6 cursor-pointer transition-colors text-sm font-medium ${ui.borderClassName} ${hoverSurfaceClassName} ${ui.mutedTextClassName}`}
         >
           <Upload className="w-4 h-4" />
           Elegir foto o PDF
         </label>
       ) : (
         <div className="space-y-3">
-          <div className="flex items-center gap-3 border border-gray-200 rounded-xl p-3">
+          <div className={`flex items-center gap-3 border rounded-xl p-3 ${ui.borderClassName}`}>
             {previewUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={previewUrl} alt="Vista previa del comprobante" className="w-16 h-16 object-cover rounded-lg" />
@@ -214,8 +222,8 @@ export function TransferReceiptUpload({
               <FileText className="w-10 h-10 text-gray-400 shrink-0" />
             )}
             <div className="min-w-0">
-              <p className="text-sm font-medium text-black truncate">{file.name}</p>
-              <p className="text-xs text-gray-500">{(file.size / (1024 * 1024)).toFixed(1)} MB</p>
+              <p className={`text-sm font-medium truncate ${strongTextClassName}`}>{file.name}</p>
+              <p className={`text-xs ${ui.subtleTextClassName}`}>{(file.size / (1024 * 1024)).toFixed(1)} MB</p>
             </div>
           </div>
 
@@ -224,7 +232,7 @@ export function TransferReceiptUpload({
               type="button"
               onClick={handleUpload}
               disabled={status === "uploading"}
-              className="flex-1 inline-flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 rounded-full font-semibold hover:opacity-90 transition-opacity text-sm disabled:opacity-60"
+              className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full font-semibold transition-opacity text-sm disabled:opacity-60 ${ui.solidBtnSmallClassName}`}
             >
               {status === "uploading" ? (
                 <>
@@ -238,7 +246,7 @@ export function TransferReceiptUpload({
               type="button"
               onClick={resetFileState}
               disabled={status === "uploading"}
-              className="border border-gray-300 text-black px-4 py-2.5 rounded-full font-semibold hover:bg-gray-100 transition-colors text-sm"
+              className={`border px-4 py-2.5 rounded-full font-semibold transition-colors text-sm ${ui.ghostBtnClassName}`}
             >
               Cancelar
             </button>
