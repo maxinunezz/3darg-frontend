@@ -247,7 +247,7 @@ function SiteTalleSelector({
                 <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--signal-error)]">Agotado</span>
               ) : (
                 measure && (
-                  <span className={`text-[11px] font-normal ${isSelected ? "text-[var(--bone-050)]/80" : "text-[var(--text-faint)]"}`}>
+                  <span className="text-[16px] font-bold leading-tight">
                     {measure}
                   </span>
                 )

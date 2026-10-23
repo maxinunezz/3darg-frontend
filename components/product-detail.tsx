@@ -598,7 +598,7 @@ function TalleSelector({
                 <span className="text-[10px] font-bold uppercase tracking-wide text-red-500">Agotado</span>
               ) : (
                 measure && (
-                  <span className={`text-xs font-normal ${isSelected ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                  <span className="text-base font-bold leading-tight">
                     {measure}
                   </span>
                 )
