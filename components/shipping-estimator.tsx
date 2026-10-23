@@ -89,6 +89,14 @@ export type ShippingEstimate = {
   cost: number;
   methodId: string;
   agencyId?: string;
+  /** `true` mientras `cost` es el precio de la tabla de respaldo (sin
+   * cotización en vivo todavía, ver `ShippingMethod.is_fallback` más abajo) —
+   * lo usa el panel de totales del carrito (`cart-page-content.tsx`/
+   * `site/cart-content.tsx`) para no mostrar ese monto como si fuera el
+   * precio real y generar fricción antes de que el comprador complete su
+   * CP/sucursal (mismo criterio que ya usan las tarjetas de radio de acá
+   * abajo, ver "Oculta el precio de respaldo en el selector de envío"). */
+  isFallback: boolean;
 } | null;
 
 const EMPTY_DOMICILIO_ADDRESS: ShippingAddress = {
@@ -557,6 +565,7 @@ export function ShippingEstimator({
       cost: freeShippingActive ? 0 : activeMethod.price,
       methodId: activeMethod.id,
       agencyId: modality === "sucursal" ? sucursalAgencyId || undefined : undefined,
+      isFallback: activeMethod.is_fallback,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeMethod, freeShippingActive, modality, sucursalAgencyId, effectivePostalCode]);

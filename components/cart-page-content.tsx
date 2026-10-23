@@ -608,9 +608,13 @@ export function CartPageContent() {
               <span>Envío</span>
               <span>
                 {shippingEstimate
-                  ? shippingEstimate.cost > 0
-                    ? fmt(shippingEstimate.cost)
-                    : "Gratis"
+                  ? shippingEstimate.isFallback
+                    ? shippingModality === "sucursal"
+                      ? "Elegí tu sucursal"
+                      : "Completá tu código postal"
+                    : shippingEstimate.cost > 0
+                      ? fmt(shippingEstimate.cost)
+                      : "Gratis"
                   : "A calcular"}
               </span>
             </div>

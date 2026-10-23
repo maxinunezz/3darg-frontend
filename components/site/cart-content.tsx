@@ -553,7 +553,15 @@ export function SiteCartContent() {
             <div className="flex items-center justify-between font-mono text-xs uppercase tracking-[var(--tracking-label)] text-[var(--ink-400)] mb-3">
               <span>Envío</span>
               <span>
-                {shippingEstimate ? (shippingEstimate.cost > 0 ? fmt(shippingEstimate.cost) : "Gratis") : "A calcular"}
+                {shippingEstimate
+                  ? shippingEstimate.isFallback
+                    ? shippingModality === "sucursal"
+                      ? "Elegí tu sucursal"
+                      : "Completá tu código postal"
+                    : shippingEstimate.cost > 0
+                      ? fmt(shippingEstimate.cost)
+                      : "Gratis"
+                  : "A calcular"}
               </span>
             </div>
             <div className="flex items-center justify-between">
