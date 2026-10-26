@@ -254,6 +254,28 @@ Este reset es específico de `site-lumy.css` — no existe en el resto del sitio
 - **Server vs client components:** preferir server components. Marcar `"use client"` solo cuando se necesita interactividad o hooks.
 - **Navbar auth:** sin sesión → ocultar carrito, mostrar "Ingresar". Login de sub-marca → `/${brand.slug}/auth/login`, no `/login`.
 
+## Flujo de trabajo
+
+Reglas generales (ramas, checklist antes de pushear, rollback) en
+`~/.claude/CLAUDE.md` (global). Específico de este repo:
+
+- **Nunca commit/push directo a `main`** — Vercel lo autodeploya a
+  `3darg.com`. Rama nueva por feature/fix, probar en local (`npm run dev`,
+  dentro del `docker compose` del monorepo), recién ahí mergear.
+- **Staging casi gratis**: cada PR en GitHub genera una preview URL en Vercel
+  automáticamente — abrir PR (en vez de pushear directo a `main`) alcanza
+  como staging para este repo, a diferencia del backend que todavía no lo
+  tiene. Usarlo para cualquier cambio de UI no trivial antes de mergear.
+- **Antes de mergear**: correr `npm run build` local (atrapa errores de tipos
+  que `next dev` no muestra) y `npm run lint`.
+- **Verificación de UI**: no usar Claude Preview MCP en este proyecto (ver
+  sección arriba) — indicar siempre al dueño la URL exacta y qué probar a
+  mano.
+- **Rollback rápido**: "Promote to Production" sobre un deploy anterior desde
+  el dashboard de Vercel, sin esperar a revertir en git.
+- **Bitácora de deploys**: Slack `#reportes-it` — mandar el mensaje siempre se
+  confirma antes con el dueño, no es automático.
+
 ## Directorios clave
 
 | Path | Propósito |
