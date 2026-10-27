@@ -22,7 +22,7 @@ const CANALES = [
   { label: "WhatsApp", value: "+54 9 11 0000-0000", href: "https://wa.me/5491100000000" },
   { label: "Mail", value: "contacto@3darg.com", href: "mailto:contacto@3darg.com" },
   { label: "Instagram", value: "@3darg", href: "https://instagram.com/3darg" },
-  { label: "YouTube", value: "3DARG", href: "https://youtube.com" },
+  { label: "YouTube", value: "3DARG", href: "https://www.youtube.com/@3DARG1" },
   { label: "Ubicación", value: "Buenos Aires, Argentina", href: undefined },
 ];
 
