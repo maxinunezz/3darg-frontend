@@ -80,26 +80,23 @@ export function SiteProductDetail({ slug, initialProduct, related }: Props) {
   const variants = product.variants ?? [];
   const hasTalleSelector = variants.length > 1;
   const sortedVariants = hasTalleSelector ? [...variants].sort((a, b) => a.order - b.order) : variants;
-  // Default: el primero CON STOCK (no literal el primero por `order`) —
-  // así un talle placeholder "Chico"/"Grande" sin stock real nunca queda
-  // preseleccionado dejando la ficha en "Sin stock" cuando el talle que sí
-  // se vende (ej. "Mediano") tiene stock. Si ninguno tiene stock, cae al
-  // primero por `order` nomás.
-  const defaultVariant = sortedVariants.find((v) => v.stock > 0) ?? sortedVariants[0];
+  const defaultVariant = sortedVariants[0];
   const effectiveVariant: ProductVariantType | null = hasTalleSelector
     ? sortedVariants.find((v) => v.id === selectedVariantId) ?? defaultVariant
     : variants[0] ?? null;
 
-  const inStock = product.is_available && (effectiveVariant ? effectiveVariant.stock > 0 : product.stock > 0);
+  // Se produce bajo pedido: `is_available` es el único gate de compra, el
+  // número de stock es puramente informativo (mismo criterio que el backend
+  // en cart/checkout desde 2026-10-21).
+  const inStock = product.is_available;
   const images = product.images ?? [];
   const mainImage = cloudinaryUrl(resolveMediaUrl(images[activeImage]?.image ?? images[0]?.image), 800);
-  const stockQty = effectiveVariant ? effectiveVariant.stock : product.stock;
   const specs = [
     { k: "Material", v: "PLA / PETG técnico" },
     { k: "Tolerancia", v: "0.15 mm" },
     { k: "Envío", v: "24–72 hs" },
     { k: "Terminación", v: "Lijado a mano" },
-    { k: "Stock", v: inStock ? `${stockQty} unidades` : "Sin stock" },
+    { k: "Producción", v: "A pedido" },
   ];
 
   return (
@@ -157,7 +154,7 @@ export function SiteProductDetail({ slug, initialProduct, related }: Props) {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Badge tone={inStock ? "ok" : "error"}>{inStock ? "En stock" : "Sin stock"}</Badge>
+            <Badge tone={inStock ? "ok" : "error"}>{inStock ? "Disponible" : "No disponible"}</Badge>
             <Badge tone="outline">Envío 24–72 hs</Badge>
             <Badge tone="outline">Se imprime a pedido</Badge>
           </div>
@@ -226,13 +223,11 @@ function SiteTalleSelector({
       <div className="flex flex-wrap gap-2">
         {variants.map((variant) => {
           const isSelected = variant.id === selectedId;
-          const outOfStock = variant.stock <= 0;
           const { name, measure } = variantSizeParts(variant);
           return (
             <button
               key={variant.id}
               type="button"
-              disabled={outOfStock}
               onClick={() => onSelect(variant.id)}
               aria-pressed={isSelected}
               aria-label={variantLabel(variant)}
@@ -240,17 +235,13 @@ function SiteTalleSelector({
                 isSelected
                   ? "border-[var(--ink-900)] bg-[var(--ink-900)] text-[var(--bone-050)]"
                   : "border-[var(--border-hairline)] hover:border-[var(--ink-900)]"
-              } ${outOfStock ? "opacity-50 cursor-not-allowed" : ""}`}
+              }`}
             >
               <span className="text-[16px] font-bold leading-tight">{name}</span>
-              {outOfStock ? (
-                <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--signal-error)]">Agotado</span>
-              ) : (
-                measure && (
-                  <span className="text-[16px] font-bold leading-tight">
-                    {measure}
-                  </span>
-                )
+              {measure && (
+                <span className="text-[16px] font-bold leading-tight">
+                  {measure}
+                </span>
               )}
             </button>
           );

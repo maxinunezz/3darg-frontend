@@ -276,21 +276,22 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
 
   // Talles reales (ver `ProductVariant` en el backend) — [] o 1 solo talle =
   // comportamiento histórico, sin selector (Fase 1: ese único talle ya
-  // espeja el precio/stock del `product`, así que mostrar el selector no
-  // aportaría nada). Con 2+ se ofrece elegir. Default: el primero CON STOCK
-  // (no literal el primero por `order`) — así un talle placeholder "Chico"/
-  // "Grande" sin stock real nunca queda preseleccionado dejando la ficha en
-  // "Sin stock" cuando el talle que sí se vende (ej. "Mediano") tiene stock.
-  // Si ninguno tiene stock, cae al primero por `order` nomás.
+  // espeja el precio del `product`, así que mostrar el selector no
+  // aportaría nada). Con 2+ se ofrece elegir, cualquiera de orden (se
+  // produce bajo pedido — el stock es informativo, nunca determina qué
+  // talle se puede elegir ni si se puede comprar).
   const variants = product.variants ?? [];
   const hasTalleSelector = variants.length > 1;
   const sortedVariants = hasTalleSelector ? [...variants].sort((a, b) => a.order - b.order) : variants;
-  const defaultVariant = sortedVariants.find((v) => v.stock > 0) ?? sortedVariants[0];
+  const defaultVariant = sortedVariants[0];
   const effectiveVariant: ProductVariantType | null = hasTalleSelector
     ? sortedVariants.find((v) => v.id === selectedVariantId) ?? defaultVariant
     : variants[0] ?? null;
 
-  const inStock = product.is_available && (effectiveVariant ? effectiveVariant.stock > 0 : product.stock > 0);
+  // Se produce bajo pedido: `is_available` es el único gate de compra, el
+  // número de stock es puramente informativo (mismo criterio que el backend
+  // en cart/checkout desde 2026-10-21).
+  const inStock = product.is_available;
   const images = product.images ?? [];
   const safeActiveImage = images.length > 0 ? Math.min(activeImage, images.length - 1) : 0;
   const mainImage = cloudinaryUrl(resolveMediaUrl(images[safeActiveImage]?.image), 800);
@@ -435,16 +436,16 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
               selectedId={effectiveVariant?.id ?? null}
               onSelect={(id) => {
                 setSelectedVariantId(id);
-                setQty(1); // el stock tope cambia por talle, evita arrastrar una cantidad inválida
+                setQty(1); // reset simple al cambiar de talle, sin relación a stock
               }}
             />
           )}
 
-          {/* Stock indicator: solo se avisa cuando NO hay stock, no se muestra la cantidad exacta */}
+          {/* Solo se muestra si el producto quedó deshabilitado a propósito (`is_available=False`) — no es un aviso de stock */}
           {!inStock && (
             <div className="flex items-center gap-2 text-sm">
               <span className="w-2 h-2 rounded-full bg-red-400" />
-              <span className="text-red-500">Sin stock</span>
+              <span className="text-red-500">No disponible</span>
             </div>
           )}
 
@@ -558,9 +559,8 @@ function WholesalesButton({ brandSlug }: { brandSlug: string }) {
  * buttons, uno por variante, ordenados por `order`. Muestra el nombre del
  * talle grande (título) y la medida debajo (subtítulo) — sin precio: el
  * precio de la variante elegida ya se refleja arriba en `ProductPrice`,
- * repetirlo acá era ruido. Un talle sin stock se muestra atenuado + con un
- * cartel "Agotado" en vez de la medida (no tachado), no se oculta (igual
- * criterio que "Sin stock" en el resto de la ficha).
+ * repetirlo acá era ruido. Se produce bajo pedido: todos los talles quedan
+ * siempre seleccionables, el stock no deshabilita ninguno.
  */
 function TalleSelector({
   variants,
@@ -577,13 +577,11 @@ function TalleSelector({
       <div className="flex flex-wrap gap-2">
         {variants.map((variant) => {
           const isSelected = variant.id === selectedId;
-          const outOfStock = variant.stock <= 0;
           const { name, measure } = variantSizeParts(variant);
           return (
             <button
               key={variant.id}
               type="button"
-              disabled={outOfStock}
               onClick={() => onSelect(variant.id)}
               aria-pressed={isSelected}
               aria-label={variantLabel(variant)}
@@ -591,17 +589,13 @@ function TalleSelector({
                 isSelected
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border hover:border-primary/50"
-              } ${outOfStock ? "opacity-50 cursor-not-allowed" : ""}`}
+              }`}
             >
               <span className="text-base font-bold leading-tight">{name}</span>
-              {outOfStock ? (
-                <span className="text-[10px] font-bold uppercase tracking-wide text-red-500">Agotado</span>
-              ) : (
-                measure && (
-                  <span className="text-base font-bold leading-tight">
-                    {measure}
-                  </span>
-                )
+              {measure && (
+                <span className="text-base font-bold leading-tight">
+                  {measure}
+                </span>
               )}
             </button>
           );
