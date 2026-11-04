@@ -28,6 +28,14 @@ const bebasNeue = Bebas_Neue({
 });
 
 export const metadata: Metadata = {
+  // Requerido por Next.js para resolver URLs relativas de Open Graph/Twitter
+  // a absolutas (sin esto, cae a "http://localhost:8080" en producción y
+  // rompe las previews al compartir un link en WhatsApp/Twitter/Facebook).
+  // Los og:image que ya existen (producto, landing de marca) usan URLs
+  // absolutas del backend así que no dependían de esto, pero cualquier
+  // metadata futura sin URL absoluta sí lo necesita. Override opcional vía
+  // NEXT_PUBLIC_SITE_URL si en algún momento se sirve desde otro dominio.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://3darg.com"),
   title: "3DARG | Manufactura 3D Industrial",
   description:
     "Diseño y fabricación digital a escala industrial. Impresión 3D, prototipado y diseño 3D en Argentina.",
