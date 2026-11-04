@@ -1,0 +1,85 @@
+# Dockerfile de PRODUCCIÓN, usado solo por Railway — no tocar `Dockerfile`
+# (ese es el de desarrollo, usado por docker-compose.yml con hot-reload vía
+# `npm run dev`). Build multi-stage: compila con todas las devDependencies
+# y corre con el output "standalone" (ver next.config.ts), así la imagen
+# final no carga node_modules completo ni el código fuente, solo lo que
+# Next.js resolvió que hace falta para `node server.js`.
+
+# ── 1. deps: instala dependencias (cacheable mientras no cambie package*.json)
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# ── 2. builder: compila la app con las env NEXT_PUBLIC_* ya resueltas
+#    (se inyectan en build-time, quedan "horneadas" en el bundle del cliente)
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+ARG NEXT_PUBLIC_BACKEND_URL
+ARG NEXT_PUBLIC_BACKEND_MEDIA_URL
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ARG NEXT_PUBLIC_MAIN_BRAND_SLUG
+ARG NEXT_PUBLIC_MP_SANDBOX
+ARG NEXT_PUBLIC_POSTHOG_KEY
+ARG NEXT_PUBLIC_POSTHOG_HOST
+ARG NEXT_PUBLIC_SENTRY_DSN
+ARG NEXT_PUBLIC_LEGAL_RAZON_SOCIAL
+ARG NEXT_PUBLIC_LEGAL_CUIT
+ARG NEXT_PUBLIC_LEGAL_DOMICILIO
+ARG NEXT_PUBLIC_LEGAL_CONTACT_EMAIL
+ARG NEXT_PUBLIC_LEGAL_ENVIO_TRANSPORTISTA
+ARG NEXT_PUBLIC_LEGAL_ENVIO_PLAZO
+ARG NEXT_PUBLIC_LEGAL_DEVOLUCION_DIAS
+ARG NEXT_PUBLIC_LEGAL_ULTIMA_ACTUALIZACION
+# OJO: SENTRY_AUTH_TOKEN (sube source maps a Sentry) NO va acá a propósito —
+# es un secreto real de escritura, y ARG/ENV de Docker quedan legibles en el
+# historial de capas de la imagen (docker history). Sin él, el build sigue
+# funcionando igual (withSentryConfig lo hace opcional, ver next.config.ts)
+# solo que no sube source maps. Si en algún momento se necesita, usar
+# `RUN --mount=type=secret` de BuildKit en vez de ARG/ENV.
+
+ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL \
+    NEXT_PUBLIC_BACKEND_MEDIA_URL=$NEXT_PUBLIC_BACKEND_MEDIA_URL \
+    NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID \
+    NEXT_PUBLIC_MAIN_BRAND_SLUG=$NEXT_PUBLIC_MAIN_BRAND_SLUG \
+    NEXT_PUBLIC_MP_SANDBOX=$NEXT_PUBLIC_MP_SANDBOX \
+    NEXT_PUBLIC_POSTHOG_KEY=$NEXT_PUBLIC_POSTHOG_KEY \
+    NEXT_PUBLIC_POSTHOG_HOST=$NEXT_PUBLIC_POSTHOG_HOST \
+    NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN \
+    NEXT_PUBLIC_LEGAL_RAZON_SOCIAL=$NEXT_PUBLIC_LEGAL_RAZON_SOCIAL \
+    NEXT_PUBLIC_LEGAL_CUIT=$NEXT_PUBLIC_LEGAL_CUIT \
+    NEXT_PUBLIC_LEGAL_DOMICILIO=$NEXT_PUBLIC_LEGAL_DOMICILIO \
+    NEXT_PUBLIC_LEGAL_CONTACT_EMAIL=$NEXT_PUBLIC_LEGAL_CONTACT_EMAIL \
+    NEXT_PUBLIC_LEGAL_ENVIO_TRANSPORTISTA=$NEXT_PUBLIC_LEGAL_ENVIO_TRANSPORTISTA \
+    NEXT_PUBLIC_LEGAL_ENVIO_PLAZO=$NEXT_PUBLIC_LEGAL_ENVIO_PLAZO \
+    NEXT_PUBLIC_LEGAL_DEVOLUCION_DIAS=$NEXT_PUBLIC_LEGAL_DEVOLUCION_DIAS \
+    NEXT_PUBLIC_LEGAL_ULTIMA_ACTUALIZACION=$NEXT_PUBLIC_LEGAL_ULTIMA_ACTUALIZACION \
+    NEXT_TELEMETRY_DISABLED=1
+
+RUN npm run build
+
+# ── 3. runner: imagen final, mínima
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Usuario sin privilegios (mismo patrón que la imagen oficial de Next.js)
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+# Railway inyecta $PORT dinámico — Next.js standalone lo respeta solo si
+# server.js lee process.env.PORT (lo hace por default).
+EXPOSE 3000
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+CMD ["node", "server.js"]

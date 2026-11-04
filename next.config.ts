@@ -25,6 +25,12 @@ const prodMediaPattern = (() => {
 })();
 
 const nextConfig: NextConfig = {
+  // "standalone": empaqueta solo lo necesario para correr `node server.js`
+  // (sin devDependencies ni el resto del repo) — reduce muchísimo el tamaño
+  // de la imagen Docker de producción. No afecta `next dev` (docker-compose
+  // local sigue igual) ni el build en Vercel (Vercel lo ignora, tiene su
+  // propio pipeline de salida).
+  output: "standalone",
   images: {
     remotePatterns: [
       {
