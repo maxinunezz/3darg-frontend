@@ -19,7 +19,7 @@ const NON_BRAND_SEGMENTS = new Set([
   "monitoring",
 ]);
 
-function brandFromPath(pathname: string): string {
+export function brandFromPath(pathname: string): string {
   const segment = pathname.split("/").filter(Boolean)[0] ?? "";
   if (!segment || NON_BRAND_SEGMENTS.has(segment)) return "3darg";
   return segment;
