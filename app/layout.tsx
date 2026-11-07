@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, JetBrains_Mono, Bebas_Neue } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { PostHogProvider } from "@/components/posthog-provider";
 import { MetaPixelProvider } from "@/components/meta-pixel-provider";
+import { GoogleAnalyticsPageView } from "@/components/google-analytics-pageview";
 import { GoogleAuthProvider } from "@/components/google-auth-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
+
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -67,6 +71,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </GoogleAuthProvider>
           </ThemeProvider>
         </PostHogProvider>
+        {GA_MEASUREMENT_ID && (
+          <>
+            <GoogleAnalytics gaId={GA_MEASUREMENT_ID} />
+            <GoogleAnalyticsPageView />
+          </>
+        )}
       </body>
     </html>
   );
