@@ -112,7 +112,7 @@ contenido pensada para posicionar en buscadores en español, slug en español.
 - `DELETE /api/cart/` devuelve **204 sin body** → nunca llamar `.json()` sin chequear `response.ok` primero.
 - Como el carrito ya pertenece a una sola marca, `components/cart-page-content.tsx` y `components/site/cart-content.tsx` ya NO agrupan items por marca (`groupByBrand` se eliminó) — un solo listado, un solo botón de checkout con el `brand_slug` del namespace actual.
 - **Selector de método de envío** (`components/shipping-estimator.tsx`, único dueño de la dirección — `cart-page-content.tsx`/`site/cart-content.tsx` ya NO renderizan `ShippingAddressForm` por separado): dos tarjetas de radio, **"Retirar en sucursal"** (default, desplegada) y **"Envío a domicilio"** (colapsada, se expande al elegirla) — las dos son Correo Argentino (Andreani se reemplazó por completo, ver `3darg-backend/CLAUDE.md` → "Envíos"), cotizando contra `POST /api/shipping/calculate/` **sin pedirle nada extra al comprador a propósito**, pero recotizando EN VIVO contra `/rates` (en vez de quedarse con la tabla de respaldo por peso facturable + Valor Declarado de `quote.py`) en cuanto se conoce un CP real de destino — ver `effectivePostalCode` en `shipping-estimator.tsx`: en domicilio, el CP que el comprador tipeó en el form (debounced 400ms); en sucursal, el CP de la sucursal elegida (ya viene en la respuesta de `/agencies/`, el comprador no tipea ningún CP en esa modalidad). Antes de tener alguno de los dos (recién entrando) sigue cayendo a la tabla de respaldo, igual que siempre. **Antes de este fix** (hasta 2026-10-21) el componente nunca mandaba `postal_code`, así que el checkout real SIEMPRE mostraba el precio de la tabla de respaldo (identico en las dos modalidades, por diseño — ver `3darg-backend/tariff.py`) aunque el backend ya soportara cotización en vivo.
-  - **Sucursal**: al montar, pide `GET /api/geo` (route handler propio, `app/api/geo/route.ts`) que lee los headers de geolocalización gratuitos de Vercel (`x-vercel-ip-country`/`x-vercel-ip-country-region`) y devuelve `{province}` — vacío en dev local o si el visitante no es de Argentina, sin romper nada. Con la provincia (auto-detectada o elegida a mano) pide `GET /api/shipping/agencies/?province=<code>` y preselecciona la **primera sucursal de la lista** como aproximación de "la más cercana" (no hay distancia geográfica real). Solo pide nombre+teléfono del comprador además de la sucursal elegida — mini-form inline, no usa `ShippingAddressForm`. El CP de esa sucursal también se sube como `address.postalCode` (antes siempre vacío en esta modalidad) para que quede persistido en el `Order` igual que domicilio.
+  - **Sucursal**: al montar, pide `GET /api/geo` (route handler propio, `app/api/geo/route.ts`) que lee los headers de geolocalización gratuitos de Vercel (`x-vercel-ip-country`/`x-vercel-ip-country-region`) y devuelve `{province}` — vacío en dev local o si el visitante no es de Argentina, sin romper nada. **⚠️ Desde la migración a Railway (2026-11-04) este handler está efectivamente muerto**: Railway no manda esos headers `x-vercel-ip-*`, así que `GET /api/geo` devuelve `{province: ""}` para todo el tráfico de producción, no solo para visitantes fuera de Argentina — degrada silenciosamente (mismo patrón "vacío = sin romper nada") a que el comprador siempre tenga que elegir la provincia a mano en vez de que se autodetecte. No es un error visible, pero la autodetección ya no funciona en ningún caso real. Pendiente: reemplazar por un servicio de geo-IP que no dependa de Vercel, o aceptar el degradado y quitar el código muerto. Con la provincia (auto-detectada o elegida a mano) pide `GET /api/shipping/agencies/?province=<code>` y preselecciona la **primera sucursal de la lista** como aproximación de "la más cercana" (no hay distancia geográfica real). Solo pide nombre+teléfono del comprador además de la sucursal elegida — mini-form inline, no usa `ShippingAddressForm`. El CP de esa sucursal también se sube como `address.postalCode` (antes siempre vacío en esta modalidad) para que quede persistido en el `Order` igual que domicilio.
   - **Domicilio**: al elegirla, renderiza `<ShippingAddressForm>` completo (`components/shipping-address-form.tsx`, controlado, tipo `ShippingAddress` en `types/shipping.ts` — espejo exacto de `AR_PROVINCES`/campos del backend) y exige calle/altura/ciudad/provincia/CP reales.
   - `ShippingEstimator` compone un único `ShippingAddress` (forma distinta según la modalidad activa) y lo sube vía `onAddressChange`; el precio+método+`agencyId`+`postalCode` elegidos suben vía `onEstimateChange`. Ambos viajan a `createMpPreference()` junto al resto del body — en `buildCheckoutBody()` (`cart-page-content.tsx`/`site/cart-content.tsx`) el `postal_code` final es `shippingEstimate?.postalCode || address.postalCode`, así que el monto que se cobra en el pago usa el mismo CP que ya se usó para cotizar en el carrito (consistencia precio mostrado = precio cobrado). `isShippingAddressComplete(address, modality)` (`types/shipping.ts`) valida distinto por rama: sucursal exige nombre+teléfono+provincia+`agencyId`; domicilio exige la dirección real completa.
 - **Selector de forma de pago** (`types/payment.ts`): además de MercadoPago (histórico), existe el canal **"Transferencia"** (ver `3darg-backend/CLAUDE.md` → "Flujo de pagos — Transferencia bancaria") — transferencia manual a una sola cuenta del Grupo, sin redirección externa, el pedido queda `PENDING` hasta que el dueño confirma el ingreso a mano.
@@ -163,7 +163,7 @@ El sistema interno `presupuestos3d` (repo aparte, ver `../CLAUDE.md` del monorep
 - `<GoogleLoginButton brandSlug? redirectTo onError>` (`components/google-login-button.tsx`) devuelve `null` si no hay client ID configurado — así el botón queda oculto sin tocar código hasta activar Google Cloud Console.
 - Usa `@react-oauth/google` (`<GoogleLogin>`) para obtener el `id_token`, y `loginWithGoogle()` de `AuthContext` para canjearlo por el JWT propio.
 - Mismo usuario unificado del Grupo: no crea sesiones ni cuentas separadas por marca, solo pasa `brand_slug` como metadata de registro (igual que el registro por email/password).
-- **Verificación de marca OAuth ante Google, en curso**: Google rechazó una primera verificación por "contenido insuficiente" en la política de privacidad — se sumó una sección dedicada (`components/legal/privacidad-content.tsx`, "3. Inicio de sesión con Google") detallando qué datos se reciben, para qué se usan y cómo revocar el acceso, más Google como tercero operador. Los datos del responsable del tratamiento (razón social, CUIT, domicilio) se completan vía env vars en Vercel, no están hardcodeados. También se agregó `public/google53cfe8a8d64ab3cb.html` (archivo de verificación de propiedad de dominio de `3darg.com` en Google Search Console/Auth Platform, requisito para publicar la app OAuth a producción) — no tocar/borrar, es el método de verificación activo.
+- **Verificación de marca OAuth ante Google, en curso**: Google rechazó una primera verificación por "contenido insuficiente" en la política de privacidad — se sumó una sección dedicada (`components/legal/privacidad-content.tsx`, "3. Inicio de sesión con Google") detallando qué datos se reciben, para qué se usan y cómo revocar el acceso, más Google como tercero operador. Los datos del responsable del tratamiento (razón social, CUIT, domicilio) se completan vía env vars en Railway (dashboard del servicio `ecommerce-frontend`), no están hardcodeados. También se agregó `public/google53cfe8a8d64ab3cb.html` (archivo de verificación de propiedad de dominio de `3darg.com` en Google Search Console/Auth Platform, requisito para publicar la app OAuth a producción) — no tocar/borrar, es el método de verificación activo.
 - `<GoogleLoginButton>` va envuelto en un contenedor con `bg-card` (el botón nativo de Google solo admite 3 temas fijos — outline/filled_blue/filled_black — por guía de marca de Google, no acepta color custom; el wrapper lo integra contra el fondo temático de cada marca).
 
 ## Dominios propios por sub-marca (preparado, inactivo por default)
@@ -216,14 +216,14 @@ Los tres son no-ops seguros si falta configuración (mismo patrón que `GoogleAu
 
 ### Monitoreo de errores (Sentry)
 
-No es parte de los providers de arriba (no es analytics de producto, es observabilidad) pero vive en el mismo bloque de env vars — por eso el `.env` de ejemplo linkea acá. Integración estándar del wizard de Sentry para Next.js, **ya activa en producción** (Vercel tiene `SENTRY_DSN`/`NEXT_PUBLIC_SENTRY_DSN` seteadas):
+No es parte de los providers de arriba (no es analytics de producto, es observabilidad) pero vive en el mismo bloque de env vars — por eso el `.env` de ejemplo linkea acá. Integración estándar del wizard de Sentry para Next.js, **ya activa en producción** (Railway tiene `SENTRY_DSN`/`NEXT_PUBLIC_SENTRY_DSN` seteadas en el servicio `ecommerce-frontend`):
 
 - `sentry.server.config.ts` / `sentry.edge.config.ts` / `instrumentation-client.ts`: inicializan Sentry para cada runtime (server, edge, browser) — los tres leen el DSN de su propia env var, vacío = no-op.
 - `instrumentation.ts`: hook de Next.js que carga la config server/edge correspondiente al boot.
 - `app/global-error.tsx`: error boundary raíz que reporta a Sentry cualquier error no capturado por un boundary más específico.
 - Es un proyecto de Sentry **separado e independiente** del de `3darg-backend` (cada servicio tiene el suyo, sin relación de código ni de datos entre sí) — ver `3darg-backend/CLAUDE.md` para el lado del backend.
 
-**Sentry (monitoreo de errores, no es "analytics" de producto pero vive en el mismo lugar del árbol)**: `sentry.server.config.ts`/`sentry.edge.config.ts`/`instrumentation-client.ts`/`app/global-error.tsx`, activado vía `SENTRY_DSN` (server) y `NEXT_PUBLIC_SENTRY_DSN` (client), ya seteadas en Vercel producción. Es un proyecto de Sentry **independiente** del que usa `3darg-backend` (ver su `CLAUDE.md`) — cada servicio reporta al suyo, sin relación de código entre ambos.
+**Sentry (monitoreo de errores, no es "analytics" de producto pero vive en el mismo lugar del árbol)**: `sentry.server.config.ts`/`sentry.edge.config.ts`/`instrumentation-client.ts`/`app/global-error.tsx`, activado vía `SENTRY_DSN` (server) y `NEXT_PUBLIC_SENTRY_DSN` (client), ya seteadas en Railway producción (servicio `ecommerce-frontend`). Es un proyecto de Sentry **independiente** del que usa `3darg-backend` (ver su `CLAUDE.md`) — cada servicio reporta al suyo, sin relación de código entre ambos.
 
 ## Brand theming
 
@@ -263,20 +263,28 @@ Este reset es específico de `site-lumy.css` — no existe en el resto del sitio
 Reglas generales (ramas, checklist antes de pushear, rollback) en
 `~/.claude/CLAUDE.md` (global). Específico de este repo:
 
-- **Nunca commit/push directo a `main`** — Vercel lo autodeploya a
-  `3darg.com`. Rama nueva por feature/fix, probar en local (`npm run dev`,
-  dentro del `docker compose` del monorepo), recién ahí mergear.
-- **Staging casi gratis**: cada PR en GitHub genera una preview URL en Vercel
-  automáticamente — abrir PR (en vez de pushear directo a `main`) alcanza
-  como staging para este repo, a diferencia del backend que todavía no lo
-  tiene. Usarlo para cualquier cambio de UI no trivial antes de mergear.
+- **Nunca commit/push directo a `main`** — el servicio `ecommerce-frontend`
+  en Railway (proyecto `3darg-backend`) lo autodeploya a `3darg.com` en cada
+  push (conectado por git a `maxinunezz/3darg-frontend`). Rama nueva por
+  feature/fix, probar en local (`npm run dev`, dentro del `docker compose`
+  del monorepo), recién ahí mergear.
+- **No hay preview por PR.** Hasta el 2026-11-04 esto corría en Vercel y cada
+  PR de GitHub generaba una preview URL automática — se usaba como staging
+  gratis. Tras la migración a Railway (forzada por un bloqueo de fair-use de
+  la cuenta de Vercel) **ese mecanismo no existe más**: confirmado vía
+  `railway environment list` sobre el proyecto `3darg-backend`, el servicio
+  `ecommerce-frontend` solo tiene el environment `production`. Abrir un PR
+  en GitHub ya no genera ningún preview — no asumirlo ni decírselo al dueño.
+  Mientras no se cree un staging en Railway (gap de infra pendiente, ver
+  `~/Escritorio/3darg/CLAUDE.md`), verificar cambios de UI en local antes de
+  mergear.
 - **Antes de mergear**: correr `npm run build` local (atrapa errores de tipos
   que `next dev` no muestra) y `npm run lint`.
 - **Verificación de UI**: no usar Claude Preview MCP en este proyecto (ver
   sección arriba) — indicar siempre al dueño la URL exacta y qué probar a
   mano.
-- **Rollback rápido**: "Promote to Production" sobre un deploy anterior desde
-  el dashboard de Vercel, sin esperar a revertir en git.
+- **Rollback rápido**: `railway deployments` → volver a un deploy anterior
+  desde el dashboard de Railway, sin esperar a revertir en git.
 - **Bitácora de deploys**: Slack `#reportes-it` — mandar el mensaje siempre se
   confirma antes con el dueño, no es automático.
 
