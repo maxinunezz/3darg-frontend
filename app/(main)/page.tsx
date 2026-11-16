@@ -17,7 +17,7 @@ import { HeroCube } from "@/components/site/hero-cube";
 export const metadata: Metadata = {
   title: "3DARG | Impresión 3D en Argentina",
   description:
-    "Precisión de ingeniero, alma de artista. Impresión 3D, diseño paramétrico y manufactura a medida en Argentina.",
+    "Impresión 3D, diseño paramétrico y manufactura a medida en Argentina. Prototipos, piezas técnicas y series cortas con precisión de ingeniería.",
 };
 
 async function getSubBrands(): Promise<BrandType[]> {
