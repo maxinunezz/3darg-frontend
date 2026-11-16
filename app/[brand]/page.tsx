@@ -21,12 +21,19 @@ export async function generateMetadata({
   const { brand: slug } = await params;
   const brand = await getBrandBySlug(slug);
   if (!brand) return {};
+  // Texto para buscadores cargable desde el admin sin tocar el copy visible:
+  // `page_config.seo_title` / `page_config.seo_description` (JSON de la marca).
+  // Si no están, se mantiene el comportamiento anterior.
+  const seo = (brand.page_config ?? {}) as { seo_title?: string; seo_description?: string };
+  const description =
+    seo.seo_description || brand.slogan || brand.short_description || brand.description || `Productos de ${brand.name}`;
   return {
-    title: `${brand.name} | 3DARG`,
-    description: brand.slogan || brand.short_description || brand.description || `Productos de ${brand.name}`,
+    title: seo.seo_title || `${brand.name} | 3DARG`,
+    description,
+    alternates: { canonical: `/${brand.slug}` },
     openGraph: {
-      title: brand.name,
-      description: brand.slogan || brand.short_description || "",
+      title: seo.seo_title || brand.name,
+      description,
       images: brand.cover_image ? [{ url: brand.cover_image }] : [],
     },
   };
