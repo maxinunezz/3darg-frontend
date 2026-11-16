@@ -18,6 +18,17 @@ function fmt(n: number) {
   return `$ ${Number(n).toLocaleString("es-AR")}`;
 }
 
+// Mismo talle que preselecciona la ficha del producto: el primero por `order`.
+function defaultVariant(p: ProductType): ProductVariantType | null {
+  const variants = p.variants ?? [];
+  if (variants.length === 0) return null;
+  return [...variants].sort((a, b) => a.order - b.order)[0];
+}
+
+// Tope de páginas al recorrer el catálogo (20 productos c/u): evita un loop
+// infinito si el backend devolviera un `next` mal formado.
+const MAX_PAGES = 20;
+
 // Tiempo que la tarjeta recién agregada se queda quieta (mostrando el
 // contador) antes de que el sorteo la reemplace por otra sugerencia — le da
 // tiempo al comprador de ver la confirmación del agregado.
@@ -56,11 +67,24 @@ export function RelatedByTheme({ product, brandSlug }: Props) {
     let cancelled = false;
     (async () => {
       try {
+        // El endpoint pagina de a 20: hay que seguir `next` para sortear
+        // sobre TODO el catálogo de la marca, no solo los primeros 20.
         const params = new URLSearchParams({ brand_slug: brandSlug, is_available: "true" });
-        const res = await fetch(apiUrl(`/products/?${params}`));
-        if (!res.ok) return;
-        const data = await res.json();
-        const results: ProductType[] = data.results ?? data;
+        let url: string | null = apiUrl(`/products/?${params}`);
+        const results: ProductType[] = [];
+        for (let page = 0; url && page < MAX_PAGES; page++) {
+          const res: Response = await fetch(url);
+          if (!res.ok) break;
+          const data: ProductType[] | { results?: ProductType[]; next?: string | null } =
+            await res.json();
+          if (Array.isArray(data)) {
+            results.push(...data);
+            break;
+          }
+          results.push(...(data.results ?? []));
+          url = data.next ?? null;
+        }
+        if (results.length === 0) return;
         const filtered = results.filter((p) => p.id !== product.id);
         if (!cancelled) {
           setPool(filtered);
@@ -113,18 +137,15 @@ export function RelatedByTheme({ product, brandSlug }: Props) {
       <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${related.length}, minmax(0, 1fr))` }}>
         {related.map((p) => {
           const img = cloudinaryUrl(resolveMediaUrl(p.images?.[0]?.image), 280);
-          // Agregado directo (sin pasar por la ficha) solo cuando no hay
-          // ambigüedad real de qué agregar: sin variantes, o con variantes
-          // pero una sola con stock (hoy el caso típico en Lumy — los 3
-          // talles tienen el mismo precio, solo uno suele tener stock). Si
-          // hay 2+ variantes con stock, el "+" no alcanza para elegir talle
-          // y el click sigue llevando a la ficha.
-          const inStockVariants = p.variants.filter((v) => v.stock > 0);
-          const quickAddVariant: ProductVariantType | null =
-            p.variants.length > 0 && inStockVariants.length === 1 ? inStockVariants[0] : null;
-          const canQuickAdd =
-            p.is_available &&
-            (p.variants.length === 0 ? p.stock > 0 : quickAddVariant != null);
+          // Regla del dueño: se produce bajo pedido, el stock NO importa —
+          // siempre hay de todo y en todos los talles. El "+" aparece en
+          // cualquier producto disponible y agrega el mismo talle que la
+          // ficha preselecciona (el primero por `order`, ver
+          // product-detail.tsx). Antes dependía de que hubiera exactamente
+          // un talle con stock cargado, y los productos nuevos cargados sin
+          // stock quedaban sin "+".
+          const quickAddVariant = defaultVariant(p);
+          const canQuickAdd = p.is_available;
           const cartQty =
             items.find(
               (i) => i.product.id === p.id && (i.variant?.id ?? null) === (quickAddVariant?.id ?? null)
