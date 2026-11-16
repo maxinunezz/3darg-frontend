@@ -1,23 +1,29 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { getBrandBySlug } from "@/lib/brands";
 import type { ProductType } from "@/types/product";
 import { ProductDetail } from "@/components/product-detail";
 import type { Metadata } from "next";
+import { MAIN_BRAND_SLUG, jsonLdScript, metaDescription, productJsonLd, productPath } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ brand: string; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
-  const product = await getProduct(slug);
+  const { brand: brandSlug, slug } = await params;
+  const [brand, product] = await Promise.all([getBrandBySlug(brandSlug), getProduct(slug)]);
   if (!product) return {};
+  // El título lleva la marca real del producto (ej. "... | Lumy"), no 3DARG.
+  const brandName = brand?.name ?? "3DARG";
+  const description = metaDescription(product.description, `${product.name} — ${brandName}`);
   return {
-    title: `${product.name} | 3DARG`,
-    description: product.description?.slice(0, 160) || `${product.name} — impresión 3D personalizada`,
+    title: `${product.name} | ${brandName}`,
+    description,
+    alternates: { canonical: productPath(product) },
     openGraph: {
       title: product.name,
-      description: product.description?.slice(0, 160) || "",
+      description,
+      url: productPath(product),
       images: product.images?.[0]?.image ? [{ url: product.images[0].image }] : [],
     },
   };
@@ -46,6 +52,20 @@ export default async function ProductPage({
   const [brand, product] = await Promise.all([getBrandBySlug(brandSlug), getProduct(slug)]);
 
   if (!brand) notFound();
+  // Una sola URL por producto (ver lib/seo.ts::productPath): 3DARG vive en
+  // `/product/...`, y un producto de otra marca redirige (301) a su marca.
+  if (brand.slug === MAIN_BRAND_SLUG) permanentRedirect(product ? productPath(product) : `/product/${slug}`);
+  if (product?.brand && product.brand !== brand.slug) permanentRedirect(productPath(product));
 
-  return <ProductDetail brand={brand} slug={slug} initialProduct={product} />;
+  return (
+    <>
+      {product && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(productJsonLd(product, brand.name)) }}
+        />
+      )}
+      <ProductDetail brand={brand} slug={slug} initialProduct={product} />
+    </>
+  );
 }

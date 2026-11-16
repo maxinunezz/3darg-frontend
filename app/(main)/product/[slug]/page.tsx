@@ -1,7 +1,8 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import type { ProductType } from "@/types/product";
 import type { Metadata } from "next";
 import { SiteProductDetail } from "@/components/site/product-detail";
+import { MAIN_BRAND_SLUG, jsonLdScript, metaDescription, productJsonLd, productPath } from "@/lib/seo";
 
 const API = process.env.BACKEND_INTERNAL_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000/api";
 
@@ -9,9 +10,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const product = await getProduct(slug);
   if (!product) return {};
+  const description = metaDescription(product.description, `${product.name} — impresión 3D personalizada`);
   return {
     title: `${product.name} | 3DARG`,
-    description: product.description?.slice(0, 160) || `${product.name} — impresión 3D personalizada`,
+    description,
+    // Una sola URL por producto: si es de una sub-marca, la página redirige a
+    // `/<marca>/product/...` (ver abajo) y la canónica apunta ahí.
+    alternates: { canonical: productPath(product) },
+    openGraph: {
+      title: product.name,
+      description,
+      url: productPath(product),
+      images: product.images?.[0]?.image ? [{ url: product.images[0].image }] : [],
+    },
   };
 }
 
@@ -45,7 +56,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   const product = await getProduct(slug);
   if (!product) notFound();
+  // Las marcas son silos: un producto de Lumy no se muestra dentro de 3DARG.
+  // Redirige (301) a su ficha real para no duplicar contenido ante Google.
+  if (product.brand && product.brand !== MAIN_BRAND_SLUG) permanentRedirect(productPath(product));
   const related = await getRelated(product.category?.slug, product.slug);
 
-  return <SiteProductDetail slug={slug} initialProduct={product} related={related} />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(productJsonLd(product, "3DARG")) }}
+      />
+      <SiteProductDetail slug={slug} initialProduct={product} related={related} />
+    </>
+  );
 }
