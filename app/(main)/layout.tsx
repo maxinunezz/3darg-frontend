@@ -1,15 +1,24 @@
-import { Urbanist } from "next/font/google";
+import { Anton, Geist } from "next/font/google";
 import { MainChrome } from "@/components/main-chrome";
 import { getCmsPage, getSection, getSectionImage } from "@/lib/cms";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { getBrandBySlug } from "@/lib/brands";
 
-// Cuerpo del sitio 3DARG (marca madre). Bebas Neue y JetBrains Mono ya están
-// cargadas en app/layout.tsx raíz — acá solo sumamos Urbanist para el texto.
-const urbanist = Urbanist({
-  variable: "--font-urbanist",
+// Cuerpo del sitio 3DARG (marca madre), estética "3DARG Kit" (ver
+// ~/Escritorio/3darg/3darg-kit): Anton para títulos (reemplaza Bebas Neue en
+// --font-display, redefinido en app/site-3darg.css), Geist para lectura
+// (reemplaza Urbanist en --font-sans). JetBrains Mono ya está cargada en
+// app/layout.tsx raíz y se reusa para --font-mono.
+const anton = Anton({
+  variable: "--font-anton",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "900"],
+  weight: ["400"],
+});
+
+const geist = Geist({
+  variable: "--font-geist",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
@@ -26,7 +35,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   const brand = await getBrandBySlug("3darg");
 
   return (
-    <div className={`site-3darg flex flex-col min-h-screen ${urbanist.variable}`}>
+    <div className={`site-3darg flex flex-col min-h-screen ${anton.variable} ${geist.variable}`}>
       <MainChrome footerData={footerSection?.data} footerLogo={footerLogo} brand3darg={brand}>
         <main className="flex-grow">{children}</main>
       </MainChrome>
