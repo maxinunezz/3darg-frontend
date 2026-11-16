@@ -10,6 +10,9 @@ import { FeatureCard, CategoryTile } from "@/components/site/commerce";
 import { getCmsPage, getSection, getSectionImage } from "@/lib/cms";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
 import { PendingOrderBanner } from "@/components/pending-order-banner";
+import { LayerReveal } from "@/components/site/layer-reveal";
+import { Cota } from "@/components/site/cota";
+import { HeroCube } from "@/components/site/hero-cube";
 
 export const metadata: Metadata = {
   title: "3DARG | Impresión 3D en Argentina",
@@ -30,19 +33,6 @@ async function getSubBrands(): Promise<BrandType[]> {
       .sort((a, b) => a.navbar_order - b.navbar_order)
   );
 }
-
-// Posiciones/tamaños de las esferas del hero — ver README (HomePage.jsx → ORBS).
-const ORBS: { top: string; left: string; size: number; ember?: boolean }[] = [
-  { top: "8%", left: "12%", size: 120 },
-  { top: "18%", left: "78%", size: 200, ember: true },
-  { top: "62%", left: "6%", size: 90, ember: true },
-  { top: "72%", left: "88%", size: 140 },
-  { top: "40%", left: "48%", size: 64 },
-  { top: "10%", left: "45%", size: 100 },
-  { top: "82%", left: "40%", size: 180, ember: true },
-  { top: "50%", left: "92%", size: 76 },
-  { top: "28%", left: "4%", size: 340 },
-];
 
 // Fallback hardcodeado (usado si el CMS no tiene la sección/campo cargado).
 const HERO_FALLBACK = {
@@ -143,37 +133,8 @@ export default async function Home() {
     <>
       <PendingOrderBanner brand="3darg" />
       {/* ── HERO ──────────────────────────────────────────────────────── */}
-      <section className="theme-ink relative overflow-hidden">
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: "url(/3DARG/design-system/backgrounds/mesh-nodes.jpg)",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            filter: "invert(1)",
-            opacity: 0.62,
-          }}
-        />
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: "radial-gradient(120% 90% at 50% 45%, transparent 20%, rgba(11,11,12,.72) 78%)" }}
-        />
-        {ORBS.map((o, i) => (
-          <span
-            key={i}
-            className="absolute rounded-full pointer-events-none"
-            style={{
-              top: o.top,
-              left: o.left,
-              width: o.size,
-              height: o.size,
-              filter: "blur(.4px)",
-              background: o.ember
-                ? "radial-gradient(circle at 34% 30%, rgba(169,140,106,.20), rgba(169,140,106,.05) 55%, transparent 70%)"
-                : "radial-gradient(circle at 34% 30%, rgba(255,255,255,.13), rgba(255,255,255,.03) 55%, transparent 70%)",
-            }}
-          />
-        ))}
+      <section className="theme-ink relative overflow-hidden td-grid-bg">
+        <HeroCube className="hidden lg:block absolute top-1/2 right-[6%] -translate-y-1/2 w-[280px] h-[280px] xl:w-[360px] xl:h-[360px]" />
 
         <div
           className="relative max-w-[var(--container-narrow)] mx-auto flex flex-col items-center text-center gap-[26px] px-[var(--gutter)]"
@@ -229,7 +190,9 @@ export default async function Home() {
       {/* ── 02 QUÉ HACEMOS ────────────────────────────────────────────── */}
       <section className="py-[var(--section-y)] px-[var(--gutter)]">
         <div className="max-w-[var(--container)] mx-auto grid gap-10">
-          <SectionHeading eyebrow={QUE_HACEMOS.eyebrow} index={2} title={QUE_HACEMOS.title} />
+          <LayerReveal>
+            <SectionHeading eyebrow={QUE_HACEMOS.eyebrow} index={2} title={QUE_HACEMOS.title} />
+          </LayerReveal>
           <div className="hairline-grid grid grid-cols-1 md:grid-cols-3">
             {QUE_HACEMOS_ITEMS.map((item, i) => {
               const Icon = FEATURE_ICONS[item.icon] ?? Layers;
@@ -310,8 +273,8 @@ export default async function Home() {
                 <figcaption className="p-5 grid gap-2">
                   <span className="font-mono text-[11px] text-[var(--accent)]">{"·"}</span>
                   <div className="font-bold text-base">{d.t}</div>
-                  <div className="border-t border-[var(--border-hairline)] pt-2 font-mono text-[13px] text-[var(--text-muted)] tabular-nums">
-                    {d.spec}
+                  <div className="border-t border-[var(--border-hairline)] pt-2">
+                    <Cota label={d.spec} />
                   </div>
                 </figcaption>
               </figure>

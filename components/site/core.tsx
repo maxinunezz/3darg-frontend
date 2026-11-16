@@ -42,24 +42,26 @@ const buttonSizes: Record<ButtonSize, string> = {
   lg: "h-[54px] px-8 text-[17px]",
 };
 
+// Alineado a .td-btn del kit: borde recto, fondo/texto se invierten contra
+// la cara (--inverse/--on-inverse), hover vuelve a los colores de la cara.
 const buttonVariants: Record<ButtonVariant, string> = {
   solid:
-    "bg-[var(--ink-900)] text-[var(--bone-050)] border border-[var(--ink-900)] hover:bg-[var(--ink-700)] hover:border-[var(--ink-700)]",
+    "bg-[var(--inverse)] text-[var(--on-inverse)] border border-[var(--line-strong)] hover:bg-[var(--ground)] hover:text-[var(--ink)]",
   ember:
     "bg-[var(--accent)] text-[var(--text-on-ember)] border border-[var(--accent)] shadow-[var(--shadow-ember)] hover:bg-[var(--accent-hover)] hover:border-[var(--accent-hover)]",
   outline:
-    "bg-transparent text-[var(--text-strong)] border border-[var(--border-strong)] hover:bg-[var(--ink-900)] hover:text-[var(--bone-050)]",
+    "bg-transparent text-[var(--ink)] border border-[var(--line-strong)] hover:bg-[var(--inverse)] hover:text-[var(--on-inverse)]",
   outlineLight:
-    "bg-transparent text-[var(--bone-050)] border border-white/42 hover:bg-[var(--ink-900)] hover:border-[var(--ink-900)]",
+    "bg-transparent text-[var(--ink)] border border-[var(--line-dim)] hover:bg-[var(--inverse)] hover:text-[var(--on-inverse)]",
   ghost:
     "bg-transparent text-[var(--text-muted)] border border-transparent hover:text-[var(--text-strong)] hover:bg-[var(--surface-inset)]",
-  link: "bg-transparent text-[var(--text-strong)] border-0 h-auto p-0 underline underline-offset-4 hover:text-[var(--accent-hover)]",
+  link: "bg-transparent text-[var(--text-strong)] border-0 h-auto p-0 normal-case tracking-normal underline underline-offset-4 hover:text-[var(--accent-hover)]",
 };
 
 /** Clases del Button, reusables en <Link> u otros elementos que necesiten la misma pinta. */
 export function buttonClass(variant: ButtonVariant = "solid", size: ButtonSize = "md", block?: boolean, className?: string) {
   return cn(
-    "inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] font-bold whitespace-nowrap cursor-pointer transition-[background,color,border-color,box-shadow,transform] duration-[var(--dur-base)] ease-[var(--ease-standard)] active:scale-[var(--press-scale)] disabled:opacity-45 disabled:pointer-events-none",
+    "inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] font-mono font-medium uppercase tracking-[0.08em] whitespace-nowrap cursor-pointer transition-[background,color,border-color,box-shadow,transform] duration-[var(--duration-base)] ease-[var(--ease-expo-out)] active:scale-[var(--press-scale)] disabled:opacity-45 disabled:pointer-events-none",
     buttonSizes[size],
     buttonVariants[variant],
     block && "w-full",

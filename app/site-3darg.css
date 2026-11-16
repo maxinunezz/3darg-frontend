@@ -1,39 +1,72 @@
 /* ─────────────────────────────────────────────────────────────────────────
-   Design system "3DARG" (marca madre) — tokens tal como vienen del handoff
-   (3DARG Design System/tokens/*.css), SCOPEADOS bajo .site-3darg para no
-   pisar el :root global que usan las sub-marcas vía Brand.theme.
-   Fuente de verdad: 3DARG Design System/tokens/{colors,typography,spacing,
-   radii,elevation,motion,base}.css
+   Design system "3DARG" (marca madre) — estética portada de `3darg-kit/`
+   (ver ~/Escritorio/3darg/3darg-kit/design-system), SCOPEADA bajo .site-3darg
+   para no pisar el :root global que usan las sub-marcas vía Brand.theme.
+   Concepto rector: dos caras del cubo — negra (el problema, `.theme-ink`) y
+   blanca (la solución, default). Paleta estricta negro/blanco/gris
+   plastificado + marrón de detalle; nada de color fuera de eso. Fuente de
+   verdad de los valores: 3darg-kit/design-system/tokens.{css,json}.
    ───────────────────────────────────────────────────────────────────────── */
 
 .site-3darg {
-  /* Ink ramp — negro casi puro, texto/bordes/paneles invertidos */
-  --ink-900: #0b0b0c;
-  --ink-800: #17171a;
-  --ink-700: #26262b;
-  --ink-600: #3a3a41;
-  --ink-500: #55555c;
-  --ink-400: #8a8a93;
-  --ink-300: #b9b9c0;
-  --ink-200: #e2e2e6;
-  --ink-100: #f2f2f4;
+  /* ── Tokens del kit — cara blanca (la solución) ────────────────────── */
+  --ground: #ffffff;
+  --ink: #010101;
+  --ink-muted: #5e5e5e;
+  --inverse: var(--ink);
+  --on-inverse: var(--ground);
+  --line: #d9d9d9;
+  --line-strong: #010101;
+  --line-dim: #5e5e5e;
+  --grid: #efefef;
+  --focus-ring: #010101;
+  --brand-black: #010101;
+  --brand-white: #ffffff;
+  --brand-gray: #a5a5a5;
+  --detail: #7a5233;
+  --detail-soft: #f3ece4;
+  --brand-brown: #5c3b22;
+  --detail-fill: var(--brand-brown);
+  --on-detail: #ffffff;
+  --plastic-light: #c9c7c3;
+  --plastic: var(--brand-gray);
+  --plastic-dark: #3a3937;
+  --on-plastic: #010101;
+  --on-plastic-dark: #ffffff;
+  --plastic-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+  --plastic-press: inset 0 1px 3px rgba(0, 0, 0, 0.45);
+
+  /* Ink ramp — derivada de los tokens de arriba, constante en ambas caras
+     (brand-black/brand-white son fijos; esto es lo que usan Button/Card/Badge
+     existentes vía las clases bg-[var(--ink-900)] etc.) */
+  --ink-900: #010101;
+  --ink-800: #1a1a1a;
+  --ink-700: #262626;
+  --ink-600: #3a3a3a;
+  --ink-500: #5e5e5e;
+  --ink-400: #7a7a7a;
+  --ink-300: #a5a5a5;
+  --ink-200: #d9d9d9;
+  --ink-100: #efefef;
   --ink-000: #ffffff;
 
-  /* Bone ramp — superficies cálidas, el fondo nunca es blanco puro */
-  --bone-050: #faf8f5;
-  --bone-100: #f6f3ee;
-  --bone-200: #efeae2;
-  --bone-300: #e3dbcf;
-  --bone-400: #cfc3b2;
+  /* Bone ramp — ya no cálida (el kit prohíbe fondos tibios): blanco puro +
+     grises de plano técnico. */
+  --bone-050: #ffffff;
+  --bone-100: #ffffff;
+  --bone-200: #efefef;
+  --bone-300: #d9d9d9;
+  --bone-400: #a5a5a5;
 
-  /* Ember — único color cromático del sistema */
-  --ember-100: #f3ede4;
-  --ember-200: #dccdb7;
-  --ember-500: #a98c6a;
-  --ember-600: #8e7452;
-  --ember-700: #6f5a3f;
+  /* Ember → marrón de detalle del kit (único color cromático permitido) */
+  --ember-100: #f3ece4;
+  --ember-200: #e3d2bd;
+  --ember-500: #7a5233;
+  --ember-600: #5c3b22;
+  --ember-700: #432913;
 
-  /* Semánticos */
+  /* Semánticos (estados de negocio: stock, pagos — el kit no define estos,
+     quedan como estaban, desaturados para no romper la paleta estricta) */
   --signal-ok: #1f7a52;
   --signal-ok-soft: #e2f1ea;
   --signal-warn: #b4741a;
@@ -42,38 +75,39 @@
   --signal-error-soft: #fae5e2;
 
   /* Alias semánticos */
-  --surface-page: var(--bone-100);
-  --surface-card: var(--ink-000);
-  --surface-inset: var(--bone-200);
-  --surface-ink: var(--ink-900);
-  --surface-ink-soft: var(--ink-800);
-  --text-body: var(--ink-800);
-  --text-strong: var(--ink-900);
-  --text-muted: var(--ink-500);
-  --text-faint: var(--ink-400);
-  --text-on-ink: var(--bone-050);
-  --text-on-ember: #ffffff;
-  --accent: var(--ember-500);
-  --accent-hover: var(--ember-600);
+  --surface-page: var(--ground);
+  --surface-card: var(--ground);
+  --surface-inset: var(--grid);
+  --surface-ink: #010101;
+  --surface-ink-soft: #1a1a1a;
+  --text-body: var(--ink);
+  --text-strong: var(--ink);
+  --text-muted: var(--ink-muted);
+  --text-faint: var(--line-dim);
+  --text-on-ink: #ffffff;
+  --text-on-ember: var(--on-detail);
+  --accent: var(--detail);
+  --accent-hover: var(--brand-brown);
   --accent-press: var(--ember-700);
-  --accent-soft: var(--ember-100);
-  --border-hairline: var(--bone-300);
-  --border-strong: var(--ink-900);
-  --border-input: var(--bone-400);
-  --ring: color-mix(in oklab, var(--ember-500) 45%, transparent);
-  --link: var(--ink-900);
-  --link-hover: var(--ember-600);
+  --accent-soft: var(--detail-soft);
+  --border-hairline: var(--line);
+  --border-strong: var(--line-strong);
+  --border-input: var(--line-dim);
+  --ring: color-mix(in oklab, var(--detail) 45%, transparent);
+  --link: var(--ink);
+  --link-hover: var(--accent-hover);
 
-  /* Tipografía — Bebas Neue / JetBrains Mono ya cargadas en app/layout.tsx raíz;
-     Urbanist se carga en app/(main)/layout.tsx (--font-urbanist). */
-  --font-display: var(--font-bebas-neue), "Oswald", Impact, sans-serif;
-  --font-sans: var(--font-urbanist), "Helvetica Neue", system-ui, sans-serif;
+  /* Tipografía — Anton y Geist se cargan en app/(main)/layout.tsx
+     (--font-anton, --font-geist); JetBrains Mono ya está cargada en
+     app/layout.tsx raíz (--font-jetbrains-mono). */
+  --font-display: var(--font-anton), "Bebas Neue", Impact, sans-serif;
+  --font-sans: var(--font-geist), "Helvetica Neue", system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, "SFMono-Regular", monospace;
 
-  --text-display-xl: clamp(72px, 9vw, 148px);
-  --text-display-lg: clamp(52px, 6vw, 96px);
-  --text-display-md: clamp(38px, 4vw, 62px);
-  --text-display-sm: 30px;
+  --text-display-xl: clamp(56px, 9vw, 128px);
+  --text-display-lg: clamp(44px, 6vw, 88px);
+  --text-display-md: clamp(36px, 4.5vw, 56px);
+  --text-display-sm: 24px;
   --text-title: 22px;
   --text-body-lg: 18px;
   --text-body-md: 16px;
@@ -81,7 +115,7 @@
   --text-caption: 13px;
   --text-micro: 11px;
 
-  --leading-display: 0.86;
+  --leading-display: 0.9;
   --leading-tight: 1.12;
   --leading-body: 1.55;
   --leading-loose: 1.7;
@@ -110,34 +144,39 @@
   --card-pad: var(--space-6);
   --hairline: 1px;
 
-  /* Radios */
-  --radius: 0.625rem;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
-  --radius-2xl: 16px;
-  --radius-3xl: 24px;
-  --radius-pill: 999px;
+  /* Radios — "3DARG es un sistema de aristas rectas": todo a 0, salvo el
+     único punto redondo que permite el kit (dot de estado). */
+  --radius: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-pill: 0;
   --radius-sharp: 0;
+  --radius-full: 9999px;
 
-  /* Sombras y texturas */
+  /* Sombras y texturas — sin elevación (prohibida por el kit); el único
+     degradé permitido es el acabado plastificado (plastic-sheen arriba). */
   --shadow-none: none;
   --shadow-hairline: 0 0 0 1px var(--border-hairline);
-  --shadow-sm: 0 1px 2px rgba(11, 11, 12, 0.06);
-  --shadow-md: 0 6px 18px -6px rgba(11, 11, 12, 0.14);
-  --shadow-lg: 0 24px 48px -24px rgba(11, 11, 12, 0.28);
-  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  --shadow-ember: 0 10px 30px -12px rgba(169, 140, 106, 0.45);
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-inset: var(--plastic-sheen);
+  --shadow-ember: none;
   --blur-veil: blur(14px);
-  --veil: rgba(246, 243, 238, 0.82);
-  --veil-ink: rgba(11, 11, 12, 0.72);
-  --texture-layers: repeating-linear-gradient(180deg, rgba(11, 11, 12, 0.055) 0 1px, transparent 1px 7px);
-  --texture-grid: linear-gradient(90deg, rgba(11, 11, 12, 0.05) 0 1px, transparent 1px 100%),
-    linear-gradient(180deg, rgba(11, 11, 12, 0.05) 0 1px, transparent 1px 100%);
-  --protect-gradient: linear-gradient(to top, rgba(11, 11, 12, 0.85), rgba(11, 11, 12, 0.35) 45%, transparent);
+  --veil: rgba(255, 255, 255, 0.82);
+  --veil-ink: rgba(1, 1, 1, 0.72);
+  --texture-layers: repeating-linear-gradient(180deg, rgba(1, 1, 1, 0.06) 0 1px, transparent 1px 7px);
+  --texture-grid: linear-gradient(90deg, var(--grid) 1px, transparent 1px 100%),
+    linear-gradient(180deg, var(--grid) 1px, transparent 1px 100%);
+  --protect-gradient: linear-gradient(to top, rgba(1, 1, 1, 0.85), rgba(1, 1, 1, 0.35) 45%, transparent);
 
-  /* Movimiento */
+  /* Movimiento — transiciones puntuales (hover, filtros) heredadas; el
+     movimiento protagonista (cubo, revelados) usa los tokens --duration-
+     y --ease- del kit, agregados más abajo sin pisar estos. */
   --dur-fast: 120ms;
   --dur-base: 200ms;
   --dur-slow: 300ms;
@@ -170,12 +209,31 @@
   font-family: var(--font-sans);
 }
 
+/* Tokens del kit no scopeados por .theme-ink (sólo lectura global, no hace
+   falta re-declararlos por cara): espaciado de grilla, duraciones largas y
+   curvas del cubo/revelados. Ver 3darg-kit/design-system/tokens.css. */
+.site-3darg {
+  --grid-pitch: 48px;
+  --duration-base: 600ms;
+  --duration-slow: 900ms;
+  --duration-long: 1200ms;
+  --stagger-word: 40ms;
+  --layer-count: 24;
+  --ease-expo-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-quart-out: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-quart-inout: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-scrub: linear;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .site-3darg {
     --dur-fast: 0ms;
     --dur-base: 0ms;
     --dur-slow: 0ms;
     --dur-reveal: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --duration-long: 0ms;
   }
 }
 
@@ -241,20 +299,40 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Tema oscuro completo — usado por las secciones "ink" (hero, cierre) */
+/* Tema oscuro completo — usado por las secciones "ink" (hero, cierre).
+   Cara negra del cubo (el problema): mismos valores que
+   `[data-theme="negra"]` en 3darg-kit/design-system/tokens.css, re-derivando
+   los alias semánticos con la misma estructura que el bloque base de arriba. */
 .site-3darg .theme-ink {
-  --surface-page: var(--ink-900);
-  --surface-card: var(--ink-800);
-  --surface-inset: var(--ink-700);
-  --text-body: var(--bone-100);
-  --text-strong: #ffffff;
-  --text-muted: var(--ink-400);
-  --text-faint: var(--ink-500);
-  --border-hairline: var(--ink-700);
-  --border-strong: var(--bone-100);
-  --border-input: var(--ink-600);
-  --link: var(--bone-050);
-  --link-hover: var(--ember-200);
+  --ground: #010101;
+  --ink: #ffffff;
+  --ink-muted: #a5a5a5;
+  --inverse: var(--ink);
+  --on-inverse: var(--ground);
+  --line: #262626;
+  --line-strong: #ffffff;
+  --line-dim: #a5a5a5;
+  --grid: #141414;
+  --focus-ring: #ffffff;
+  --detail: #c49a72;
+  --detail-soft: #21170f;
+
+  --surface-page: var(--ground);
+  --surface-card: var(--ground);
+  --surface-inset: var(--grid);
+  --text-body: var(--ink);
+  --text-strong: var(--ink);
+  --text-muted: var(--ink-muted);
+  --text-faint: var(--line-dim);
+  --accent: var(--detail);
+  --accent-soft: var(--detail-soft);
+  --border-hairline: var(--line);
+  --border-strong: var(--line-strong);
+  --border-input: var(--line-dim);
+  --ring: color-mix(in oklab, var(--detail) 45%, transparent);
+  --link: var(--ink);
+  --link-hover: var(--accent-hover);
+
   background: var(--surface-page);
   color: var(--text-body);
 }
@@ -278,5 +356,93 @@
   }
   :where(.site-3darg .theme-ink .hairline-grid) > * {
     background: var(--surface-ink-soft);
+  }
+}
+
+/* Fondo de grilla técnica (plano industrial) — portado de
+   3darg-kit/design-system/components/bundle.css::.td-grid-bg. Usa --grid,
+   que ya se flipea solo entre cara blanca/negra vía .theme-ink. */
+.site-3darg .td-grid-bg {
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: var(--grid-pitch) var(--grid-pitch);
+}
+
+/* Cota (bracket de dimensión con etiqueta) — portado de
+   bundle.css::.td-cota/.td-cota-line, usado por components/site/cota.tsx. */
+.site-3darg .td-cota {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--detail);
+  font: 500 10px/12px var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.site-3darg .td-cota-line {
+  flex: 1;
+  height: 9px;
+  position: relative;
+  border-left: 1px solid var(--detail);
+  border-right: 1px solid var(--detail);
+}
+.site-3darg .td-cota-line::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 4px;
+  border-top: 1px solid var(--detail);
+}
+
+/* LayerReveal — portado de bundle.css::.td-layer*, usado por
+   components/site/layer-reveal.tsx. El título se revela "imprimiéndose" de
+   abajo hacia arriba en pasos (steps), con una línea de boquilla que sube y
+   desaparece arriba. `--layers` (default 24, ver --layer-count) controla la
+   cantidad de escalones del clip-path. */
+.site-3darg .td-layer {
+  position: relative;
+}
+.site-3darg .td-layer-content {
+  clip-path: inset(0 0 0 0);
+}
+.site-3darg .td-layer.is-armed .td-layer-content {
+  clip-path: inset(100% 0 0 0);
+}
+.site-3darg .td-layer.is-in .td-layer-content {
+  animation: td-layer-up var(--duration-long) steps(var(--layers, 24), jump-none) forwards;
+}
+.site-3darg .td-layer-nozzle {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--detail);
+  opacity: 0;
+  pointer-events: none;
+}
+.site-3darg .td-layer.is-in .td-layer-nozzle {
+  animation: td-nozzle var(--duration-long) steps(var(--layers, 24), jump-none) forwards;
+}
+@keyframes td-layer-up {
+  from { clip-path: inset(100% 0 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes td-nozzle {
+  0% { bottom: 0; opacity: 1; }
+  99% { opacity: 1; }
+  100% { bottom: 100%; opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-3darg .td-layer.is-armed .td-layer-content,
+  .site-3darg .td-layer.is-in .td-layer-content {
+    clip-path: inset(0 0 0 0);
+    animation: none;
+  }
+  .site-3darg .td-layer.is-in .td-layer-nozzle {
+    animation: none;
+    opacity: 0;
   }
 }
