@@ -7,6 +7,10 @@ export const metadata: Metadata = {
   title: "Máquina expendedora de impresión 3D | 3DARG",
   description:
     "Impresión bajo pedido, sin stock inmovilizado y con entrega inmediata. Conocé la máquina expendedora de impresión 3D de 3DARG y sumate a la validación.",
+  // Línea pausada por ahora: la página sigue accesible por link directo, pero
+  // no debe aparecer en buscadores (tampoco está en app/sitemap.ts). Al
+  // relanzarla, borrar esto y sumarla a MAIN_PAGES del sitemap.
+  robots: { index: false, follow: false },
 };
 
 const VALORES = [
