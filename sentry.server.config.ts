@@ -6,8 +6,13 @@ Sentry.init({
   sendDefaultPii: true,
   tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,
 
-  // Adjunta valores de variables locales a los stack frames
-  includeLocalVariables: true,
+  // `includeLocalVariables` queda APAGADO a propósito: activa el inspector de
+  // Node ("Debugger listening...") y pausa el proceso en cada excepción —incluidas
+  // las que Next.js lanza y captura internamente al renderizar páginas dinámicas—
+  // para leer variables locales. En producción eso hacía tardar /lumy/shop entre
+  // 4 y 12 s (medio segundo sin esto). Los errores se siguen reportando igual,
+  // solo sin los valores de las variables locales en el stack trace.
+  includeLocalVariables: false,
 
   enableLogs: true,
 });
