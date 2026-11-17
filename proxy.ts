@@ -33,9 +33,33 @@ const DOMAIN_BRAND_MAP: Record<string, string> = Object.fromEntries(
     .filter(([domain, slug]) => domain && slug) as [string, string][]
 );
 
+/**
+ * Dominio único: `www.3darg.com` y `3darg.com` servían las mismas páginas sin
+ * redirigir, y Google las veía como duplicadas (Search Console: "Duplicada: el
+ * usuario no ha indicado ninguna versión canónica"). Toda request a la versión
+ * con www se redirige (301) a la misma ruta en el dominio canónico, que es el
+ * que ya usan el sitemap, las URLs canónicas y Open Graph (NEXT_PUBLIC_SITE_URL).
+ */
+const CANONICAL_ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL || "https://3darg.com").replace(/\/$/, "");
+const CANONICAL_HOST = new URL(CANONICAL_ORIGIN).hostname;
+
+function requestHostname(request: NextRequest): string {
+  // Detrás del proxy de Railway el host original puede venir en x-forwarded-host.
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? "";
+  return host.split(",")[0].trim().split(":")[0].toLowerCase();
+}
+
 export function proxy(request: NextRequest) {
-  const host = request.headers.get("host") ?? "";
-  const hostname = host.split(":")[0].toLowerCase();
+  const hostname = requestHostname(request);
+
+  if (hostname === `www.${CANONICAL_HOST}`) {
+    const { pathname, search } = request.nextUrl;
+    return NextResponse.redirect(`${CANONICAL_ORIGIN}${pathname}${search}`, 301);
+  }
+
+  // El ruteo por dominio de marca no aplica a archivos estáticos (con extensión).
+  if (/\.[^/]+$/.test(request.nextUrl.pathname)) return NextResponse.next();
+
   const brandSlug = DOMAIN_BRAND_MAP[hostname];
 
   if (!brandSlug) return NextResponse.next();
@@ -52,8 +76,8 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Excluye assets de Next (_next), el tunnel de Sentry (/monitoring) y
-  // cualquier archivo estático con extensión (favicon.ico, imágenes de
-  // /public, etc.) para no romper su resolución.
-  matcher: ["/((?!_next/static|_next/image|monitoring|.*\\..*).*)"],
+  // Excluye assets internos de Next (_next) y el tunnel de Sentry (/monitoring).
+  // Los archivos con extensión (sitemap.xml, robots.txt, favicon, /public) SÍ
+  // pasan, para que también redirijan desde www; el rewrite de marca los ignora.
+  matcher: ["/((?!_next/static|_next/image|monitoring).*)"],
 };
