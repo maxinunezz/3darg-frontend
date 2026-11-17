@@ -1,4 +1,4 @@
-import { Anton, Geist } from "next/font/google";
+import localFont from "next/font/local";
 import { MainChrome } from "@/components/main-chrome";
 import { getCmsPage, getSection, getSectionImage } from "@/lib/cms";
 import { cloudinaryUrl, resolveMediaUrl } from "@/lib/api";
@@ -9,16 +9,19 @@ import { getBrandBySlug } from "@/lib/brands";
 // --font-display, redefinido en app/site-3darg.css), Geist para lectura
 // (reemplaza Urbanist en --font-sans). JetBrains Mono ya está cargada en
 // app/layout.tsx raíz y se reusa para --font-mono.
-const anton = Anton({
+// Locales (public/fonts/google/), ver lib/brand-fonts.ts.
+const anton = localFont({
+  src: "../../public/fonts/google/anton/anton-400-normal-latin.woff2",
   variable: "--font-anton",
-  subsets: ["latin"],
-  weight: ["400"],
+  weight: "400",
+  display: "swap",
 });
 
-const geist = Geist({
+const geist = localFont({
+  src: "../../public/fonts/google/geist/geist-100-900-normal-latin.woff2",
   variable: "--font-geist",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: "100 900",
+  display: "swap",
 });
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {

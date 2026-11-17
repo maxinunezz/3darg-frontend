@@ -1,5 +1,4 @@
 import localFont from "next/font/local";
-import { Instrument_Serif, Urbanist, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 
 // Fuentes de los Design Systems por marca, centralizadas acá para que tanto
 // app/[brand]/layout.tsx (landing de cada sub-marca) como cualquier página
@@ -10,21 +9,31 @@ import { Instrument_Serif, Urbanist, Space_Grotesk, JetBrains_Mono } from "next/
 // --font-pg-*) tienen que coincidir con las que consumen app/site-lumy.css y
 // app/site-printgym.css.
 
+// Todas las tipografías son archivos locales (public/fonts/), no next/font/google:
+// esa variante descarga las fuentes de Google en cada `next build` y, cuando la
+// descarga falla, el build entero falla ("Can't resolve
+// '@vercel/turbopack-next/internal/font/google/font'") y el deploy no sale.
+// Archivos: subset latin de Google Fonts (licencia OFL), mismos que usaba antes.
+
 // --- Lumy ---
-export const lmDisplay = Instrument_Serif({
+export const lmDisplay = localFont({
+  src: [
+    { path: "../public/fonts/google/instrument-serif/instrument-serif-400-normal-latin.woff2", weight: "400", style: "normal" },
+    { path: "../public/fonts/google/instrument-serif/instrument-serif-400-italic-latin.woff2", weight: "400", style: "italic" },
+  ],
   variable: "--font-lm-display",
-  subsets: ["latin"],
-  weight: ["400"],
-  style: ["normal", "italic"],
+  display: "swap",
+  adjustFontFallback: "Times New Roman",
 });
 
-export const lmSans = Urbanist({
+export const lmSans = localFont({
+  src: "../public/fonts/google/urbanist/urbanist-100-900-normal-latin.woff2",
   variable: "--font-lm-sans",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: "100 900",
+  display: "swap",
 });
 
-// --- Print&Gym --- self-hosted (display) + Google (body/mono).
+// --- Print&Gym ---
 export const pgDisplay = localFont({
   src: "../public/fonts/printgym/Spectrashell.otf",
   variable: "--font-pg-display",
@@ -32,14 +41,17 @@ export const pgDisplay = localFont({
   display: "swap",
 });
 
-export const pgBody = Space_Grotesk({
+export const pgBody = localFont({
+  src: "../public/fonts/google/space-grotesk/space-grotesk-300-700-normal-latin.woff2",
   variable: "--font-pg-body",
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
+  weight: "300 700",
+  display: "swap",
 });
 
-export const pgMono = JetBrains_Mono({
+export const pgMono = localFont({
+  src: "../public/fonts/google/jetbrains-mono/jetbrains-mono-100-800-normal-latin.woff2",
   variable: "--font-pg-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: "100 800",
+  display: "swap",
+  adjustFontFallback: false,
 });
