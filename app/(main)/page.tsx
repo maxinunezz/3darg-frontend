@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   title: "3DARG | Impresión 3D en Argentina",
   description:
     "Impresión 3D, diseño paramétrico y manufactura a medida en Argentina. Prototipos, piezas técnicas y series cortas con precisión de ingeniería.",
+  alternates: { canonical: "/" },
 };
 
 async function getSubBrands(): Promise<BrandType[]> {
