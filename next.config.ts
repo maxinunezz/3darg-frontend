@@ -31,6 +31,27 @@ const nextConfig: NextConfig = {
   // local sigue igual) ni el build en Vercel (Vercel lo ignora, tiene su
   // propio pipeline de salida).
   output: "standalone",
+  // No anunciar "X-Powered-By: Next.js" (le ahorra un dato a quien busca vulnerabilidades).
+  poweredByHeader: false,
+  // Headers de seguridad básicos para todas las páginas. Sin Content-Security-Policy
+  // a propósito: con GA, Meta Pixel, PostHog, Google login y MercadoPago, una CSP
+  // estricta mal armada rompería el checkout o el tracking sin aviso.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          // El navegador usa siempre HTTPS para 3darg.com durante un año.
+          { key: "Strict-Transport-Security", value: "max-age=31536000" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          // Nadie puede meter la web dentro de un iframe de otro sitio (clickjacking).
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        ],
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
