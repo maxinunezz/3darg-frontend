@@ -66,67 +66,6 @@ export function MiniSlamHome({ brand }: { brand: BrandType }) {
         </div>
       </section>
 
-      {/* ── Kit (lleva a la tienda) ── */}
-      <section className="ms-pad" style={{ paddingTop: 40, paddingBottom: 100 }}>
-        <Link href={`${base}/shop`} className="ms-kit">
-          <div className="ms-kit-txt">
-            <p className="ms-mono">El kit MiniSlam · En la tienda</p>
-            <div>
-              <h2 className="ms-h ms-resp" style={{ fontSize: 112, marginBottom: 22 }}>
-                Tablero,
-                <br />
-                aro y carro.
-              </h2>
-              <p style={{ maxWidth: 420, fontSize: 18, lineHeight: 1.55, marginBottom: 32 }}>
-                Todo para jugar el primer día: el tablero, el aro con su red, las pelotas y el carro para tenerlas siempre a
-                mano. Las fijaciones vienen en la caja.
-              </p>
-              <span className="ms-link">Ver el kit en la tienda <span>→</span></span>
-            </div>
-          </div>
-          {/* Foto vertical del kit completo: se muestra entera (contain) para no recortar las etiquetas.
-              Detrás va la misma foto desenfocada y estirada, y los bordes de la foto nítida se
-              difuminan (ms-kit-fade), así no se nota dónde termina la foto y empieza el fondo. */}
-          <div className="ms-kit-img ms-zoom" style={{ background: "#a5151e" }}>
-            <div aria-hidden="true" className="ms-kit-blur">
-              <Image src="/minislam/kit.webp" alt="" fill sizes="50vw" style={{ objectFit: "cover" }} />
-            </div>
-            <div className="ms-kit-fade">
-              <Image
-                src="/minislam/kit.webp"
-                alt="Kit MiniSlam: manual, aro, tablero, fijaciones y pelotas"
-                fill
-                sizes="(max-width: 860px) 100vw, 50vw"
-                style={{ objectFit: "contain" }}
-              />
-            </div>
-          </div>
-        </Link>
-      </section>
-
-      {/* ── Marquesina ── */}
-      <div className="ms-marquee-wrap" aria-hidden="true">
-        <div className="ms-marquee ms-h">
-          {[...MARQUEE, ...MARQUEE].map((w, i) => (
-            <span key={i} style={{ display: "flex", gap: 56 }}>
-              <span>{w}</span>
-              <span className="ms-accent">●</span>
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Cómo lo hacemos ── */}
-      <section className="ms-pad ms-manifesto">
-        <p className="ms-mono ms-accent" style={{ marginBottom: 28 }}>Cómo lo hacemos</p>
-        <p className="ms-big">Impreso capa por capa. Pensado para tirar todos los días.</p>
-        <p className="ms-muted" style={{ marginTop: 40, maxWidth: 640, fontSize: 20, lineHeight: 1.6 }}>
-          Cada pieza sale de nuestras impresoras 3D en Argentina. Diseñamos el tablero, imprimimos el aro y su red eslabón por
-          eslabón, y armamos el carro que guarda las pelotas al lado de la cancha. Todo pasa por nuestras manos antes de
-          llegar a tu pared.
-        </p>
-      </section>
-
       {/* ── Tres piezas (fondo animado) ── */}
       <section id="piezas" className="ms-split">
         <div className="ms-pad ms-bk">
@@ -179,6 +118,67 @@ export function MiniSlamHome({ brand }: { brand: BrandType }) {
         </div>
         {/* Relleno a la derecha del video (mismo fondo marrón), para que el video no quede pegado al borde. */}
         <div className="ms-split-fill" aria-hidden="true" />
+      </section>
+
+      {/* ── Marquesina ── */}
+      <div className="ms-marquee-wrap" aria-hidden="true">
+        <div className="ms-marquee ms-h">
+          {[...MARQUEE, ...MARQUEE].map((w, i) => (
+            <span key={i} style={{ display: "flex", gap: 56 }}>
+              <span>{w}</span>
+              <span className="ms-accent">●</span>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Cómo lo hacemos ── */}
+      <section className="ms-pad ms-manifesto">
+        <p className="ms-mono ms-accent" style={{ marginBottom: 28 }}>Cómo lo hacemos</p>
+        <p className="ms-big">Impreso capa por capa. Pensado para tirar todos los días.</p>
+        <p className="ms-muted" style={{ marginTop: 40, maxWidth: 640, fontSize: 20, lineHeight: 1.6 }}>
+          Cada pieza sale de nuestras impresoras 3D en Argentina. Diseñamos el tablero, imprimimos el aro y su red eslabón por
+          eslabón, y armamos el carro que guarda las pelotas al lado de la cancha. Todo pasa por nuestras manos antes de
+          llegar a tu pared.
+        </p>
+      </section>
+
+      {/* ── Kit (lleva a la tienda) ── */}
+      <section className="ms-pad" style={{ paddingTop: 40, paddingBottom: 100 }}>
+        <Link href={`${base}/shop`} className="ms-kit">
+          <div className="ms-kit-txt">
+            <p className="ms-mono">El kit MiniSlam · En la tienda</p>
+            <div>
+              <h2 className="ms-h ms-resp" style={{ fontSize: 112, marginBottom: 22 }}>
+                Tablero,
+                <br />
+                aro y carro.
+              </h2>
+              <p style={{ maxWidth: 420, fontSize: 18, lineHeight: 1.55, marginBottom: 32 }}>
+                Todo para jugar el primer día: el tablero, el aro con su red, las pelotas y el carro para tenerlas siempre a
+                mano. Las fijaciones vienen en la caja.
+              </p>
+              <span className="ms-link">Ver el kit en la tienda <span>→</span></span>
+            </div>
+          </div>
+          {/* Foto vertical del kit completo: se muestra entera (contain) para no recortar las etiquetas.
+              Detrás va la misma foto desenfocada y estirada, y los bordes de la foto nítida se
+              difuminan (ms-kit-fade), así no se nota dónde termina la foto y empieza el fondo. */}
+          <div className="ms-kit-img ms-zoom" style={{ background: "#a5151e" }}>
+            <div aria-hidden="true" className="ms-kit-blur">
+              <Image src="/minislam/kit.webp" alt="" fill sizes="50vw" style={{ objectFit: "cover" }} />
+            </div>
+            <div className="ms-kit-fade">
+              <Image
+                src="/minislam/kit.webp"
+                alt="Kit MiniSlam: manual, aro, tablero, fijaciones y pelotas"
+                fill
+                sizes="(max-width: 860px) 100vw, 50vw"
+                style={{ objectFit: "contain" }}
+              />
+            </div>
+          </div>
+        </Link>
       </section>
 
       {/* ── Juego ── */}
