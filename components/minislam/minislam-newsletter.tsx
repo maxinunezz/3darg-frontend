@@ -9,22 +9,27 @@ export function MiniSlamNewsletter() {
   const [sent, setSent] = useState(false);
 
   if (sent) {
-    return <p className="ms-mono" role="status">¡Listo! Te avisamos cuando haya algo nuevo.</p>;
+    return (
+      <p className="ms-news-done" role="status">
+        <span aria-hidden="true">🏀</span> ¡Adentro! Te avisamos cuando haya algo nuevo.
+      </p>
+    );
   }
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        setSent(true);
-      }}
-      style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 10, maxWidth: 560, margin: "0 auto" }}
-    >
-      <label htmlFor="ms-mail" className="sr-only">Tu email</label>
-      <input id="ms-mail" type="email" name="email" placeholder="tu@email.com" required />
-      <button type="submit" className="ms-btn ms-btn-dark" style={{ border: 0, cursor: "pointer" }}>
-        Sumarme
-      </button>
-    </form>
+    <>
+      <form
+        className="ms-news-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setSent(true);
+        }}
+      >
+        <label htmlFor="ms-mail" className="sr-only">Tu email</label>
+        <input id="ms-mail" type="email" name="email" placeholder="tu@email.com" required />
+        <button type="submit">Sumarme →</button>
+      </form>
+      <p className="ms-news-note">Sin spam. Te das de baja cuando quieras.</p>
+    </>
   );
 }

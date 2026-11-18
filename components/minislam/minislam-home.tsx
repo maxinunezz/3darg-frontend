@@ -18,6 +18,8 @@ const PIECES = [
   { n: "03", title: "Carro de pelotas", desc: "Guarda las pelotas en el escritorio o la estantería, siempre listas para el próximo tiro." },
 ];
 
+const NEWS_TAPE = ["Tableros nuevos", "Ediciones limitadas", "Reposición del carro", "Colores de tu equipo", "Hecho en Argentina"];
+
 export function MiniSlamHome({ brand }: { brand: BrandType }) {
   const base = `/${brand.slug}`;
   const ig = brand.social_links?.instagram;
@@ -253,17 +255,60 @@ export function MiniSlamHome({ brand }: { brand: BrandType }) {
       </section>
 
       {/* ── Newsletter ── */}
-      <section className="ms-news">
-        <p className="ms-mono" style={{ marginBottom: 18 }}>Lista MiniSlam</p>
-        <h2 className="ms-h ms-resp" style={{ fontSize: 112, marginBottom: 22 }}>
-          Enterate antes
-          <br />
-          que nadie.
-        </h2>
-        <p style={{ margin: "0 auto 36px", maxWidth: 520, fontSize: 18, lineHeight: 1.6, color: "#4A4740" }}>
-          Tableros nuevos, ediciones de colores limitadas y reposiciones del carro. Te escribimos solo cuando vale la pena.
-        </p>
-        <MiniSlamNewsletter />
+      <section id="lista" className="ms-news" aria-labelledby="ms-news-title">
+        {/* Cinta con frases en movimiento (decorativa). */}
+        <div className="ms-news-tape" aria-hidden="true">
+          <div className="ms-marquee ms-news-run">
+            {[0, 1].map((k) => (
+              <span key={k} style={{ display: "flex", gap: 40 }}>
+                {NEWS_TAPE.map((t) => (
+                  <span key={t} style={{ display: "flex", gap: 40 }}>
+                    <span>{t}</span>
+                    <span className="ms-news-star">✦</span>
+                  </span>
+                ))}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="ms-news-inner">
+          <div className="ms-news-copy">
+            <p className="ms-mono ms-news-eyebrow">
+              <span className="ms-news-dot" aria-hidden="true" /> Lista MiniSlam
+            </p>
+            <h2 id="ms-news-title" className="ms-h ms-news-h">
+              Enterate antes
+              <br />
+              <span className="ms-news-outline">que nadie.</span>
+            </h2>
+            <p className="ms-news-sub">
+              Tableros nuevos, ediciones de colores limitadas y reposiciones del carro. Te escribimos solo cuando vale la pena.
+            </p>
+            <ul className="ms-news-perks">
+              <li>🏀 Tableros nuevos primero</li>
+              <li>🎨 Colores limitados</li>
+              <li>🛒 Aviso de reposición</li>
+            </ul>
+            <MiniSlamNewsletter />
+          </div>
+
+          <div className="ms-news-visual" aria-hidden="true">
+            <div className="ms-news-card">
+              {/* Clip vertical: se guardan las pelotas en el carro, sobre el escritorio. */}
+              <LazyLoopVideo
+                className="ms-split-video"
+                src="/minislam/carro-pelotas.mp4"
+                poster="/minislam/carro-pelotas-poster.webp"
+                label="Clip: se guardan pelotas MiniSlam en el carro sobre un escritorio"
+              />
+            </div>
+            <div className="ms-news-sticker">
+              <span className="ms-mono">Primero</span>
+              <b className="ms-h">vos</b>
+            </div>
+          </div>
+        </div>
       </section>
     </>
   );
