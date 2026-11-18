@@ -35,12 +35,12 @@ function CheckoutFailureContent() {
       )}
       <div className="max-w-xl mx-auto px-4 py-24 text-center">
         <XCircle className="w-20 h-20 mx-auto text-red-500 mb-6" />
-        <h1 className={`text-3xl font-bold ${ui.mb("mb-2")}`}>Pago rechazado</h1>
-        <p className={`text-gray-600 ${ui.mb("mb-4")}`}>
+        <h1 className={`${ui.titleClassName} ${ui.mb("mb-2")}`}>Pago rechazado</h1>
+        <p className={`${ui.mutedTextClassName} ${ui.mb("mb-4")}`}>
           No pudimos procesar tu pago. Esto puede deberse a fondos insuficientes, datos incorrectos
           o un rechazo del banco.
         </p>
-        <p className={`text-sm text-gray-600 ${ui.mb("mb-8")}`}>
+        <p className={`text-sm ${ui.mutedTextClassName} ${ui.mb("mb-8")}`}>
           Podés intentar nuevamente con otro método de pago.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">

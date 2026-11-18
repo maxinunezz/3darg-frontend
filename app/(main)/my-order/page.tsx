@@ -138,14 +138,14 @@ function MyOrderContent() {
         {!order ? (
           <>
             {isReceiptIntent ? (
-              <Receipt className="w-16 h-16 mx-auto text-gray-400 mb-6" />
+              <Receipt className={`w-16 h-16 mx-auto mb-6 ${ui.iconClassName}`} />
             ) : (
-              <Search className="w-16 h-16 mx-auto text-gray-400 mb-6" />
+              <Search className={`w-16 h-16 mx-auto mb-6 ${ui.iconClassName}`} />
             )}
-            <h1 className={`text-3xl font-bold ${ui.mb("mb-2")}`}>
+            <h1 className={`${ui.titleClassName} ${ui.mb("mb-4")}`}>
               {isReceiptIntent ? "Subí tu comprobante" : "Ver mi pedido"}
             </h1>
-            <p className={`text-gray-600 ${ui.mb("mb-8")}`}>
+            <p className={`${ui.mutedTextClassName} ${ui.mb("mb-8")}`}>
               {isReceiptIntent
                 ? "Primero buscá tu pedido con el código que te mandamos por mail y el email con el que compraste — después vas a poder subir la foto o el PDF del comprobante."
                 : "Ingresá el código de pedido (el que te mandamos por mail) y el email con el que compraste."}
@@ -183,7 +183,7 @@ function MyOrderContent() {
               </div>
 
               {status === "error" && errorMessage && (
-                <div className="flex items-start gap-2 text-sm text-red-600">
+                <div className={`flex items-start gap-2 text-sm ${ui.variant === "minislam" ? "text-[#ff8a5c]" : "text-red-600"}`}>
                   <XCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>{errorMessage}</span>
                 </div>

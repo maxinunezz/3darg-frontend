@@ -1,4 +1,4 @@
-import { lmDisplay, lmSans, pgDisplay, pgBody, pgMono } from "@/lib/brand-fonts";
+import { lmDisplay, lmSans, pgDisplay, pgBody, pgMono, msDisplay, msSans, msMono } from "@/lib/brand-fonts";
 
 // Qué "piel" le corresponde a cada marca en las páginas transaccionales
 // compartidas (/my-order, /checkout/*, ver lib/brand-context.ts ->
@@ -21,11 +21,16 @@ import { lmDisplay, lmSans, pgDisplay, pgBody, pgMono } from "@/lib/brand-fonts"
 //   <BrandThemeInjector> alimenta con la paleta de esa marca. A diferencia de
 //   "default", acá SÍ corresponde seguir el modo oscuro/claro global: es el
 //   mismo comportamiento que ya tiene el resto del sitio de esa marca.
-export type BrandUiVariant = "default" | "lumy" | "printgym" | "generic";
+// - "minislam": Design System propio (app/site-minislam.css), oscuro con
+//   acento naranja; ese archivo redefine los tokens shadcn (--card, --border,
+//   etc.) dentro de .site-minislam para que OrderStatusCard y compañía
+//   hereden la paleta sin clases dedicadas.
+export type BrandUiVariant = "default" | "lumy" | "printgym" | "minislam" | "generic";
 
 export function getBrandUiVariant(slug: string | null | undefined): BrandUiVariant {
   if (slug === "lumy") return "lumy";
   if (slug === "printgym") return "printgym";
+  if (slug === "minislam") return "minislam";
   if (!slug || slug === "3darg") return "default";
   return "generic";
 }
@@ -39,6 +44,10 @@ export type BrandUiClasses = {
   /** mb-2, mb-4, mb-6, mb-8, etc. — agrega el sufijo `!` donde hace falta (gotcha de .site-lumy, ver CLAUDE.md). */
   mb: (utility: `mb-${number}`) => string;
   inputClassName: string;
+  /** Título principal (h1) de la pantalla. */
+  titleClassName: string;
+  /** Color del ícono grande arriba del título. */
+  iconClassName: string;
   /** Botón de submit de un form, full width. */
   submitBtnClassName: string;
   /** <Link> estilo primario (no full width). */
@@ -81,6 +90,8 @@ export function getBrandUiClasses(slug: string | null | undefined): BrandUiClass
         // falta el sufijo `!important` de Tailwind v4 para que mb-* pegue.
         mb: (utility) => `${utility}!`,
         inputClassName: "lm-input",
+        titleClassName: "text-3xl font-bold",
+        iconClassName: "text-gray-400",
         submitBtnClassName: "lm-btn lm-btn--primary lm-btn--lg lm-btn--block",
         linkPrimaryClassName: "lm-btn lm-btn--primary lm-btn--lg",
         linkSecondaryClassName: "lm-btn lm-btn--secondary lm-btn--lg",
@@ -103,6 +114,8 @@ export function getBrandUiClasses(slug: string | null | undefined): BrandUiClass
         needsThemeInjector: true,
         // site-printgym.css no resetea márgenes de h1-h4/p — no hace falta el sufijo.
         mb: (utility) => utility,
+        titleClassName: "text-3xl font-bold",
+        iconClassName: "text-gray-400",
         // No hay .pg-input en el Design System de Print&Gym — input neutro theme-aware.
         inputClassName:
           "w-full bg-background border border-border rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40",
@@ -117,11 +130,35 @@ export function getBrandUiClasses(slug: string | null | undefined): BrandUiClass
         ghostBtnClassName: "border-border text-foreground hover:bg-muted",
         solidBtnSmallClassName: "bg-primary text-primary-foreground hover:opacity-90",
       };
+    case "minislam":
+      return {
+        variant,
+        wrapperClassName: `site-minislam ${msDisplay.variable} ${msSans.variable} ${msMono.variable}`,
+        // La paleta vive en app/site-minislam.css (no en Brand.theme).
+        needsThemeInjector: false,
+        // .site-minislam resetea margin de h1-h3/p (igual que Lumy).
+        mb: (utility) => `${utility}!`,
+        titleClassName: "ms-h text-6xl sm:text-7xl text-[var(--ms-paper)]!",
+        iconClassName: "text-[var(--ms-accent)]",
+        inputClassName: "ms-input",
+        submitBtnClassName: "ms-btn ms-btn-accent w-full gap-2 disabled:opacity-60",
+        linkPrimaryClassName: "ms-btn ms-btn-light",
+        linkSecondaryClassName: "ms-btn ms-btn-ghost",
+        linkTextClassName: "ms-mono ms-muted underline underline-offset-4 hover:text-[var(--ms-paper)]",
+        surfaceClassName: "border-border bg-card text-card-foreground",
+        mutedTextClassName: "text-muted-foreground",
+        subtleTextClassName: "text-muted-foreground",
+        borderClassName: "border-border",
+        ghostBtnClassName: "border-border text-foreground hover:bg-muted",
+        solidBtnSmallClassName: "bg-primary text-primary-foreground hover:opacity-90",
+      };
     case "generic":
       return {
         variant,
         wrapperClassName: "bg-background text-foreground",
         needsThemeInjector: true,
+        titleClassName: "text-3xl font-bold",
+        iconClassName: "text-gray-400",
         mb: (utility) => utility,
         inputClassName:
           "w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40",
@@ -145,6 +182,8 @@ export function getBrandUiClasses(slug: string | null | undefined): BrandUiClass
         variant: "default",
         wrapperClassName: "bg-white text-black",
         needsThemeInjector: false,
+        titleClassName: "text-3xl font-bold",
+        iconClassName: "text-gray-400",
         mb: (utility) => utility,
         inputClassName:
           "w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black",

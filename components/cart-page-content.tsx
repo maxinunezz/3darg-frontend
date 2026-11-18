@@ -185,6 +185,10 @@ export function CartPageContent() {
   const { items, subtotal, total, discountPercent, discountAmount, clearCart, removeItem, updateQuantity, getUnitPrice } = useCart();
   const { user, token, isAuthenticated } = useAuth();
   const brandSlug = useBrandNamespace();
+  // MiniSlam tiene Design System propio (app/site-minislam.css): títulos en
+  // Anton, etiquetas en mono, botones .ms-btn. El resto de las marcas sigue
+  // con el estilo genérico theme-aware de siempre.
+  const ms = brandSlug === "minislam";
   const router = useRouter();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
@@ -324,9 +328,9 @@ export function CartPageContent() {
   if (items.length === 0) {
     if (justPlacedOrderId) {
       return (
-        <div className="max-w-2xl mx-auto px-4 py-24 text-center">
-          <Clock className="w-16 h-16 mx-auto text-amber-500 mb-6" />
-          <h1 className="text-3xl font-bold mb-4!">Tu pedido ya se generó</h1>
+        <div className={`max-w-2xl mx-auto px-4 py-24 text-center ${ms ? "ms-cart" : ""}`}>
+          <Clock className={`w-16 h-16 mx-auto mb-6 ${ms ? "text-[var(--ms-accent)]" : "text-amber-500"}`} />
+          <h1 className={ms ? "ms-h text-6xl sm:text-7xl mb-5!" : "text-3xl font-bold mb-4!"}>Tu pedido ya se generó</h1>
           <p className="text-muted-foreground mb-10! leading-relaxed">
             El carrito se vació porque esos productos ya forman parte de tu
             pedido pendiente de transferencia — no se perdió nada.
@@ -334,13 +338,13 @@ export function CartPageContent() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               href={`/checkout/transfer?order_id=${justPlacedOrderId}&brand=${brandSlug}`}
-              className="inline-block bg-primary !text-primary-foreground px-8 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity"
+              className={ms ? "ms-btn ms-btn-accent" : "inline-block bg-primary !text-primary-foreground px-8 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity"}
             >
               Ver mi pedido
             </Link>
             <Link
               href={`/${brandSlug}/shop`}
-              className="inline-block border border-border px-8 py-3 rounded-full font-semibold hover:bg-muted transition-colors"
+              className={ms ? "ms-btn ms-btn-ghost" : "inline-block border border-border px-8 py-3 rounded-full font-semibold hover:bg-muted transition-colors"}
             >
               Seguir comprando
             </Link>
@@ -349,24 +353,35 @@ export function CartPageContent() {
       );
     }
     return (
-      <div className="max-w-2xl mx-auto px-4 py-24 text-center">
-        <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground/40 mb-6" />
-        <h1 className="text-3xl font-bold mb-4!">Tu carrito está vacío</h1>
-        <p className="text-muted-foreground mb-10! leading-relaxed">
-          Explorá nuestros productos y encontrá algo que te guste.
+      <div className={`max-w-2xl mx-auto px-4 py-24 text-center ${ms ? "ms-cart" : ""}`}>
+        <ShoppingBag className={`w-16 h-16 mx-auto mb-6 ${ms ? "text-[var(--ms-accent)]" : "text-muted-foreground/40"}`} />
+        {ms && <p className="ms-mono ms-accent mb-4!">Carrito</p>}
+        <h1 className={ms ? "ms-h text-6xl sm:text-8xl mb-6!" : "text-3xl font-bold mb-4!"}>
+          {ms ? "La cancha está vacía." : "Tu carrito está vacío"}
+        </h1>
+        <p className={`text-muted-foreground mb-10! leading-relaxed ${ms ? "text-lg" : ""}`}>
+          {ms
+            ? "Todavía no sumaste nada. El kit te espera en la tienda: tablero, aro con red y carro de pelotas."
+            : "Explorá nuestros productos y encontrá algo que te guste."}
         </p>
         <Link
           href={`/${brandSlug}/shop`}
-          className="inline-block bg-primary !text-primary-foreground px-8 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity"
+          className={ms ? "ms-btn ms-btn-accent" : "inline-block bg-primary !text-primary-foreground px-8 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity"}
         >
-          Ir a la tienda
+          {ms ? "Ver el kit →" : "Ir a la tienda"}
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12">
+    <div className={`max-w-6xl mx-auto px-4 py-12 ${ms ? "ms-cart" : ""}`}>
+      {ms ? (
+        <div className="mb-10">
+          <p className="ms-mono ms-accent mb-4!">Tu pedido · {items.reduce((s, i) => s + i.quantity, 0)} {items.reduce((s, i) => s + i.quantity, 0) === 1 ? "producto" : "productos"}</p>
+          <h1 className="ms-h text-6xl sm:text-8xl">Carrito</h1>
+        </div>
+      ) : (
       <div className="mb-8">
         <h1 className="text-3xl font-bold">
           Carrito{" "}
@@ -375,6 +390,7 @@ export function CartPageContent() {
           </span>
         </h1>
       </div>
+      )}
 
       {checkoutError && (
         <div className="mb-4 p-4 bg-destructive/10 text-destructive rounded-xl text-sm">
@@ -405,9 +421,9 @@ export function CartPageContent() {
                 pedido del dueño. */}
             <Link
               href={`/${brandSlug}/shop`}
-              className="inline-flex items-center bg-primary !text-primary-foreground px-4 py-1.5 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
+              className={ms ? "ms-btn ms-btn-ghost ms-btn-sm" : "inline-flex items-center bg-primary !text-primary-foreground px-4 py-1.5 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"}
             >
-              Volver a la tienda
+              {ms ? "← Seguir comprando" : "Volver a la tienda"}
             </Link>
             <button
               onClick={() => {
@@ -619,13 +635,13 @@ export function CartPageContent() {
               </span>
             </div>
             <div className="flex justify-between items-center mb-3">
-              <span className="text-base font-semibold text-muted-foreground">Total</span>
-              <span className="font-bold text-xl">{fmt(grandTotal)}</span>
+              <span className={ms ? "ms-mono ms-muted" : "text-base font-semibold text-muted-foreground"}>Total</span>
+              <span className={ms ? "ms-h text-5xl" : "font-bold text-xl"}>{fmt(grandTotal)}</span>
             </div>
             <button
               onClick={handleCheckout}
               disabled={checkoutLoading || !canCheckout}
-              className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3 rounded-full font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              className={ms ? "ms-btn ms-btn-accent ms-pay w-full gap-2" : "w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3 rounded-full font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"}
             >
               {checkoutLoading ? (
                 <>
