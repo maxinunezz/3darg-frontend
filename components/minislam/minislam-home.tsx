@@ -182,7 +182,7 @@ export function MiniSlamHome({ brand }: { brand: BrandType }) {
       </section>
 
       {/* ── Juego ── */}
-      <section id="tiro" className="ms-pad" style={{ paddingTop: 140, scrollMarginTop: 80 }}>
+      <section id="tiro" className="ms-pad" style={{ paddingTop: 140, scrollMarginTop: 104 }}>
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", gap: 24, marginBottom: 32 }}>
           <div>
             <p className="ms-mono ms-accent" style={{ marginBottom: 18 }}>Juego · Tiro libre</p>
@@ -207,7 +207,7 @@ export function MiniSlamHome({ brand }: { brand: BrandType }) {
       </section>
 
       {/* ── Comunidad ── */}
-      <section id="comunidad" className="ms-pad" style={{ paddingTop: 140, paddingBottom: 140, scrollMarginTop: 80 }}>
+      <section id="comunidad" className="ms-pad" style={{ paddingTop: 140, paddingBottom: 140, scrollMarginTop: 104 }}>
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", gap: 24, marginBottom: 48 }}>
           <div>
             <p className="ms-mono ms-accent" style={{ marginBottom: 18 }}>Comunidad</p>

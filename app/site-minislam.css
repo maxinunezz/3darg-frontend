@@ -72,13 +72,15 @@
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--ms-line);
 }
-.ms-nav-in { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-top: 14px; padding-bottom: 14px; }
-.ms-nav-links { display: flex; gap: 34px; }
-.ms-nav-links a { font-family: var(--ms-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .16em; text-decoration: none; opacity: .85; }
+.ms-nav-in { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-top: 20px; padding-bottom: 20px; }
+/* Logo más grande y corrido hacia adentro (no pegado al borde izquierdo). */
+.ms-nav-logo { display: block; height: 60px; width: auto; margin-left: clamp(0px, 4vw, 72px); }
+.ms-nav-links { display: flex; gap: 40px; }
+.ms-nav-links a { font-family: var(--ms-mono); font-size: 13px; text-transform: uppercase; letter-spacing: .16em; text-decoration: none; opacity: .85; }
 .ms-nav-links a:hover, .ms-nav-links a.on { opacity: 1; color: var(--ms-accent); }
 .ms-icon-btn {
   position: relative; display: inline-flex; align-items: center; justify-content: center;
-  width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(244, 241, 234, .35);
+  width: 48px; height: 48px; border-radius: 50%; border: 1px solid rgba(244, 241, 234, .35);
   background: transparent; color: var(--ms-paper); cursor: pointer;
 }
 .ms-badge {
@@ -260,6 +262,9 @@
 @media (max-width: 860px) {
   .ms-pad { padding-left: 20px; padding-right: 20px; }
   .ms-nav-links { display: none; }
+  .ms-nav-in { padding-top: 14px; padding-bottom: 14px; }
+  .ms-nav-logo { height: 46px; margin-left: 0; }
+  .ms-icon-btn { width: 44px; height: 44px; }
   .ms-nav-toggle { display: inline-flex; }
   .ms-hero { min-height: 720px; }
   .ms-hero-h { font-size: 76px; }

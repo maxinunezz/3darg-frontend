@@ -41,7 +41,7 @@ export function MiniSlamNavbar({ brand }: { brand: BrandType }) {
     <nav ref={navRef} className="ms-nav">
       <div className="ms-pad ms-nav-in">
         <Link href={base} aria-label="MiniSlam, inicio" style={{ display: "block" }}>
-          <Image src="/minislam/logo-blanco.png" alt="MiniSlam" width={104} height={50} priority style={{ height: 40, width: "auto" }} />
+          <Image src="/minislam/logo-blanco.png" alt="MiniSlam" width={104} height={50} priority className="ms-nav-logo" />
         </Link>
 
         <div className="ms-nav-links">
