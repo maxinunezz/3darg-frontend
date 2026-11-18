@@ -249,11 +249,19 @@ export function MiniSlamShotGame() {
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
+        {/* Living: pared al fondo, piso con perspectiva y alfombra donde está la pelota. */}
         <svg aria-hidden="true" viewBox="0 0 1200 600" preserveAspectRatio="none" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
-          <path d="M250 600 L250 470 A 350 350 0 0 1 950 470 L950 600" fill="none" stroke="rgba(244,241,234,.10)" strokeWidth="4" />
-          <rect x="480" y="380" width="240" height="220" fill="none" stroke="rgba(244,241,234,.10)" strokeWidth="4" />
-          <circle cx="600" cy="380" r="110" fill="none" stroke="rgba(244,241,234,.10)" strokeWidth="4" />
+          <rect x="0" y="372" width="1200" height="228" fill="#1b1612" />
+          <path d="M-1000 600 L42 372 M-800 600 L112 372 M-600 600 L182 372 M-400 600 L251 372 M-200 600 L321 372 M0 600 L391 372 M200 600 L461 372 M400 600 L530 372 M600 600 L600 372 M800 600 L670 372 M1000 600 L739 372 M1200 600 L809 372 M1400 600 L879 372 M1600 600 L949 372 M1800 600 L1018 372 M2000 600 L1088 372 M2200 600 L1158 372" fill="none" stroke="rgba(244,241,234,.035)" strokeWidth="2" />
+          <path d="M0 430 H1200 M0 505 H1200" fill="none" stroke="rgba(244,241,234,.04)" strokeWidth="2" />
+          <path d="M0 358 H1200" fill="none" stroke="rgba(244,241,234,.08)" strokeWidth="3" />
+          <path d="M0 372 H1200" fill="none" stroke="rgba(244,241,234,.16)" strokeWidth="3" />
+          {/* Cancha real dibujada en el piso con perspectiva (pintura, línea de libre, círculo y triple). */}
+          <path d="M453.0 372.0 L250.0 540.5 L950.0 540.5 L747.0 372.0 Z" fill="rgba(255,91,20,.07)" />
+          <path d="M453.0 372.0 L250.0 540.5 L950.0 540.5 L747.0 372.0 M857.1 540.5 L862.7 547.1 L867.7 554.1 L872.2 561.4 L876.1 568.9 L879.4 576.7 L881.9 584.8 L883.6 593.2 L884.5 601.8 M315.5 601.8 L316.4 593.2 L318.1 584.8 L320.6 576.7 L323.9 568.9 L327.8 561.4 L332.3 554.1 L337.3 547.1 L342.9 540.5 L348.8 534.1 L355.2 528.0 L362.0 522.2 L369.1 516.7 L376.4 511.5 L384.0 506.5 L391.9 501.8 L400.0 497.4 L408.2 493.2 L416.6 489.2 L425.2 485.5 L433.8 482.0 L442.6 478.8 L451.5 475.7 L460.5 472.9 L469.5 470.3 L478.6 467.9 L487.8 465.7 L497.0 463.7 L506.2 461.8 L515.5 460.2 L524.8 458.7 L534.2 457.5 L543.5 456.4 L552.9 455.4 L562.3 454.7 L571.7 454.1 L581.2 453.7 L590.6 453.4 L600.0 453.3 L609.4 453.4 L618.8 453.7 L628.3 454.1 L637.7 454.7 L647.1 455.4 L656.5 456.4 L665.8 457.5 L675.2 458.7 L684.5 460.2 L693.8 461.8 L703.0 463.7 L712.2 465.7 L721.4 467.9 L730.5 470.3 L739.5 472.9 L748.5 475.7 L757.4 478.8 L766.2 482.0 L774.8 485.5 L783.4 489.2 L791.8 493.2 L800.0 497.4 L808.1 501.8 L816.0 506.5 L823.6 511.5 L830.9 516.7 L838.0 522.2 L844.8 528.0 L851.2 534.1 L857.1 540.5 M204.0 372.0 L35.1 424.0 L35.1 424.0 L29.5 426.3 L23.9 428.6 L18.3 431.0 L12.6 433.4 L7.0 435.8 L1.3 438.4 L-4.4 440.9 L-10.1 443.6 L-15.7 446.3 L-21.4 449.1 L-27.1 451.9 L-32.8 454.8 L-38.5 457.8 L-44.2 460.8 L-49.9 463.9 L-55.6 467.1 L-61.2 470.4 L-66.8 473.7 L-72.5 477.2 L-78.1 480.7 L-83.6 484.2 L-89.2 487.9 L-94.7 491.7 L-100.1 495.5 L-105.5 499.5 L-110.9 503.5 L-116.2 507.6 L-121.4 511.9 L-126.6 516.2 L-131.7 520.6 L-136.7 525.2 L-141.6 529.8 L-146.4 534.6 L-151.1 539.4 L-155.6 544.4 L-160.1 549.5 L-164.4 554.7 L-168.5 560.1 L-172.5 565.5 L-176.3 571.1 L-180.0 576.8 L-183.4 582.7 L-186.6 588.7 L-189.6 594.8 L-192.3 601.0 M1392.3 601.0 L1389.6 594.8 L1386.6 588.7 L1383.4 582.7 L1380.0 576.8 L1376.3 571.1 L1372.5 565.5 L1368.5 560.1 L1364.4 554.7 L1360.1 549.5 L1355.6 544.4 L1351.1 539.4 L1346.4 534.6 L1341.6 529.8 L1336.7 525.2 L1331.7 520.6 L1326.6 516.2 L1321.4 511.9 L1316.2 507.6 L1310.9 503.5 L1305.5 499.5 L1300.1 495.5 L1294.7 491.7 L1289.2 487.9 L1283.6 484.2 L1278.1 480.7 L1272.5 477.2 L1266.8 473.7 L1261.2 470.4 L1255.6 467.1 L1249.9 463.9 L1244.2 460.8 L1238.5 457.8 L1232.8 454.8 L1227.1 451.9 L1221.4 449.1 L1215.7 446.3 L1210.1 443.6 L1204.4 440.9 L1198.7 438.4 L1193.0 435.8 L1187.4 433.4 L1181.7 431.0 L1176.1 428.6 L1170.5 426.3 L1164.9 424.0 L1164.9 424.0 L996.0 372.0 M525.0 372.0 L511.0 394.8 L510.2 396.5 L510.0 398.2 L510.3 400.0 L511.3 401.8 L512.8 403.5 L515.0 405.3 L517.7 407.0 L521.1 408.6 L525.1 410.2 L529.7 411.8 L534.8 413.2 L540.5 414.6 L546.8 415.8 L553.4 416.9 L560.5 417.8 L568.0 418.6 L575.7 419.2 L583.7 419.7 L591.8 419.9 L600.0 420.0 L608.2 419.9 L616.3 419.7 L624.3 419.2 L632.0 418.6 L639.5 417.8 L646.6 416.9 L653.2 415.8 L659.5 414.6 L665.2 413.2 L670.3 411.8 L674.9 410.2 L678.9 408.6 L682.3 407.0 L685.0 405.3 L687.2 403.5 L688.7 401.8 L689.7 400.0 L690.0 398.2 L689.8 396.5 L689.0 394.8 L675.0 372.0" fill="none" stroke="rgba(244,241,234,.2)" strokeWidth="3" strokeLinejoin="round" />
         </svg>
+        <LivingSofa />
+        <LivingTv />
         <div aria-hidden="true" style={{ position: "absolute", width: 420, height: 420, left: "50%", top: -160, marginLeft: -210, borderRadius: "50%", background: "radial-gradient(circle, rgba(255,150,60,.22) 0%, transparent 65%)", pointerEvents: "none" }} />
 
         <div className="ms-board" aria-hidden="true">
@@ -290,5 +298,58 @@ export function MiniSlamShotGame() {
         </button>
       </div>
     </>
+  );
+}
+
+// Muebles del living (decorativos). SVGs aparte del fondo para que no se deformen
+// al estirar el tablero: el sillón apoyado contra la pared a la izquierda y la tele
+// sobre un mueble bajo a la derecha.
+const FURN = { fill: "#221b16", stroke: "rgba(244,241,234,.24)", strokeWidth: 3, strokeLinejoin: "round" as const };
+
+function LivingSofa() {
+  return (
+    <svg className="ms-sofa" viewBox="0 0 420 215" aria-hidden="true">
+      {/* respaldo */}
+      <rect x="44" y="22" width="332" height="104" rx="20" {...FURN} />
+      <path d="M155 30 V118 M265 30 V118" fill="none" stroke="rgba(244,241,234,.12)" strokeWidth="2.5" />
+      {/* almohadón suelto */}
+      <rect x="70" y="58" width="74" height="58" rx="14" transform="rotate(-10 107 87)" fill="#ff5b14" fillOpacity=".55" stroke="rgba(244,241,234,.28)" strokeWidth="2.5" />
+      {/* asiento */}
+      <rect x="34" y="112" width="352" height="62" rx="14" {...FURN} />
+      <path d="M152 118 V170 M268 118 V170" fill="none" stroke="rgba(244,241,234,.14)" strokeWidth="2.5" />
+      {/* apoyabrazos */}
+      <rect x="2" y="72" width="62" height="112" rx="22" {...FURN} />
+      <rect x="356" y="72" width="62" height="112" rx="22" {...FURN} />
+      {/* patas */}
+      <path d="M34 184 L28 210 M386 184 L392 210 M150 176 V206 M270 176 V206" fill="none" stroke="rgba(244,241,234,.26)" strokeWidth="5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function LivingTv() {
+  return (
+    <svg className="ms-tv" viewBox="0 0 380 265" aria-hidden="true">
+      <defs>
+        <radialGradient id="ms-tv-glow" cx="50%" cy="45%" r="60%">
+          <stop offset="0%" stopColor="#ff8a3d" stopOpacity=".55" />
+          <stop offset="100%" stopColor="#ff5b14" stopOpacity=".05" />
+        </radialGradient>
+      </defs>
+      {/* tele */}
+      <rect x="28" y="4" width="324" height="186" rx="10" fill="#0d0b0a" stroke="rgba(244,241,234,.3)" strokeWidth="4" />
+      <rect className="ms-tv-screen" x="40" y="16" width="300" height="162" rx="4" fill="url(#ms-tv-glow)" />
+      {/* partido en la pantalla: líneas de cancha */}
+      <path d="M190 16 V178 M40 150 H340" fill="none" stroke="rgba(255,236,220,.35)" strokeWidth="2" />
+      <circle cx="190" cy="97" r="22" fill="none" stroke="rgba(255,236,220,.35)" strokeWidth="2" />
+      <circle cx="150" cy="80" r="5" fill="rgba(255,236,220,.7)" />
+      <circle cx="232" cy="112" r="5" fill="rgba(255,236,220,.7)" />
+      {/* pie */}
+      <path d="M175 190 L168 206 H212 L205 190" fill="#1c1714" stroke="rgba(244,241,234,.24)" strokeWidth="3" strokeLinejoin="round" />
+      {/* mueble bajo */}
+      <rect x="2" y="206" width="376" height="48" rx="6" {...FURN} />
+      <path d="M127 210 V250 M253 210 V250" fill="none" stroke="rgba(244,241,234,.14)" strokeWidth="2.5" />
+      <path d="M100 230 H110 M270 230 H280" fill="none" stroke="rgba(244,241,234,.3)" strokeWidth="3" strokeLinecap="round" />
+      <path d="M14 254 V263 M366 254 V263" fill="none" stroke="rgba(244,241,234,.26)" strokeWidth="5" strokeLinecap="round" />
+    </svg>
   );
 }

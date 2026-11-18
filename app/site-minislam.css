@@ -164,6 +164,12 @@
 /* Juego */
 .ms-court { position: relative; height: 600px; border-radius: 28px; overflow: hidden; background: #16120f; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; }
 .ms-court:active { cursor: grabbing; }
+/* Living del juego: muebles apoyados sobre la línea pared/piso (62% del alto). */
+.ms-sofa, .ms-tv { position: absolute; bottom: calc(38% - 6px); height: auto; pointer-events: none; }
+.ms-sofa { left: max(2.5%, 20px); width: clamp(220px, 24vw, 400px); }
+.ms-tv { right: max(2.5%, 20px); width: clamp(200px, 20vw, 340px); filter: drop-shadow(0 0 40px rgba(255,110,40,.18)); }
+.ms-tv-screen { animation: ms-flicker 5s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .ms-tv-screen { animation: none; } }
 .ms-ball { position: absolute; width: 64px; height: 64px; pointer-events: none; filter: drop-shadow(0 10px 14px rgba(0,0,0,.45)); }
 .ms-ball svg { display: block; width: 100%; height: 100%; }
 .ms-board { position: absolute; left: 50%; top: calc(30% - 150px); width: 250px; height: 165px; transform: translateX(-50%); border: 4px solid var(--ms-paper); border-radius: 8px; background: rgba(244,241,234,.05); pointer-events: none; }
@@ -265,6 +271,8 @@
   .ms-big { font-size: 40px; }
   .ms-manifesto { padding-top: 90px; padding-bottom: 90px; }
   .ms-court { height: 520px; }
+  .ms-sofa { left: -70px; width: 190px; }
+  .ms-tv { right: -60px; width: 170px; }
   .ms-msg { left: 0; right: 0; top: 52%; max-width: none; text-align: center; font-size: 40px; transform-origin: 50% 50%; }
   .ms-ugc { grid-template-columns: repeat(2, minmax(0,1fr)); grid-template-rows: none; height: auto; }
   .ms-ugc > div { aspect-ratio: 1 / 1; }
