@@ -165,21 +165,18 @@ export function MiniSlamHome({ brand }: { brand: BrandType }) {
           </div>
         </div>
         <div className="ms-split-img">
-          {/* Video vertical (cambio de tableros sobre el mismo soporte). Se muestra entero (contain)
-              y detrás va el mismo video ampliado y desenfocado, para llenar el recuadro horizontal
-              sin recortar el aro ni el logo. */}
-          {/* Fondo: el primer cuadro del video, ampliado y desenfocado (imagen fija, no un segundo video). */}
-          <div aria-hidden="true" className="ms-video-blur" style={{ position: "absolute", inset: 0 }}>
-            <Image src="/minislam/tableros-poster.webp" alt="" fill sizes="40vw" style={{ objectFit: "cover" }} />
-          </div>
+          {/* Video vertical (cambio de tableros sobre el mismo soporte). La columna tiene el
+              ancho justo del video (4:5), así no quedan franjas a los costados y el bloque de
+              texto ocupa el resto. */}
           <LazyLoopVideo
             className="ms-split-video"
-            style={{ objectFit: "contain" }}
             src="/minislam/tableros.mp4"
             poster="/minislam/tableros-poster.webp"
             label="Video: se cambian distintos tableros y aros MiniSlam sobre el mismo soporte de pared"
           />
         </div>
+        {/* Relleno a la derecha del video (mismo fondo marrón), para que el video no quede pegado al borde. */}
+        <div className="ms-split-fill" aria-hidden="true" />
       </section>
 
       {/* ── Juego ── */}
