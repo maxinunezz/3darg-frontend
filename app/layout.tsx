@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, JetBrains_Mono, Bebas_Neue } from "next/font/google";
+import localFont from "next/font/local";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -13,22 +13,28 @@ import { FavoritesProvider } from "@/contexts/FavoritesContext";
 
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
-const spaceGrotesk = Space_Grotesk({
+// Tipografías locales (public/fonts/google/), no next/font/google: ver el
+// comentario en lib/brand-fonts.ts (la descarga en cada build hacía fallar deploys).
+const spaceGrotesk = localFont({
+  src: "../public/fonts/google/space-grotesk/space-grotesk-300-700-normal-latin.woff2",
   variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "300 700",
+  display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const jetbrainsMono = localFont({
+  src: "../public/fonts/google/jetbrains-mono/jetbrains-mono-100-800-normal-latin.woff2",
   variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: "100 800",
+  display: "swap",
+  adjustFontFallback: false,
 });
 
-const bebasNeue = Bebas_Neue({
+const bebasNeue = localFont({
+  src: "../public/fonts/google/bebas-neue/bebas-neue-400-normal-latin.woff2",
   variable: "--font-bebas-neue",
-  subsets: ["latin"],
-  weight: ["400"],
+  weight: "400",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
