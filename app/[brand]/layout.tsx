@@ -35,6 +35,14 @@ export async function generateMetadata({
       },
     };
   }
+  // Marca "oculta": activa (se puede entrar por la URL directa) pero con
+  // `show_in_navbar=False` — no se linkea desde 3DARG ni va al sitemap, y
+  // tampoco queremos que Google la indexe hasta que esté lista (ej: MiniSlam
+  // antes de cargar productos). Prender `show_in_navbar` en el admin la publica.
+  const brand = await getBrandBySlug(slug);
+  if (brand && !brand.show_in_navbar) {
+    return { robots: { index: false, follow: false } };
+  }
   return {};
 }
 
