@@ -183,6 +183,14 @@ function DescriptionRichText({ description, brandSlug }: { description: string; 
  * token para aplicar el precio de socio y, en el caso de productos `members_only`
  * accedidos por link directo (donde el SSR anónimo devuelve null), recuperarlo.
  */
+// Diferenciales de MiniSlam que se muestran en cada ficha de la marca (mismos
+// textos que el home: red articulada, impreso en 3D, se cuelga en minutos).
+const MS_PERKS = [
+  { n: "01", t: "Red articulada", d: "Impresa eslabón por eslabón: se mueve como una de cadena cuando la pelota entra." },
+  { n: "02", t: "Impreso en 3D en Argentina", d: "Cada pieza se fabrica a pedido, capa por capa." },
+  { n: "03", t: "Se cuelga en minutos", d: "Soporte de pared incluido, sin herramientas raras." },
+];
+
 export function ProductDetail({ brand, slug, initialProduct }: Props) {
   const { token, loading: authLoading, isAuthenticated } = useAuth();
   const [product, setProduct] = useState<ProductType | null>(initialProduct);
@@ -301,10 +309,13 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
   const goToNextImage = () =>
     setActiveImage((i) => (images.length === 0 ? 0 : (i + 1) % images.length));
 
+  // MiniSlam: misma ficha, con la piel de la marca (ver `.ms-pdp` en app/site-minislam.css).
+  const isMs = brand.slug === "minislam";
+
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12">
+    <div className={`max-w-6xl mx-auto px-4 py-12 ${isMs ? "ms-pdp" : ""}`}>
       {/* Breadcrumb */}
-      <nav className="text-sm text-muted-foreground mb-8 flex gap-2 items-center flex-wrap">
+      <nav className={`text-sm text-muted-foreground mb-8 flex gap-2 items-center flex-wrap ${isMs ? "ms-crumbs" : ""}`}>
         <Link href={`/${brand.slug}`} className="hover:text-foreground transition-colors">
           {brand.name}
         </Link>
@@ -408,14 +419,14 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
           {product.category && (
             <Link
               href={`/${brand.slug}/shop?category=${product.category.slug}`}
-              className="text-sm text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors"
+              className={isMs ? "ms-mono ms-accent hover:opacity-80" : "text-sm text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors"}
             >
               {product.category.name}
             </Link>
           )}
 
           <div className="flex items-center gap-2">
-            <h1 className="text-3xl md:text-4xl font-bold leading-tight">{product.name}</h1>
+            <h1 className={isMs ? "ms-h text-5xl md:text-7xl" : "text-3xl md:text-4xl font-bold leading-tight"}>{product.name}</h1>
             <FavoriteButton product={product} size="md" variant="bare" />
           </div>
 
@@ -439,6 +450,20 @@ export function ProductDetail({ brand, slug, initialProduct }: Props) {
                 setQty(1); // reset simple al cambiar de talle, sin relación a stock
               }}
             />
+          )}
+
+          {isMs && (
+            <ul className="ms-pdp-perks" aria-label="Por qué MiniSlam">
+              {MS_PERKS.map((p) => (
+                <li key={p.t}>
+                  <span className="ms-mono ms-accent">{p.n}</span>
+                  <span>
+                    <b>{p.t}</b>
+                    <span>{p.d}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
           )}
 
           {/* Solo se muestra si el producto quedó deshabilitado a propósito (`is_available=False`) — no es un aviso de stock */}

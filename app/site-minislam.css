@@ -329,3 +329,26 @@
 .ms-cart .ms-h { color: var(--ms-paper); }
 .ms-pay { min-height: 60px; font-size: 18px; text-transform: uppercase; letter-spacing: .06em; }
 .ms-pay:disabled { background: #2a2a2e; color: var(--ms-dim) !important; cursor: not-allowed; transform: none; }
+
+/* ── Tienda MiniSlam (app/[brand]/shop + components/product-card.tsx) ── */
+.ms-shop aside h2 { font-family: var(--ms-mono); font-weight: 500; font-size: 12px !important; letter-spacing: .16em; color: var(--ms-muted); margin-bottom: 14px !important; }
+.ms-shop .lm-cat-link { border-radius: 999px; padding: 10px 18px; border: 1px solid var(--ms-line); font-weight: 600; }
+.ms-shop .lm-cat-link:hover { border-color: var(--ms-paper); background: transparent; }
+.ms-shop .lm-cat-link--active { border-color: var(--ms-accent); color: var(--ms-bg) !important; }
+.ms-card { border-radius: 22px; background: #121214; border-color: var(--ms-line); transition: transform .3s, border-color .3s, box-shadow .3s; }
+.ms-card:hover { border-color: var(--ms-accent); box-shadow: 0 24px 50px -28px rgba(255,91,20,.55); }
+.ms-card h3 { color: var(--ms-paper); font-size: 28px !important; line-height: 1.08 !important; }
+.ms-card-cta { font-family: var(--ms-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--ms-line); white-space: nowrap; transition: background .2s, color .2s, border-color .2s; }
+.ms-card:hover .ms-card-cta { background: var(--ms-accent); border-color: var(--ms-accent); color: var(--ms-bg); }
+
+/* ── Ficha de producto MiniSlam (components/product-detail.tsx) ── */
+.ms-pdp { max-width: 1240px; }
+.ms-crumbs { font-family: var(--ms-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+.ms-pdp .aspect-square.rounded-2xl { border-radius: 28px; border: 1px solid var(--ms-line); }
+.ms-pdp h1.ms-h { color: var(--ms-paper); }
+.ms-pdp-perks { list-style: none; margin: 4px 0 0; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; border: 1px solid var(--ms-line); border-radius: 22px; background: #121214; }
+.ms-pdp-perks li { display: flex; gap: 14px; }
+.ms-pdp-perks li > span:last-child { display: flex; flex-direction: column; gap: 2px; font-size: 14px; line-height: 1.45; color: var(--ms-muted); }
+.ms-pdp-perks b { color: var(--ms-paper); font-size: 15px; }
+.ms-pdp .rounded-xl { border-radius: 18px; }
+.ms-pdp > .max-w-3xl { padding-top: 48px; }
