@@ -53,6 +53,9 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    // 75 = default de Next; 90 se usa en las fotos grandes del home de MiniSlam
+    // (Next 16 rechaza cualquier `quality` que no esté en esta lista).
+    qualities: [75, 90],
     remotePatterns: [
       {
         protocol: 'http',

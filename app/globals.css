@@ -7,6 +7,8 @@
 @import "./site-printgym.css";
 /* Design system Lumy (sub-marca) — scopeado bajo .site-lumy, no afecta a otras marcas */
 @import "./site-lumy.css";
+/* Design system MiniSlam (sub-marca) — scopeado bajo .site-minislam, no afecta a otras marcas */
+@import "./site-minislam.css";
 
 @custom-variant dark (&:is(.dark *));
 

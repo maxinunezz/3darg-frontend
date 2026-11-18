@@ -10,6 +10,7 @@ import { NewsletterForm } from "@/components/newsletter-form";
 import { CommunityAuthCTAs } from "@/components/community-auth-ctas";
 import { PrintGymHome } from "@/components/printgym/printgym-home";
 import { LumyHome } from "@/components/lumy/lumy-home";
+import { MiniSlamHome } from "@/components/minislam/minislam-home";
 import { PendingOrderBanner } from "@/components/pending-order-banner";
 import type { Metadata } from "next";
 
@@ -474,6 +475,15 @@ export default async function BrandPage({
       <>
         <PendingOrderBanner brand={brand.slug} />
         <PrintGymHome brand={brand} featured={featured} allProducts={allProducts} categories={categories} />
+      </>
+    );
+  }
+
+  if (brand.slug === "minislam") {
+    return (
+      <>
+        <PendingOrderBanner brand={brand.slug} />
+        <MiniSlamHome brand={brand} />
       </>
     );
   }
