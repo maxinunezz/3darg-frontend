@@ -19,6 +19,16 @@ export async function generateMetadata({
   };
 }
 
+// Cards propias de MiniSlam (los defaults de abajo están pensados para Lumy:
+// cortantes, Halloween, etc.). Si algún día se carga `about_cases` en el
+// page_config de la marca, eso tiene prioridad sobre esto.
+const MINISLAM_CASES: { emoji: string; problem: string; solution: string; linkLabel?: string; linkTo?: "contact" | "shop" | "wholesales" }[] = [
+  { emoji: "🏀", problem: "¿Querés tu aro con los colores de tu equipo?",                 solution: "Elegís los colores del tablero y del aro, y lo imprimimos a tu medida.", linkLabel: "Contanos tu idea", linkTo: "contact" },
+  { emoji: "🎁", problem: "¿Buscás un regalo distinto para alguien que vive el básquet?", solution: "El kit llega listo para regalar: tablero, aro con red y carro de pelotas.", linkLabel: "Ver el kit", linkTo: "shop" },
+  { emoji: "🏠", problem: "¿No tenés lugar para un aro de verdad?",                       solution: "Es chico, entra en cualquier pared de tu cuarto, oficina o local.", linkLabel: "Ver tienda", linkTo: "shop" },
+  { emoji: "🤝", problem: "¿Tenés un club, un local o un evento?",                        solution: "Hacemos pedidos por cantidad con los colores de tu marca o de tu equipo.", linkLabel: "Mayoristas", linkTo: "wholesales" },
+];
+
 export default async function AboutPage({
   params,
 }: {
@@ -45,12 +55,12 @@ export default async function AboutPage({
 
   // Casos de uso: desde page_config o defaults del brand
   const cases: { emoji: string; problem: string; solution: string; linkLabel?: string; linkTo?: "contact" | "shop" | "wholesales" }[] =
-    cfg.about_cases ?? [
+    cfg.about_cases ?? (slug === "minislam" ? MINISLAM_CASES : [
       { emoji: "💸", problem: "¿Te gustaría conseguir los mejores precios?",                 solution: "Tenemos en cuenta a nuestros clientes emprendedores y mayoristas.", linkLabel: "Mayoristas", linkTo: "wholesales" },
       { emoji: "🎉", problem: "¿Buscás algo especial para una fiesta temática?",             solution: "Tenemos colecciones de temporada: Halloween, Navidad, Pascuas y más.", linkLabel: "Ver tienda", linkTo: "shop" },
       { emoji: "🎁", problem: "¿Querés sorprender con un regalo distinto?",                  solution: "Pedidos personalizados con el diseño que vos elijas.", linkLabel: "Contanos tu idea", linkTo: "contact" },
       { emoji: "🏆", problem: "¿Necesitás cortantes resistentes para uso frecuente?",        solution: "Fabricados en PLA de alta calidad, duran miles de usos sin perder la forma." },
-    ];
+    ]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-primary/15 to-background">

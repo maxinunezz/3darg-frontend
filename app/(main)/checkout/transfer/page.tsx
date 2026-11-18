@@ -119,13 +119,13 @@ function CheckoutTransferContent() {
         {loading ? (
           <>
             <Loader2 className="w-16 h-16 mx-auto animate-spin text-gray-400 mb-6" />
-            <h1 className={`text-2xl font-bold ${ui.mb("mb-2")}`}>Buscando tu pedido…</h1>
+            <h1 className={`text-2xl font-bold ${ui.variant === "minislam" ? "text-[var(--ms-paper)]!" : ""} ${ui.mb("mb-2")}`}>Buscando tu pedido…</h1>
           </>
         ) : !order ? (
           <>
             <XCircle className="w-20 h-20 mx-auto text-red-500 mb-6" />
-            <h1 className={`text-3xl font-bold ${ui.mb("mb-2")}`}>No encontramos este pedido</h1>
-            <p className={`text-gray-600 ${ui.mb("mb-8")}`}>
+            <h1 className={`${ui.titleClassName} ${ui.mb("mb-2")}`}>No encontramos este pedido</h1>
+            <p className={`${ui.mutedTextClassName} ${ui.mb("mb-8")}`}>
               Revisá el link que usaste o volvé a generar el pedido desde el carrito.
             </p>
             <Link href={homeHref} className={ui.linkPrimaryClassName}>

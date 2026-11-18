@@ -102,6 +102,8 @@ export default async function ShopPage({
   if (!brand) notFound();
 
   const isLumy = slug === "lumy";
+  // MiniSlam: misma tienda, con la piel de la marca (ver `.ms-shop` en app/site-minislam.css).
+  const isMs = slug === "minislam";
   const currentPage = Math.max(1, parseInt(page ?? "1", 10) || 1);
   const totalPages = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE));
 
@@ -150,15 +152,20 @@ export default async function ShopPage({
           freeShippingThresholdDomicilio={brand.shipping_config?.free_shipping_threshold_domicilio}
         />
       )}
-      <div className={`mx-auto px-4 pb-12 ${isLumy ? "max-w-[96rem] pt-6" : "max-w-7xl py-12"}`}>
+      <div className={`mx-auto px-4 pb-12 ${isLumy ? "max-w-[96rem] pt-6" : "max-w-7xl py-12"} ${isMs ? "ms-shop" : ""}`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
-          {!isLumy && (
-            <h1 className="text-4xl font-black uppercase tracking-tight">{brand.name}</h1>
+          {isMs ? (
+            <>
+              <p className="ms-mono ms-accent mb-3!">Tienda MiniSlam</p>
+              <h1 className="ms-h text-6xl sm:text-8xl">Armá tu cancha.</h1>
+            </>
+          ) : (
+            !isLumy && <h1 className="text-4xl font-black uppercase tracking-tight">{brand.name}</h1>
           )}
         {brand.short_description && (
-          <p className="text-muted-foreground mt-2 text-lg">{brand.short_description}</p>
+          <p className={`text-muted-foreground mt-2 text-lg ${isMs ? "mt-4! max-w-xl" : ""}`}>{brand.short_description}</p>
         )}
         </div>
         <div className="flex items-center gap-2">

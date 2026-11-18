@@ -57,7 +57,11 @@ async function getBrandProducts(brandSlug: string): Promise<ProductType[]> {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Solo marcas activas: el backend ya omite las apagadas (`is_active=False`),
   // así que una marca no lanzada nunca aparece acá.
-  const brands = flattenBrands(await getBrands());
+  // Además se omiten las marcas "ocultas" (activas pero con `show_in_navbar`
+  // apagado): se puede entrar por URL directa, pero todavía no se publicitan.
+  const brands = flattenBrands(await getBrands()).filter(
+    (b) => b.slug === MAIN_BRAND_SLUG || b.show_in_navbar,
+  );
 
   const entries: MetadataRoute.Sitemap = MAIN_PAGES.map((path) => ({
     url: `${SITE_URL}${path === "/" ? "" : path}`,

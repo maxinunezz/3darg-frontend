@@ -118,19 +118,19 @@ function CheckoutSuccessContent() {
         {loading ? (
           <>
             <Loader2 className="w-16 h-16 mx-auto animate-spin text-gray-400 mb-6" />
-            <h1 className={`text-2xl font-bold ${ui.mb("mb-2")}`}>Confirmando tu pago…</h1>
-            <p className="text-gray-600">Un momento, estamos verificando con MercadoPago.</p>
+            <h1 className={`text-2xl font-bold ${ui.variant === "minislam" ? "text-[var(--ms-paper)]!" : ""} ${ui.mb("mb-2")}`}>Confirmando tu pago…</h1>
+            <p className={ui.mutedTextClassName}>Un momento, estamos verificando con MercadoPago.</p>
           </>
         ) : (
           <>
             {header.icon}
-            <h1 className={`text-3xl font-bold ${ui.mb("mb-2")}`}>{header.title}</h1>
-            <p className={`text-gray-600 ${ui.mb("mb-8")}`}>{header.text}</p>
+            <h1 className={`${ui.titleClassName} ${ui.mb("mb-2")}`}>{header.title}</h1>
+            <p className={`${ui.mutedTextClassName} ${ui.mb("mb-8")}`}>{header.text}</p>
 
             {order && (
-              <div className="border border-gray-200 rounded-2xl p-5 bg-white text-left mb-8 space-y-3">
+              <div className={`border rounded-2xl p-5 text-left mb-8 space-y-3 ${ui.surfaceClassName}`}>
                 <div className="flex justify-between items-center">
-                  <p className="text-xs text-gray-500 font-mono">
+                  <p className={`text-xs font-mono ${ui.subtleTextClassName}`}>
                     #{order.order_id.split("-")[0].toUpperCase()}
                   </p>
                   <span
@@ -146,7 +146,7 @@ function CheckoutSuccessContent() {
                     {order.status_display}
                   </span>
                 </div>
-                <ul className="text-sm text-gray-600 space-y-1 border-t border-gray-200 pt-3">
+                <ul className={`text-sm space-y-1 border-t pt-3 ${ui.mutedTextClassName} ${ui.borderClassName}`}>
                   {order.items.map((item, i) => (
                     <li key={i} className="flex justify-between">
                       <span>
@@ -158,7 +158,7 @@ function CheckoutSuccessContent() {
                     </li>
                   ))}
                 </ul>
-                <div className="border-t border-gray-200 pt-3 flex justify-between font-bold text-black">
+                <div className={`border-t pt-3 flex justify-between font-bold ${ui.borderClassName} ${ui.variant === "default" ? "text-black" : "text-foreground"}`}>
                   <span>{isPaid ? "Total pagado" : "Total"}</span>
                   <span>$ {Number(order.total_amount).toLocaleString("es-AR")}</span>
                 </div>

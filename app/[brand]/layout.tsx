@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
-import { lmDisplay, lmSans, pgDisplay, pgBody, pgMono } from "@/lib/brand-fonts";
+import { lmDisplay, lmSans, pgDisplay, pgBody, pgMono, msDisplay, msSans, msMono } from "@/lib/brand-fonts";
+import { MiniSlamNavbar } from "@/components/minislam/minislam-navbar";
+import { MiniSlamFooter } from "@/components/minislam/minislam-footer";
 import { BrandNavbar } from "@/components/brand-navbar";
 import { BrandFooter } from "@/components/brand-footer";
 import { BrandThemeInjector } from "@/components/brand-theme-injector";
@@ -33,6 +35,14 @@ export async function generateMetadata({
       },
     };
   }
+  // Marca "oculta": activa (se puede entrar por la URL directa) pero con
+  // `show_in_navbar=False` — no se linkea desde 3DARG ni va al sitemap, y
+  // tampoco queremos que Google la indexe hasta que esté lista (ej: MiniSlam
+  // antes de cargar productos). Prender `show_in_navbar` en el admin la publica.
+  const brand = await getBrandBySlug(slug);
+  if (brand && !brand.show_in_navbar) {
+    return { robots: { index: false, follow: false } };
+  }
   return {};
 }
 
@@ -61,6 +71,21 @@ export default async function BrandLayout({
         <PrintGymNavbar brand={brand} />
         <main className="flex-grow">{children}</main>
         <PrintGymFooter brand={brand} />
+        <WhatsappCommunityWidget brand={brand} />
+      </div>
+    );
+  }
+
+  if (brand.slug === "minislam") {
+    return (
+      <div className={`site-minislam min-h-screen flex flex-col ${msDisplay.variable} ${msSans.variable} ${msMono.variable}`}>
+        {/* El theme de la marca sigue alimentando las páginas genéricas (shop, producto, carrito). */}
+        {brand.theme && Object.keys(brand.theme).length > 0 && (
+          <BrandThemeInjector theme={brand.theme} slug={brand.slug} />
+        )}
+        <MiniSlamNavbar brand={brand} />
+        <main className="flex-grow">{children}</main>
+        <MiniSlamFooter brand={brand} />
         <WhatsappCommunityWidget brand={brand} />
       </div>
     );

@@ -84,7 +84,9 @@ export default async function WholesalesPage({
             brand.cart_discount_config.length > 0 ? "sm:items-stretch" : ""
           }`}
         >
-          <div className="grid gap-6">
+          {/* MiniSlam: Mayorista y Emprendedor uno al lado del otro, ocupando
+              todo el ancho (las demás marcas quedan apiladas como siempre). */}
+          <div className={`grid gap-6 ${slug === "minislam" ? "sm:col-span-2 sm:grid-cols-2" : ""}`}>
             <div className="bg-primary/15 border border-primary/20 rounded-2xl p-8 shadow-lg shadow-primary/10">
               <p className="text-sm font-bold uppercase tracking-widest text-accent-foreground mb-3!">
                 Mayorista

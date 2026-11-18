@@ -17,6 +17,35 @@ interface Props {
   brand: BrandType;
 }
 
+// Logo de la marca arriba del form. MiniSlam usa su logo local (el mismo del
+// navbar) en vez de `brand.logo`, para no depender de la imagen cargada en el
+// admin y verse igual que el resto del sitio de la marca.
+const LOCAL_LOGOS: Record<string, string> = {
+  minislam: "/minislam/logo-blanco.png",
+};
+
+function BrandLogo({ brand }: Props) {
+  const local = LOCAL_LOGOS[brand.slug];
+  if (local) {
+    return (
+      <Image src={local} alt={brand.name} width={104} height={50} priority className="mx-auto mb-8! h-14 w-auto" />
+    );
+  }
+  if (brand.logo) {
+    return (
+      <Image
+        src={cloudinaryUrl(resolveMediaUrl(brand.logo), 150)!}
+        alt={brand.name}
+        width={120}
+        height={48}
+        className="mx-auto mb-6 object-contain h-12 w-auto"
+        unoptimized
+      />
+    );
+  }
+  return <p className="text-2xl font-black uppercase tracking-tighter mb-6">{brand.name}</p>;
+}
+
 export function BrandLoginForm({ brand }: Props) {
   const { login } = useAuth();
   const router = useRouter();
@@ -46,18 +75,7 @@ export function BrandLoginForm({ brand }: Props) {
 
         {/* Brand identity */}
         <div className="text-center mb-8">
-          {brand.logo ? (
-            <Image
-              src={cloudinaryUrl(resolveMediaUrl(brand.logo), 150)!}
-              alt={brand.name}
-              width={120}
-              height={48}
-              className="mx-auto mb-6 object-contain h-12 w-auto"
-              unoptimized
-            />
-          ) : (
-            <p className="text-2xl font-black uppercase tracking-tighter mb-6">{brand.name}</p>
-          )}
+          <BrandLogo brand={brand} />
           <h1 className="text-2xl font-bold">Bienvenida</h1>
           <p className="text-muted-foreground mt-2 text-sm">
             ¿No tenés cuenta?{" "}
@@ -127,7 +145,7 @@ export function BrandLoginForm({ brand }: Props) {
           <GoogleLoginButton brandSlug={brand.slug} redirectTo={`/${brand.slug}`} onError={setError} />
         </div>
 
-        <p className="text-center text-xs text-muted-foreground mt-6">
+        <p className="text-center text-xs text-muted-foreground mt-8!">
           <Link href={`/${brand.slug}`} className="hover:text-foreground transition-colors">
             ← Volver a {brand.name}
           </Link>
@@ -170,18 +188,7 @@ export function BrandRegisterForm({ brand }: Props) {
 
         {/* Brand identity */}
         <div className="text-center mb-8">
-          {brand.logo ? (
-            <Image
-              src={cloudinaryUrl(resolveMediaUrl(brand.logo), 150)!}
-              alt={brand.name}
-              width={120}
-              height={48}
-              className="mx-auto mb-6 object-contain h-12 w-auto"
-              unoptimized
-            />
-          ) : (
-            <p className="text-2xl font-black uppercase tracking-tighter mb-6">{brand.name}</p>
-          )}
+          <BrandLogo brand={brand} />
           <h1 className="text-2xl font-bold">Crear cuenta</h1>
           <p className="text-muted-foreground mt-2 text-sm">
             ¿Ya tenés cuenta?{" "}
@@ -269,7 +276,7 @@ export function BrandRegisterForm({ brand }: Props) {
           <GoogleLoginButton brandSlug={brand.slug} redirectTo={`/${brand.slug}`} onError={setError} />
         </div>
 
-        <p className="text-center text-xs text-muted-foreground mt-4">
+        <p className="text-center text-xs text-muted-foreground mt-8!">
           <Link href={`/${brand.slug}`} className="hover:text-foreground transition-colors">
             ← Volver a {brand.name}
           </Link>

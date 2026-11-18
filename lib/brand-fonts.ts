@@ -48,6 +48,31 @@ export const pgBody = localFont({
   display: "swap",
 });
 
+// --- MiniSlam ---
+// Display condensada (Anton) + texto (Geist) + mono (JetBrains Mono), todas
+// ya presentes en public/fonts/google/ — consumidas por app/site-minislam.css.
+export const msDisplay = localFont({
+  src: "../public/fonts/google/anton/anton-400-normal-latin.woff2",
+  variable: "--font-ms-display",
+  weight: "400",
+  display: "swap",
+});
+
+export const msSans = localFont({
+  src: "../public/fonts/google/geist/geist-100-900-normal-latin.woff2",
+  variable: "--font-ms-sans",
+  weight: "100 900",
+  display: "swap",
+});
+
+export const msMono = localFont({
+  src: "../public/fonts/google/jetbrains-mono/jetbrains-mono-100-800-normal-latin.woff2",
+  variable: "--font-ms-mono",
+  weight: "100 800",
+  display: "swap",
+  adjustFontFallback: false,
+});
+
 export const pgMono = localFont({
   src: "../public/fonts/google/jetbrains-mono/jetbrains-mono-100-800-normal-latin.woff2",
   variable: "--font-pg-mono",

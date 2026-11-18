@@ -11,11 +11,13 @@ import { LumyNavbar } from "@/components/lumy/lumy-navbar";
 import { LumyFooter } from "@/components/lumy/lumy-footer";
 import { PrintGymNavbar } from "@/components/printgym/printgym-navbar";
 import { PrintGymFooter } from "@/components/printgym/printgym-footer";
+import { MiniSlamNavbar } from "@/components/minislam/minislam-navbar";
+import { MiniSlamFooter } from "@/components/minislam/minislam-footer";
 import { WhatsappCommunityWidget } from "@/components/whatsapp-community-widget";
 import { BrandThemeInjector } from "@/components/brand-theme-injector";
 import { useBrand } from "@/lib/useBrand";
 import { BRAND_AWARE_PATHS, ROOT_BRAND_SLUG } from "@/lib/brand-context";
-import { lmDisplay, lmSans, pgDisplay, pgBody, pgMono } from "@/lib/brand-fonts";
+import { lmDisplay, lmSans, pgDisplay, pgBody, pgMono, msDisplay, msSans, msMono } from "@/lib/brand-fonts";
 
 interface MainChromeProps {
   children: ReactNode;
@@ -133,7 +135,19 @@ function MainChromeInner({ children, footerData, footerLogo, brand3darg }: MainC
     );
   }
 
-  // MiniSlam, CyberWeed, o cualquier otra sub-marca ecommerce sin Design System propio.
+  if (brandSlug === "minislam") {
+    // Mismo motivo que Lumy/Print&Gym: `.site-minislam .ms-*` necesita el wrapper.
+    return (
+      <div className={`site-minislam min-h-screen flex flex-col ${msDisplay.variable} ${msSans.variable} ${msMono.variable}`}>
+        <MiniSlamNavbar brand={fetchedBrand} />
+        {children}
+        <MiniSlamFooter brand={fetchedBrand} />
+        <WhatsappCommunityWidget brand={fetchedBrand} />
+      </div>
+    );
+  }
+
+  // CyberWeed, o cualquier otra sub-marca ecommerce sin Design System propio.
   return (
     <>
       {themeInjector}

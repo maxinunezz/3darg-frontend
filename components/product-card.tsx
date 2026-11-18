@@ -15,6 +15,7 @@ interface Props {
 
 export function ProductCard({ product, brandSlug }: Props) {
   const isLumy = brandSlug === "lumy";
+  const isMs = brandSlug === "minislam";
   const categoryLabel = product.category
     ? product.category.parent_name
       ? `${product.category.parent_name} - ${product.category.name}`
@@ -22,7 +23,7 @@ export function ProductCard({ product, brandSlug }: Props) {
     : null;
 
   return (
-    <div className="group border border-border rounded-2xl overflow-hidden hover:shadow-lg transition-all hover:-translate-y-0.5 bg-card relative">
+    <div className={`group border border-border rounded-2xl overflow-hidden hover:shadow-lg transition-all hover:-translate-y-0.5 bg-card relative ${isMs ? "ms-card" : ""}`}>
       {/* Favorite button — top right, absolute over image */}
       <div className="absolute top-2 right-2 z-10">
         <FavoriteButton product={product} />
@@ -59,10 +60,10 @@ export function ProductCard({ product, brandSlug }: Props) {
             </div>
           )}
         </div>
-        <div className={isLumy ? "p-5" : "p-4"}>
+        <div className={isLumy || isMs ? "p-5" : "p-4"}>
           <h3
-            className={`font-semibold leading-snug line-clamp-2 ${
-              isLumy ? "text-2xl text-center" : "text-lg"
+            className={`leading-snug line-clamp-2 ${
+              isMs ? "ms-h text-3xl" : isLumy ? "font-semibold text-2xl text-center" : "font-semibold text-lg"
             }`}
           >
             {product.name}
@@ -78,6 +79,14 @@ export function ProductCard({ product, brandSlug }: Props) {
                 </span>
               )}
             </div>
+          ) : isMs ? (
+            <>
+              {product.category && <p className="ms-mono ms-muted mt-2!">{product.category.name}</p>}
+              <div className="mt-4 flex items-end justify-between gap-3">
+                <ProductPrice product={product} size="md" />
+                <span className="ms-card-cta">Ver →</span>
+              </div>
+            </>
           ) : (
             <>
               {product.category && (

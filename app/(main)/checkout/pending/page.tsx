@@ -40,11 +40,11 @@ function CheckoutPendingContent() {
       )}
       <div className="max-w-xl mx-auto px-4 py-24 text-center">
         <Clock className="w-20 h-20 mx-auto text-yellow-500 mb-6" />
-        <h1 className={`text-3xl font-bold ${ui.mb("mb-2")}`}>Pago pendiente</h1>
-        <p className={`text-gray-600 ${ui.mb("mb-4")}`}>
+        <h1 className={`${ui.titleClassName} ${ui.mb("mb-2")}`}>Pago pendiente</h1>
+        <p className={`${ui.mutedTextClassName} ${ui.mb("mb-4")}`}>
           Tu pago está siendo procesado. Esto puede demorar unos minutos.
         </p>
-        <p className={`text-sm text-gray-600 ${ui.mb("mb-8")}`}>
+        <p className={`text-sm ${ui.mutedTextClassName} ${ui.mb("mb-8")}`}>
           Te notificaremos por email cuando se confirme. También podés verificar el estado en{" "}
           <Link href={myOrderHref} className="underline underline-offset-4 hover:no-underline">
             tus pedidos

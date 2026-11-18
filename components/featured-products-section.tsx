@@ -129,6 +129,8 @@ export async function FeaturedProductsSection({ brand }: { brand: BrandType }) {
               className={
                 isLumy
                   ? "lm-btn lm-btn--primary lm-btn--lg group"
+                  : slug === "minislam"
+                  ? "ms-btn ms-btn-accent group"
                   : "inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-full font-bold hover:opacity-90 transition-opacity group"
               }
             >
