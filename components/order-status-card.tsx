@@ -169,11 +169,14 @@ export function OrderStatusCard({
   // hardcodeados `text-black` solo tenían sentido para 3DARG; en las demás
   // marcas tienen que seguir el color de texto theme-aware de esa marca.
   const strongTextClassName = ui.variant === "default" ? "text-black" : "text-foreground";
+  // MiniSlam: fondo oscuro — el título y la caja "Monto a transferir" (pensados
+  // para fondo claro) necesitan sus propios colores para leerse.
+  const isMs = ui.variant === "minislam";
 
   return (
     <>
       {header.icon}
-      <h1 className={`text-3xl font-bold ${ui.mb("mb-2")}`}>{header.title}</h1>
+      <h1 className={`${isMs ? "ms-h text-5xl sm:text-6xl text-[var(--ms-paper)]!" : "text-3xl font-bold"} ${isMs ? "mb-4!" : ui.mb("mb-2")}`}>{header.title}</h1>
       <p className={`${ui.mutedTextClassName} ${ui.mb("mb-8")}`}>{header.text}</p>
 
       {/* Estado de envío de Correo Argentino — solo para pedidos ya
@@ -186,7 +189,7 @@ export function OrderStatusCard({
           alerta) — a propósito NO se tiñen por marca, a diferencia de las
           superficies neutras que sí usan `ui.surfaceClassName`. */}
       {order.status === "PAID" && order.shipping_status && (
-        <div className="border border-green-200 bg-green-50 rounded-2xl p-5 text-left mb-6 flex items-start gap-3">
+        <div className={`border rounded-2xl p-5 text-left mb-6 flex items-start gap-3 ${isMs ? "border-green-500/50 bg-green-500/10" : "border-green-200 bg-green-50"}`}>
           <Truck className="w-6 h-6 text-green-600 shrink-0 mt-0.5" />
           <div>
             <p className={`text-xs ${ui.subtleTextClassName} mb-1`}>Estado del envío</p>
@@ -221,9 +224,9 @@ export function OrderStatusCard({
       )}
 
       {isPendingTransfer && (
-        <div className="border border-amber-300 bg-amber-50 rounded-2xl p-5 text-left mb-8">
-          <p className="text-sm text-gray-600 mb-1">Monto a transferir</p>
-          <p className="text-3xl font-bold mb-3 text-black">
+        <div className={`border rounded-2xl p-5 text-left mb-8 ${isMs ? "border-[var(--ms-accent)] bg-[#1f140d]" : "border-amber-300 bg-amber-50"}`}>
+          <p className={`text-sm mb-1 ${isMs ? "ms-muted" : "text-gray-600"}`}>Monto a transferir</p>
+          <p className={`text-3xl font-bold mb-3 ${isMs ? "text-[var(--ms-paper)]!" : "text-black"}`}>
             $ {Number(order.total_amount).toLocaleString("es-AR")}
           </p>
           <CopyField
@@ -234,11 +237,11 @@ export function OrderStatusCard({
           {/* El mismo código sirve después para encontrar el pedido sin cuenta
               en /my-order (ver OrderLookupAPIView) — se aclara acá para que
               el comprador lo guarde a propósito, no solo para la transferencia. */}
-          <p className="text-xs text-gray-600 -mt-1 mb-3">
+          <p className={`text-xs -mt-1 mb-3 ${isMs ? "ms-muted" : "text-gray-600"}`}>
             Guardalo: también lo vas a necesitar más adelante para buscar tu pedido en «Mi pedido».
           </p>
           {deadline && (
-            <p className="text-sm text-amber-700">
+            <p className={`text-sm ${isMs ? "text-[#ffb27a]" : "text-amber-700"}`}>
               Tenés hasta el{" "}
               <strong>
                 {deadline.toLocaleDateString("es-AR")} a las{" "}
