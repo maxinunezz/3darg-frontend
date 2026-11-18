@@ -286,16 +286,30 @@ export function MiniSlamShotGame() {
 
         {phase !== "through" && <Ball x={bx} y={by} scale={bScale} rot={bRot} />}
 
-        {idle && <p className="ms-hint ms-mono">↑ Deslizá para tirar</p>}
+        {idle && <p className="ms-hint ms-mono">↑ Arrastrá la pelota al aro</p>}
         {msg && (
           <p key={msg.key} className="ms-msg ms-h" role="status" style={{ color: msg.good ? "var(--ms-accent)" : "var(--ms-paper)" }}>
             {msg.text}
           </p>
         )}
 
-        <button type="button" className="ms-auto" onClick={autoShot}>
-          Tirar sin deslizar
-        </button>
+        {/* Zona de agarre alrededor de la pelota: solo un gesto que EMPIEZA acá es un
+            tiro (touch-action: none). En el resto del tablero el dedo hace scroll
+            normal (touch-action: pan-y en .ms-court), así en celular no queda
+            "atrapado" al bajar la página. Con teclado: Enter/Espacio tira. */}
+        <div
+          className="ms-grab"
+          role="button"
+          tabIndex={0}
+          aria-label="Tirar la pelota"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              autoShot();
+            }
+          }}
+          style={{ top: `${BALL_Y * 100}%` }}
+        />
       </div>
     </>
   );

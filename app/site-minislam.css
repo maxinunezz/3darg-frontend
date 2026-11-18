@@ -164,8 +164,12 @@
 .ms-pieces li:last-child { border-bottom: 0; padding-bottom: 0; }
 
 /* Juego */
-.ms-court { position: relative; height: 600px; border-radius: 28px; overflow: hidden; background: #16120f; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; }
+.ms-court { position: relative; height: 600px; border-radius: 28px; overflow: hidden; background: #16120f; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.ms-grab { cursor: grab; }
 .ms-court:active { cursor: grabbing; }
+/* Mismo radio (90px) que el chequeo de onPointerDown: solo acá arranca un tiro. */
+.ms-grab { position: absolute; left: 50%; width: 180px; height: 180px; margin: -90px 0 0 -90px; border-radius: 50%; touch-action: none; z-index: 2; outline: none; }
+.ms-grab:focus-visible { box-shadow: 0 0 0 3px var(--ms-accent); }
 /* Living del juego: muebles apoyados sobre la línea pared/piso (62% del alto). */
 .ms-sofa, .ms-tv { position: absolute; bottom: calc(38% - 6px); height: auto; pointer-events: none; }
 .ms-sofa { left: max(2.5%, 20px); width: clamp(220px, 24vw, 400px); }
@@ -194,10 +198,9 @@
   animation: ms-pop .35s cubic-bezier(.2,.9,.3,1.3);
 }
 @keyframes ms-pop { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
-.ms-hint { position: absolute; left: 50%; top: calc(86% - 92px); transform: translateX(-50%); pointer-events: none; font-size: 12px; animation: ms-nudge 1.4s ease-in-out infinite; }
+.ms-hint { position: absolute; left: 50%; top: calc(86% - 92px); transform: translateX(-50%); pointer-events: none; font-size: 12px; white-space: nowrap; animation: ms-nudge 1.4s ease-in-out infinite; }
 @keyframes ms-nudge { 0%,100% { transform: translate(-50%,0); opacity: .55; } 50% { transform: translate(-50%,-10px); opacity: 1; } }
 .ms-chip { padding: 8px 12px; border-radius: 999px; background: rgba(244,241,234,.08); }
-.ms-auto { position: absolute; right: 20px; bottom: 20px; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(244,241,234,.35); background: rgba(11,11,12,.6); color: var(--ms-paper); font-size: 14px; font-weight: 600; cursor: pointer; }
 
 /* Comunidad */
 /* Desktop: la foto grande ocupa 2×2 y las cuatro chicas reparten su alto en dos filas parejas. */
