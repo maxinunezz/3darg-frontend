@@ -318,7 +318,7 @@ export default async function Home() {
               <a href="https://instagram.com/3darg" target="_blank" rel="noopener noreferrer" className={buttonClass("outline", "md")}>
                 <Instagram size={16} strokeWidth={1.5} /> {ENSEÑANZA.cta_instagram}
               </a>
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className={buttonClass("outline", "md")}>
+              <a href="https://www.youtube.com/@3DARG1" target="_blank" rel="noopener noreferrer" className={buttonClass("outline", "md")}>
                 <Youtube size={16} strokeWidth={1.5} /> {ENSEÑANZA.cta_youtube}
               </a>
             </div>
