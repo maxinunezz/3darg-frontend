@@ -27,7 +27,7 @@ const FOOTER_FALLBACK: FooterData = {
   description: "Impresión 3D personalizada en Argentina. Diseños únicos para cada necesidad.",
   email: "contacto@3darg.com",
   instagram_url: "https://instagram.com/3darg",
-  whatsapp_url: "https://wa.me/5491100000000",
+  whatsapp_url: "https://wa.me/5493518056553",
   made_in: "Hecho en Argentina",
 };
 
